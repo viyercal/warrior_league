@@ -115,9 +115,9 @@ export default class HubScene {
     ])
 
     this.plates = this.channels.map(ch => {
-      const plate = hud.el('div', `hub-plate${ch.def.locked ? ' locked' : ''}`)
+      const plate = hud.el('div', 'hub-plate')
       plate.style.setProperty('--acc', ch.def.accent)
-      plate.innerHTML = `<div class="hub-plate-title">${ch.def.locked ? '🔒 ' : ''}${ch.def.title}</div>
+      plate.innerHTML = `<div class="hub-plate-title">${ch.def.title}</div>
         <div class="hub-plate-sub">${ch.def.sub}</div>`
       return plate
     })
@@ -159,14 +159,7 @@ export default class HubScene {
 
   _activate(idx) {
     const ch = this.channels[idx]
-    const { audio, engine } = this.ctx
-    if (ch.def.locked) {
-      ch.shake()
-      audio.play('back')
-      engine.shake(0.06, 0.2)
-      this.hud.toast(`${ch.def.title} — LOCKED. COMING SOON!`)
-      return
-    }
+    const { audio } = this.ctx
     audio.play('click')
     audio.play('cast', { delay: 0.05 })
     this.hero.cast()

@@ -42,7 +42,8 @@ for (let li = 0; li < LOADOUTS.length; li++) {
   const before = await page.evaluate(() => ({ pos: { ...window.__scene.hero.group.position } }))
 
   for (let i = 0; i < 4; i++) {
-    await page.keyboard.press(['KeyQ', 'KeyW', 'KeyE', 'KeyR'][i])
+    // KEY RULE: arena is WASD-move — skills are Digit1-4 (W never casts)
+    await page.keyboard.press(['Digit1', 'Digit2', 'Digit3', 'Digit4'][i])
     await page.waitForTimeout(420)
   }
   await page.screenshot({ path: `qa/screens/arena-skills${li + 1}.png` })

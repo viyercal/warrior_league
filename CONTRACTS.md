@@ -22,7 +22,8 @@ allocations in hot loops (reuse Vector3s).
 
 - `npm run dev -- --port <YOUR_PORT> --strictPort` (each agent uses its OWN port, see task).
 - Open `http://localhost:<port>/?scene=<name>&mute=1` — jumps straight into your
-  scene, skips the click gate. Scene names: `hub`, `loadout`, `moba`, `hoops`, `arena`.
+  scene, skips the click gate. Scene names: `hub`, `loadout`, `moba`, `hoops`, `arena`,
+  `kart`, `brawl`, `siege`.
 - `window.__ipl = { engine, input, audio, sm }` and `window.__scene` (current module)
   are exposed for debugging/QA.
 - Screenshot QA: use playwright-core with `channel: 'chrome'` (installed; Chrome is
@@ -55,7 +56,8 @@ export default class MyScene {
   gameplay (if you must, remove them in dispose()).
 - `audio`: `.play(name, {delay, vol})` — names: click hover back cast dash zap hit
   explode heal shield coin levelup kill tower bounce swish rim buzzer whistle crowd
-  countdown go victory defeat spawn. `.music(theme)` — themes: hub battle court arena.
+  countdown go victory defeat spawn. `.music(theme)` — themes: hub battle court arena
+  race brawl siege.
   Call `.music(...)` once in init(); SceneManager stops music on scene change.
 - `profile`: `{ name, appearance: {primary, secondary, glow, head, hair, trail, cape},
   loadout: [4 skill ids], stats: {wins: {}, plays: {}} }`. Mutate then call
@@ -106,10 +108,16 @@ then calls handle.kill() + vfx.impact), trail(object3d, opts) → {stop()},
 text(pos, str, {color,size}) — damage numbers/announcements, impact(pos,opts),
 shockwave(pos,{color,radius}).
 
-`src/meta/skills.js` — SKILLS (12 defs), getSkill(id), KEY_LABELS, KEY_CODES.
-Each: {id, name, icon, color, cd, archetype, params, desc, inGame:{moba,hoops,arena}}.
+`src/meta/skills.js` — SKILLS (12 defs), getSkill(id), KEY_LABELS, KEY_CODES,
+WASD_KEY_LABELS, wasdKeyIndex(code).
+Each: {id, name, icon, color, cd, archetype, params, desc,
+inGame:{moba,hoops,arena,kart,brawl,siege}}.
 Archetypes: dash, projectile, slowfield, nova, buff, shield, heal, summon, pull,
 giant, ghost, meteor.
+KEY RULE: games where W means "move/accelerate" (hoops, arena, kart, siege) bind
+skills via wasdKeyIndex (1-4 primary, Q/E/R aliases) and pass
+`keys: WASD_KEY_LABELS` to abilityBar. Games without a W conflict (moba, brawl)
+use classic KEY_CODES Q/W/E/R.
 
 `src/ui/hud.js` — `new HUD()`: el/panel, abilityBar(skills, {game}) →
 {root, setCooldown(i, frac, secs), flash(i), setActive(i,on)}, bar({label,color}) →
@@ -140,6 +148,9 @@ for PBR sparkle on standard materials.
 - MOBA agent: `src/games/moba/**` + `src/ui/moba.css`
 - Hoops agent: `src/games/hoops/**` + `src/ui/hoops.css`
 - Arena agent: `src/games/arena/**` + `src/ui/arena.css`
+- Kart agent: `src/games/kart/**` + `src/ui/kart.css`
+- Brawl agent: `src/games/brawl/**` + `src/ui/brawl.css`
+- Siege agent: `src/games/siege/**` + `src/ui/siege.css`
 - `src/meta/stubScene.js` is throwaway; ignore it, don't import it.
 
 ## Definition of done (every scene)

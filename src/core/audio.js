@@ -18,6 +18,18 @@ const THEMES = {
     bpm: 142, pad: 'sawtooth', bass: 'sawtooth', arp: 'square', drums: true, arpDiv: 4,
     prog: [[26, 50, 53, 57], [22, 46, 53, 58], [24, 48, 51, 55], [29, 48, 53, 56]],
   },
+  race: {
+    bpm: 152, pad: 'triangle', bass: 'square', arp: 'square', drums: true, arpDiv: 4,
+    prog: [[36, 60, 64, 67], [41, 60, 65, 69], [43, 62, 67, 71], [38, 60, 65, 69]],
+  },
+  brawl: {
+    bpm: 138, pad: 'sawtooth', bass: 'square', arp: 'sawtooth', drums: true, arpDiv: 4,
+    prog: [[33, 57, 60, 64], [29, 53, 60, 65], [31, 55, 59, 62], [28, 52, 55, 59]],
+  },
+  siege: {
+    bpm: 118, pad: 'sawtooth', bass: 'sine', arp: 'triangle', drums: true, arpDiv: 2,
+    prog: [[24, 48, 51, 55], [27, 51, 54, 58], [22, 46, 50, 53], [23, 47, 50, 54]],
+  },
 }
 
 /**

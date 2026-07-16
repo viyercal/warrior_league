@@ -1,0 +1,182 @@
+/* ============ TURBO KART GP HUD ============ */
+
+.kart-pos {
+  position: absolute; top: 16px; right: 28px; z-index: 12;
+  font-family: var(--font-display); font-style: italic; font-weight: 800;
+  color: var(--ink);
+  text-shadow: 0 0 24px rgba(255, 180, 84, 0.6), 0 3px 6px #000;
+}
+.kart-pos b { font-size: 78px; letter-spacing: 0.02em; }
+.kart-pos span { font-size: 30px; color: var(--ink-dim); }
+.kart-pos.kart-pos-lead b { color: var(--gold); text-shadow: 0 0 30px rgba(255, 209, 102, 0.8), 0 3px 6px #000; }
+
+.kart-top {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  text-align: center; z-index: 12;
+}
+.kart-lap {
+  font-family: var(--font-display); font-size: 26px; font-weight: 800; font-style: italic;
+  letter-spacing: 0.22em; color: var(--ink);
+  text-shadow: 0 0 18px rgba(255, 160, 90, 0.55), 0 2px 5px #000;
+}
+.kart-clock {
+  font-family: var(--font-display); font-size: 16px; font-weight: 700;
+  letter-spacing: 0.24em; color: var(--ink-dim); margin-top: 2px;
+  text-shadow: 0 2px 4px #000;
+}
+
+/* bottom-left cluster */
+.kart-cluster { position: absolute; left: 26px; bottom: 30px; z-index: 12; width: 300px; }
+.kart-boost span, .kart-dmg span {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.3em; color: var(--ink-dim);
+}
+.kart-boost-track {
+  height: 18px; margin-top: 3px;
+  background: rgba(8, 6, 18, 0.8);
+  border: 1px solid rgba(125, 249, 255, 0.4);
+  border-radius: 9px; overflow: hidden;
+  box-shadow: 0 0 16px rgba(76, 255, 190, 0.2), inset 0 0 10px rgba(0, 0, 0, 0.7);
+}
+.kart-boost-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #4cffbe, #7df9ff);
+  box-shadow: 0 0 14px #4cffbe;
+  border-radius: 8px;
+  transition: width 0.1s linear;
+}
+.kart-dmg { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+.kart-dmg-track {
+  flex: 1; height: 8px;
+  background: rgba(8, 6, 18, 0.8);
+  border: 1px solid rgba(255, 122, 92, 0.35);
+  border-radius: 4px; overflow: hidden;
+}
+.kart-dmg-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #ffb454, #ff5a3c);
+  border-radius: 4px;
+  transition: width 0.15s;
+}
+.kart-dmg.hot .kart-dmg-fill { animation: kartDmgPulse 0.7s ease-in-out infinite; }
+@keyframes kartDmgPulse { 50% { filter: brightness(1.7); } }
+
+.kart-speed {
+  margin-top: 10px;
+  font-family: var(--font-display); font-size: 44px; font-weight: 800; font-style: italic;
+  color: var(--ink);
+  text-shadow: 0 0 18px rgba(125, 249, 255, 0.5), 0 3px 5px #000;
+}
+.kart-speed i {
+  font-size: 15px; font-style: italic; font-weight: 700;
+  color: var(--ink-dim); margin-left: 6px; letter-spacing: 0.2em;
+}
+
+/* drift tier flash */
+.kart-drift {
+  position: absolute; left: 50%; top: 56%; transform: translateX(-50%) scale(0.6);
+  font-family: var(--font-display); font-size: 46px; font-weight: 800; font-style: italic;
+  letter-spacing: 0.12em; color: #7df9ff;
+  text-shadow: 0 0 26px rgba(125, 249, 255, 0.9), 0 3px 0 rgba(0, 0, 0, 0.5);
+  opacity: 0; pointer-events: none; z-index: 20;
+}
+.kart-drift.on { animation: kartDrift 1s cubic-bezier(0.16, 1.4, 0.4, 1) forwards; }
+.kart-drift.super { color: #ff9440; text-shadow: 0 0 30px rgba(255, 148, 64, 0.95), 0 3px 0 rgba(0, 0, 0, 0.5); }
+@keyframes kartDrift {
+  0% { opacity: 0; transform: translateX(-50%) scale(1.9); }
+  18% { opacity: 1; transform: translateX(-50%) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-26px) scale(0.9); }
+}
+
+/* position change popups */
+.kart-popups { position: absolute; right: 30px; top: 118px; z-index: 14; text-align: right; }
+.kart-popup {
+  font-family: var(--font-display); font-size: 34px; font-weight: 800; font-style: italic;
+  letter-spacing: 0.1em;
+  animation: kartPopup 1.6s ease forwards;
+}
+.kart-popup.up { color: #5cff8a; text-shadow: 0 0 20px rgba(92, 255, 138, 0.8), 0 2px 4px #000; }
+.kart-popup.down { color: #ff5c6e; text-shadow: 0 0 20px rgba(255, 92, 110, 0.8), 0 2px 4px #000; }
+@keyframes kartPopup {
+  0% { opacity: 0; transform: translateX(30px) scale(1.6); }
+  15% { opacity: 1; transform: none; }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-18px); }
+}
+
+/* wrong way */
+.kart-wrongway {
+  position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
+  font-family: var(--font-display); font-size: 58px; font-weight: 800; font-style: italic;
+  letter-spacing: 0.14em; color: #ff5c6e;
+  text-shadow: 0 0 30px rgba(255, 45, 85, 0.9), 0 4px 0 rgba(0, 0, 0, 0.5);
+  opacity: 0; pointer-events: none; z-index: 22;
+}
+.kart-wrongway.on { opacity: 1; animation: kartWrong 0.55s ease-in-out infinite; }
+@keyframes kartWrong { 50% { opacity: 0.35; } }
+
+/* boost speed-lines vignette */
+.kart-speedlines {
+  position: absolute; inset: 0; pointer-events: none; z-index: 8;
+  opacity: 0; transition: opacity 0.25s;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg 9deg, rgba(255, 255, 255, 0.05) 9.5deg 10.5deg, transparent 11deg 20deg),
+    radial-gradient(ellipse at center, transparent 46%, rgba(60, 20, 60, 0.5) 100%);
+  mask-image: radial-gradient(ellipse at center, transparent 38%, #000 78%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 38%, #000 78%);
+}
+.kart-speedlines.on { opacity: 1; }
+
+/* minimap */
+.kart-minimap {
+  position: absolute; right: 22px; bottom: 168px; z-index: 11;
+  background: rgba(10, 8, 22, 0.55);
+  border: 1px solid rgba(255, 180, 110, 0.3);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  padding: 4px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+.kart-minimap canvas { display: block; }
+
+/* finish panel */
+.kart-finish {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 420px; z-index: 34;
+  background: rgba(14, 8, 26, 0.88);
+  border: 1px solid rgba(255, 180, 110, 0.4);
+  border-radius: 18px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 140, 70, 0.15);
+  padding: 22px 26px;
+  animation: kartFinishIn 0.5s cubic-bezier(0.16, 1.3, 0.4, 1);
+}
+@keyframes kartFinishIn {
+  from { opacity: 0; transform: translate(-50%, -44%) scale(0.85); }
+}
+.kart-finish-title {
+  font-family: var(--font-display); font-size: 20px; font-weight: 800; font-style: italic;
+  letter-spacing: 0.3em; text-align: center; color: var(--gold);
+  text-shadow: 0 0 18px rgba(255, 209, 102, 0.5);
+  margin-bottom: 14px;
+}
+.kart-finish-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 7px 12px; margin-top: 4px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  font-family: var(--font-display); font-size: 16px; letter-spacing: 0.08em;
+}
+.kart-finish-row b { width: 44px; font-style: italic; font-size: 18px; color: var(--ink-dim); }
+.kart-finish-row.first b { color: var(--gold); }
+.kart-finish-row .kn { flex: 1; font-weight: 700; color: var(--kc, var(--ink)); text-shadow: 0 0 10px color-mix(in srgb, var(--kc, #fff) 50%, transparent); }
+.kart-finish-row .kt { color: var(--ink-dim); font-size: 14px; }
+.kart-finish-row.you {
+  background: rgba(125, 249, 255, 0.1);
+  border: 1px solid rgba(125, 249, 255, 0.35);
+  box-shadow: 0 0 16px rgba(125, 249, 255, 0.15);
+}
+.kart-finish-btns { display: flex; gap: 12px; justify-content: center; margin-top: 18px; }
+.kart-finish-btns button { font-size: 14px; padding: 11px 22px; }

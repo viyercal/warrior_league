@@ -118,8 +118,6 @@
   text-shadow: 0 0 14px var(--acc), 0 2px 6px rgba(0, 0, 0, 0.9);
 }
 .hub-plate.hot .hub-plate-sub { color: var(--acc); }
-.hub-plate.locked .hub-plate-title { color: #97a2c4; }
-.hub-plate.locked.hot .hub-plate-title { color: #cdd6f0; }
 
 /* ---- entrance animations ---- */
 @keyframes hubFadeDown {

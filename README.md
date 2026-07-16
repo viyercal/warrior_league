@@ -11,6 +11,9 @@ Built with Three.js. **Every asset is procedural** — no models, textures, font
 | **Rift Legends** | League of Legends | Skillshots, blinks, meteors — lane vs an AI champion with minions, towers, gold & levels |
 | **Slam City 2K** | NBA 2K / NBA Jam | Ankle-breaker warps, titan dunks, comet alley-oops in a 1v1 half-court showdown |
 | **Nova Arena** | Horde brawler | Full power fantasy vs 8 waves and a boss on a neon disc in space |
+| **Turbo Kart GP** | Mario Kart | Homing shells, ice slicks, monster-kart mode — 3-lap sunset grand prix with drift boosts vs 5 AI |
+| **Brawl Stadium** | Super Smash Bros | Blink-dodges, gravity combos, comet spikes — damage-% knockback, 3 stocks, blast-zone KOs |
+| **Siege Protocol** | Tower defense | Lane frosts, decoys, orbital strikes — build turrets and hold the citadel through 10 waves |
 
 The same 12-skill catalog (Blink Step, Comet Crash, Gravity Well, Titan Form, Phase Cloak…) is reinterpreted per game — the Hero Forge tooltips tell you what each skill does in each world before you enter.
 
@@ -20,8 +23,8 @@ The same 12-skill catalog (Blink Step, Comet Crash, Gravity Well, Titan Form, Ph
 |---|---|
 | ![Hub](docs/screenshots/hub.png) | ![Hero Forge](docs/screenshots/loadout.png) |
 | ![Rift Legends](docs/screenshots/moba.png) | ![Slam City 2K](docs/screenshots/hoops.png) |
-
-![Nova Arena](docs/screenshots/arena.png)
+| ![Nova Arena](docs/screenshots/arena.png) | ![Turbo Kart GP](docs/screenshots/kart.png) |
+| ![Brawl Stadium](docs/screenshots/brawl.png) | ![Siege Protocol](docs/screenshots/siege.png) |
 
 ## Run it
 
@@ -38,6 +41,9 @@ Jump straight into a scene: `http://localhost:5173/?scene=moba|hoops|arena|hub|l
 - **Rift Legends** — right-click move/attack, QWER skills, B recall, Y camera lock, wheel zoom
 - **Slam City 2K** — WASD move, Shift sprint, hold/release Space to shoot (time the meter!), F steal, double-tap A/D crossover, 1-4 skills
 - **Nova Arena** — WASD move, aim with mouse, hold LMB blaster, 1-4 skills
+- **Turbo Kart GP** — W accelerate, A/D steer, hold Space to drift (release for mini-turbo), Shift spend boost, 1-4 skills
+- **Brawl Stadium** — A/D move, Space jump/air-jump, S fast-fall, J jab, K smash, double-tap A/D dodge, QWER skills
+- **Siege Protocol** — WASD move, hold LMB blaster, F build/upgrade turrets, 1-4 skills
 - **Esc** returns to the hub from anywhere; H toggles help in games
 
 ## Architecture

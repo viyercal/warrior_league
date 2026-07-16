@@ -7,14 +7,15 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 810 } })
 const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
-await page.goto('http://localhost:5181/?scene=hub&mute=1', { waitUntil: 'load' })
+await page.goto(`http://localhost:${process.env.IPL_PORT || '5189'}/?scene=hub&mute=1`, { waitUntil: 'load' })
 await page.waitForTimeout(3500)
+// sibling agents editing src/games/** trigger vite full reloads; re-settle
+await page.waitForFunction(() => window.__scene?.channels?.length === 6, { timeout: 15000 })
 
-// --- 1. all 3 dioramas actually animate (positions change over time) ---
+// --- 1. all 6 dioramas actually animate (positions change over time) ---
 const sample = () => page.evaluate(() => {
-  const chs = window.__scene.channels
   const flat = g => { const out = []; g.traverse(o => out.push(o.position.x, o.position.y, o.position.z)); return out }
-  return [0, 1, 2].map(i => flat(chs[i].stage.group))
+  return window.__scene.channels.map(c => flat(c.stage.group))
 })
 const a = await sample()
 await page.waitForTimeout(400)
@@ -24,7 +25,7 @@ const dioramaMoved = a.map((arr, i) => {
   for (let j = 0; j < arr.length; j++) d = Math.max(d, Math.abs(arr[j] - b[i][j]))
   return +d.toFixed(3)
 })
-console.log('DIORAMA max-deltas (all should be > 0.01):', JSON.stringify(dioramaMoved))
+console.log('DIORAMA max-deltas (all 6 should be > 0.01):', JSON.stringify(dioramaMoved))
 
 // --- 2. idle hero flair: instrument cast/dance, force the timer both ways ---
 await page.evaluate(() => {

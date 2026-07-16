@@ -25,25 +25,27 @@ const goTo = async (name, settle = 3000) => {
 const profile = () => page.evaluate(() => JSON.parse(localStorage.getItem('ipl-profile-v2') || '{}'))
 const bannerText = () => page.evaluate(() =>
   [...document.querySelectorAll('.big-banner .banner-main')].map(e => e.textContent).join('|'))
-// NOTE: in hoops/arena the W key both moves AND casts slot 1 (shared KEY_CODES
-// overlap with WASD) — movement presses may have started cooldowns, so wait for
-// all cds to clear, then assert each slot's cd right after its own keypress.
+// KEY RULE (CONTRACTS.md): games where W = move (hoops, arena, kart, siege) bind
+// skills to Digit1-4 (Q/E/R aliases, W never casts — probe-keys asserts this);
+// classic games (moba, brawl) use Q/W/E/R. Wait for all cds to clear, then
+// assert each slot's cd right after its own keypress.
 const readCds = kind => page.evaluate(k =>
   (k === 'hoops' ? window.__scene.abilities.cds : window.__scene.cds).map(c => +c.toFixed(2)), kind)
-const castQWER = async (kind = 'direct') => {
+const castSkills = async (kind = 'direct', keys = ['q', 'w', 'e', 'r']) => {
   await page.waitForFunction(k =>
     (k === 'hoops' ? window.__scene.abilities.cds : window.__scene.cds).every(c => c < 0.01),
     kind, { timeout: 10000 })
   await page.mouse.move(720, 300)
   const after = []
   for (let i = 0; i < 4; i++) {
-    await page.keyboard.press(['q', 'w', 'e', 'r'][i])
+    await page.keyboard.press(keys[i])
     await page.waitForTimeout(150)
     after.push((await readCds(kind))[i])
     await page.waitForTimeout(300)
   }
   return after
 }
+const DIGITS = ['1', '2', '3', '4']
 
 await page.goto(BASE + '/?scene=hub&mute=1', { waitUntil: 'load' })
 await sceneIs('hub')
@@ -75,7 +77,7 @@ const moved = Math.hypot(p1.x - p0.x, p1.z - p0.z)
 check('moba: right-click move', moved > 2, `moved ${moved.toFixed(1)} units`)
 
 // cast all 4 abilities
-const mobaCds = await castQWER()
+const mobaCds = await castSkills()
 check('moba: all 4 abilities cast', mobaCds.every(c => c > 0), `cds ${JSON.stringify(mobaCds)}`)
 
 // advance until a red minion is near, then right-click attack it
@@ -157,7 +159,7 @@ const snap = await page.evaluate(() => window.__scene.debug.snapshot())
 check('hoops: shot resolved', resolved, `score ${JSON.stringify(snap.score)} ball=${snap.ball}`)
 
 // cast all 4 abilities
-const hoopsCds = await castQWER('hoops')
+const hoopsCds = await castSkills('hoops', DIGITS)
 check('hoops: all 4 abilities cast', hoopsCds.every(c => c > 0), `cds ${JSON.stringify(hoopsCds)}`)
 
 // win (return via RETURN TO HUB button)
@@ -205,7 +207,7 @@ const aMoved = Math.hypot(a1.x - a0.x, a1.z - a0.z)
 check('arena: WASD move', aMoved > 2, `moved ${aMoved.toFixed(1)} units`)
 
 // cast all 4 abilities
-const arenaCds = await castQWER()
+const arenaCds = await castSkills('direct', DIGITS)
 check('arena: all 4 abilities cast', arenaCds.every(c => c > 0), `cds ${JSON.stringify(arenaCds)}`)
 
 // survive the wave start

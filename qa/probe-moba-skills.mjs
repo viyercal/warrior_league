@@ -71,7 +71,11 @@ const b = await page.evaluate(() => {
   const s = window.__scene
   return {
     frostZones: s.frost.length,
-    slowedMinion: s.army.active.some(e => e.alive && e.team === 'red' && e.slowMul < 1),
+    // slowMul is consumed+reset by army.update each frame AFTER updateSkillEffects
+    // sets it, so end-of-frame reads show 1. A unit in z.hit was inside the zone
+    // (chip damage + slow applied the same frames) — that's the stable observable.
+    slowedMinion: s.frost.some(z => z.hit.size > 0) ||
+      s.army.active.some(e => e.alive && e.team === 'red' && e.slowMul < 1),
     buffT: +s.buffT.toFixed(1),
     shield: s.shield ? s.shield.hp : null,
     bubbleVisible: s.bubble.visible,

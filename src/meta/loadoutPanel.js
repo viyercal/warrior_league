@@ -1,6 +1,11 @@
 import { SKILLS, KEY_LABELS } from './skills.js'
 
-export const GAME_TITLES = { moba: 'RIFT LEGENDS', hoops: 'SLAM CITY 2K', arena: 'NOVA ARENA' }
+export const GAME_TITLES = {
+  moba: 'RIFT LEGENDS', hoops: 'SLAM CITY 2K', arena: 'NOVA ARENA',
+  kart: 'TURBO KART GP', brawl: 'BRAWL STADIUM', siege: 'SIEGE PROTOCOL',
+}
+const GAME_ORDER = ['moba', 'hoops', 'arena', 'kart', 'brawl', 'siege']
+const GAME_SHORT = { moba: 'RIFT', hoops: 'SLAM', arena: 'NOVA', kart: 'KART', brawl: 'BRAWL', siege: 'SIEGE' }
 
 const PRIMARY = ['#3fa7ff', '#ff5c6e', '#ff9f43', '#ffd166', '#7dff8a', '#2ee6c8', '#b47dff', '#f4f7ff']
 const GLOWS = ['#7df9ff', '#66ffc2', '#aaff66', '#ffd166', '#ff8a5c', '#ff9de2', '#c58fff', '#ffffff']
@@ -119,11 +124,20 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
 
   const grid = hud.el('div', 'loadout-grid', '', secS)
   const tip = hud.el('div', 'loadout-tip')
+  // 6 games per skill: with a destination game its line gets the full "hot"
+  // row and the other five collapse into a compact dimmed stack; with no
+  // destination (hub customize) all six render as one tight legible list.
   const showTip = (sk, cell) => {
-    const rows = ['moba', 'hoops', 'arena'].map(g => {
-      const cls = game ? (g === game ? 'hot' : 'dim') : ''
-      return `<div class="loadout-tip-game ${cls}"><b>${GAME_TITLES[g]}</b><span>${sk.inGame[g]}</span></div>`
-    }).join('')
+    let rows
+    if (game) {
+      rows = `<div class="loadout-tip-game hot"><b>${GAME_TITLES[game]}</b><span>${sk.inGame[game]}</span></div>` +
+        '<div class="loadout-tip-others">OTHER GAMES</div>' +
+        GAME_ORDER.filter(g => g !== game)
+          .map(g => `<div class="loadout-tip-mini"><b>${GAME_SHORT[g]}</b><span>${sk.inGame[g]}</span></div>`).join('')
+    } else {
+      rows = GAME_ORDER
+        .map(g => `<div class="loadout-tip-mini all"><b>${GAME_SHORT[g]}</b><span>${sk.inGame[g]}</span></div>`).join('')
+    }
     tip.innerHTML =
       `<div class="loadout-tip-head"><span>${sk.icon}</span><b>${sk.name}</b><i>${sk.cd}s CD</i></div>` +
       `<p>${sk.desc}</p><div class="loadout-tip-games">${rows}</div>`

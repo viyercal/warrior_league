@@ -7,7 +7,7 @@ const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 
-await page.goto('http://localhost:5182/?scene=loadout&mute=1', { waitUntil: 'load' })
+await page.goto(`http://localhost:${process.env.IPL_PORT || '5189'}/?scene=loadout&mute=1`, { waitUntil: 'load' })
 await page.waitForTimeout(3800)
 
 const results = {}
@@ -48,8 +48,10 @@ results.heroAppearance = await page.evaluate(() => window.__scene.hero.appearanc
 await page.locator('.loadout-skill').nth(8).hover()
 await page.waitForTimeout(400)
 results.tipVisible = await page.evaluate(() => {
+  // game=null -> all SIX games listed compactly (short labels)
   const t = document.querySelector('.loadout-tip')
-  return t.classList.contains('on') && t.innerText.includes('RIFT LEGENDS') && t.innerText.includes('NOVA ARENA')
+  return t.classList.contains('on') && t.querySelectorAll('.loadout-tip-mini').length === 6
+    && t.innerText.includes('RIFT') && t.innerText.includes('SIEGE')
 })
 await page.screenshot({ path: 'qa/screens/loadout-tooltip.png' })
 

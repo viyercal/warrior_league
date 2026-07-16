@@ -7,7 +7,7 @@ const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 
-await page.goto('http://localhost:5182/?scene=loadout&mute=1', { waitUntil: 'load' })
+await page.goto(`http://localhost:${process.env.IPL_PORT || '5189'}/?scene=loadout&mute=1`, { waitUntil: 'load' })
 await page.waitForTimeout(3800)
 
 const results = {}
@@ -42,7 +42,7 @@ results.goLabel = await page.evaluate(() => document.querySelector('.loadout-go'
 await page.locator('.loadout-skill').nth(2).hover()
 await page.waitForTimeout(400)
 results.tipHot = await page.evaluate(() => document.querySelector('.loadout-tip-game.hot b')?.innerText || null)
-results.tipDimCount = await page.evaluate(() => document.querySelectorAll('.loadout-tip-game.dim').length)
+results.tipMiniCount = await page.evaluate(() => document.querySelectorAll('.loadout-tip-mini').length) // other 5 games, compacted
 await page.screenshot({ path: 'qa/screens/loadout-moba.png' })
 
 // --- ENTER game ---

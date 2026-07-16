@@ -7,7 +7,7 @@ const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 
-await page.goto('http://localhost:5182/?scene=loadout&mute=1', { waitUntil: 'load' })
+await page.goto(`http://localhost:${process.env.IPL_PORT || '5189'}/?scene=loadout&mute=1`, { waitUntil: 'load' })
 await page.waitForTimeout(3800)
 
 const memBefore = await page.evaluate(() => ({ ...window.__ipl.engine.renderer.info.memory }))

@@ -1,5 +1,5 @@
-// Interaction probe: hover tilt/glow, keyboard cycling, locked deny shake,
-// click -> camera dolly -> loadout transition. Zero console errors required.
+// Interaction probe: hover tilt/glow, keyboard cycling across all 6 playable
+// channels, click -> camera dolly -> loadout transition. Zero console errors required.
 import { chromium } from 'playwright-core'
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true })
@@ -7,7 +7,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 810 } })
 const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
-await page.goto('http://localhost:5181/?scene=hub&mute=1', { waitUntil: 'load' })
+await page.goto(`http://localhost:${process.env.IPL_PORT || '5189'}/?scene=hub&mute=1`, { waitUntil: 'load' })
 await page.waitForTimeout(3500)
 
 // --- 1. hover a playable channel (RIFT LEGENDS, idx 0) ---
@@ -22,20 +22,16 @@ const hoverState = await page.evaluate(() => ({
 console.log('HOVER:', JSON.stringify(hoverState))
 await page.screenshot({ path: 'qa/screens/hub-probe-hover.png' })
 
-// --- 2. keyboard cycling + locked channel deny ---
-await page.keyboard.press('Digit5') // TURBO KART GP (locked)
+// --- 2. keyboard focus on a back-row channel (TURBO KART GP, idx 4) ---
+await page.keyboard.press('Digit5')
 await page.waitForTimeout(400)
-await page.keyboard.press('Enter')
-await page.waitForTimeout(180) // mid-shake
-const lockState = await page.evaluate(() => ({
+const backRowState = await page.evaluate(() => ({
   focus: window.__scene.focusIdx,
-  shakeT: window.__scene.channels[4].shakeT.toFixed(2),
+  scale: window.__scene.channels[4].group.scale.x.toFixed(3),
   scene: window.__ipl.sm.currentName,
-  toast: !!document.querySelector('.ui-toast'),
 }))
-console.log('LOCKED:', JSON.stringify(lockState))
-await page.screenshot({ path: 'qa/screens/hub-probe-locked.png' })
-await page.waitForTimeout(900)
+console.log('BACK-ROW FOCUS (focus 4, scale > 1.03, still hub):', JSON.stringify(backRowState))
+await page.screenshot({ path: 'qa/screens/hub-probe-backrow.png' })
 
 // --- 3. arrow-key selection ---
 await page.keyboard.press('ArrowLeft')

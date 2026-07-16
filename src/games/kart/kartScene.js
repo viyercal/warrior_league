@@ -19,8 +19,8 @@ const BASE_MAX = 26
 const KART_R = 1.05
 
 /**
- * TURBO KART GP — sunset-canyon arcade grand prix.
- * W/S throttle, A/D steer, SPACE drift, SHIFT turbo, 1-4 skills, 3 laps vs 5 AI.
+ * WAR CHARIOTS — 3-lap death race across the scorched badlands.
+ * W/S throttle, A/D steer, SPACE drift, SHIFT boost, 1-4 skills, 3 laps vs 5 AI.
  */
 export default class KartScene {
   constructor(ctx) {
@@ -160,11 +160,11 @@ export default class KartScene {
     this.decoy = null
     this.flames = null
 
-    // shield bubble
+    // rune-ward shield bubble
     this.bubble = new THREE.Mesh(
       new THREE.SphereGeometry(1.7, 22, 16),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#8ea9ff').multiplyScalar(1.5), transparent: true, opacity: 0.2,
+        color: new THREE.Color('#ffb84d').multiplyScalar(1.5), transparent: true, opacity: 0.2,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),
     )
@@ -251,13 +251,13 @@ export default class KartScene {
         this.vfx.burst(_v1, { color: def.color, count: 18, speed: 4, size: 0.26, gravity: 3, up: 3 })
         this.vfx.ring(p.group.position, { color: def.color, radius: 2.6, life: 0.5 })
         _v1.y = 2
-        this.vfx.text(_v1, 'REPAIRED!', { color: def.color, size: 0.8 })
+        this.vfx.text(_v1, 'MENDED!', { color: def.color, size: 0.8 })
       },
       summon: def => {
         this._removeDecoy()
         const factory = createKartFactory()
         const ap = this.ctx.profile.appearance
-        const v = factory.buildKart({ primary: ap.primary, secondary: ap.secondary, glow: '#c58fff', driver: 'minion', minionColor: '#c58fff' })
+        const v = factory.buildKart({ primary: ap.primary, secondary: ap.secondary, glow: '#b9d6b2', driver: 'minion', minionColor: '#b9d6b2' })
         v.setGhost(true)
         this.scene.add(v.group)
         this.decoy = { visual: v, group: v.group, sCont: this.player.sCont + 16 / this.track.length, t: def.params.duration }
@@ -339,8 +339,8 @@ export default class KartScene {
     p.shieldOn = false
     this.bubble.visible = false
     _v1.copy(p.group.position).setY(0.9)
-    this.vfx.flash(_v1, { color: '#8ea9ff', size: 2.8, life: 0.25 })
-    this.vfx.burst(_v1, { color: '#8ea9ff', count: 22, speed: 7, size: 0.28 })
+    this.vfx.flash(_v1, { color: '#ffb84d', size: 2.8, life: 0.25 })
+    this.vfx.burst(_v1, { color: '#ffb84d', count: 22, speed: 7, size: 0.28 })
     this.ctx.audio.play('shield', { vol: 0.7 })
     return true
   }
@@ -455,7 +455,7 @@ export default class KartScene {
     if (offroad && this.dustT <= 0 && Math.abs(p.speed) > 5) {
       this.dustT = 0.12
       _v1.copy(p.group.position).setY(0.3)
-      this.vfx.burst(_v1, { color: '#d8a468', count: 5, speed: 2.5, size: 0.3, gravity: 1.5, up: 2 })
+      this.vfx.burst(_v1, { color: '#9c7c5e', count: 5, speed: 2.5, size: 0.3, gravity: 1.5, up: 2 })
     }
     this.dustT -= dt
 
@@ -476,7 +476,7 @@ export default class KartScene {
         this.sparkT -= dt
         if (this.sparkT <= 0) {
           this.sparkT = 0.05
-          const col = p.driftT > 2.2 ? '#ff9440' : p.driftT > 1 ? '#54b9ff' : '#dfe8ff'
+          const col = p.driftT > 2.2 ? '#ff5a26' : p.driftT > 1 ? '#ffb84d' : '#e8dcc4'
           for (const wi of [2, 3]) {
             p.visual.wheelSpins[wi].getWorldPosition(_v1)
             _v1.y = 0.12
@@ -501,7 +501,7 @@ export default class KartScene {
     }
 
     // exhaust flames + smoke while boosting
-    if (this.boosting && !this.flames) this._startFlames('#ffb454')
+    if (this.boosting && !this.flames) this._startFlames('#ff8c3b')
     else if (!this.boosting && this.flames && p.buffT <= 0) this._stopFlames()
     if (this.boosting) {
       this.smokeT -= dt
@@ -509,7 +509,7 @@ export default class KartScene {
         this.smokeT = 0.08
         for (const ex of p.visual.exhausts) {
           ex.getWorldPosition(_v1)
-          this.vfx.burst(_v1, { color: '#b9aa9d', count: 2, speed: 1.4, size: 0.26, life: 0.5, gravity: 2.2, up: 0.8 })
+          this.vfx.burst(_v1, { color: '#7e7268', count: 2, speed: 1.4, size: 0.26, life: 0.5, gravity: 2.2, up: 0.8 })
         }
       }
     }
@@ -534,7 +534,7 @@ export default class KartScene {
     this.ui.driftFlash(tier === 2 ? 'SUPER BOOST!' : 'BOOST!', tier === 2 ? 'super' : '')
     this.ctx.audio.play('dash', { vol: 0.8 })
     _v1.copy(p.group.position).setY(0.5)
-    this.vfx.flash(_v1, { color: tier === 2 ? '#ff9440' : '#54b9ff', size: 2 })
+    this.vfx.flash(_v1, { color: tier === 2 ? '#ff5a26' : '#ffb84d', size: 2 })
   }
 
   _cancelDrift() {
@@ -591,7 +591,7 @@ export default class KartScene {
       if (k.isPlayer) {
         k.speed *= 0.94
         _v2.copy(pos).setY(0.6)
-        this.vfx.flash(_v2, { color: '#ffb454', size: 1.2, life: 0.15 })
+        this.vfx.flash(_v2, { color: '#ffb84d', size: 1.2, life: 0.15 })
       }
     }
 
@@ -670,7 +670,7 @@ export default class KartScene {
           a.kv.x -= nx * imp; a.kv.z -= nz * imp
           b.kv.x += nx * imp; b.kv.z += nz * imp
           _v3.set((pa.x + pb.x) / 2, 0.5, (pa.z + pb.z) / 2)
-          this.vfx.burst(_v3, { color: '#ffd166', count: 8, speed: 4, size: 0.2, life: 0.3 })
+          this.vfx.burst(_v3, { color: '#ffb84d', count: 8, speed: 4, size: 0.2, life: 0.3 })
           if (this.hitSfxT <= 0 && (a.isPlayer || b.isPlayer)) {
             this.hitSfxT = 0.22
             this.ctx.audio.play('hit', { vol: 0.4 })
@@ -688,7 +688,7 @@ export default class KartScene {
           if (other.spinT <= 0) {
             this._spinOut(other, 1.2)
             this.ctx.audio.play('explode', { vol: 0.4 })
-            this.vfx.impact(other.group.position, { color: '#ffb3d9', size: 1 })
+            this.vfx.impact(other.group.position, { color: '#ff7a45', size: 1 })
           }
         } else {
           // ramming a spun-out kart = brief spin + damage
@@ -721,10 +721,10 @@ export default class KartScene {
           k.boostPower = 10
           if (k.isPlayer) {
             this.ctx.audio.play('dash', { vol: 0.9 })
-            this.ui.driftFlash('TURBO!', '')
+            this.ui.driftFlash('RUNE SURGE!', '')
           }
           _v1.copy(k.group.position).setY(0.4)
-          this.vfx.flash(_v1, { color: '#4cffbe', size: 1.8, life: 0.2 })
+          this.vfx.flash(_v1, { color: '#ff8c3b', size: 1.8, life: 0.2 })
         }
       }
     }
@@ -737,7 +737,7 @@ export default class KartScene {
           ring.active = true
           ring.group.visible = true
           ring.group.position.copy(ring.home)
-          this.vfx.flash(ring.home, { color: '#ffd166', size: 1.6, life: 0.25 })
+          this.vfx.flash(ring.home, { color: '#ffb84d', size: 1.6, life: 0.25 })
         }
         continue
       }
@@ -755,9 +755,9 @@ export default class KartScene {
         ring.respawnT = 6
         p.meter = Math.min(100, p.meter + 18)
         this.ctx.audio.play('coin', { vol: 0.7 })
-        this.vfx.burst(ring.group.position, { color: '#ffd166', count: 16, speed: 5, size: 0.24, life: 0.5 })
+        this.vfx.burst(ring.group.position, { color: '#ff8c3b', count: 16, speed: 5, size: 0.24, life: 0.5 })
         _v1.copy(ring.group.position).setY(2.2)
-        this.vfx.text(_v1, '+18', { color: '#ffd166', size: 0.7 })
+        this.vfx.text(_v1, '+18', { color: '#ffb84d', size: 0.7 })
       }
     }
   }
@@ -768,18 +768,18 @@ export default class KartScene {
     if (k.ghostT > 0) return // phased — shell already killed, treat as fizzle
     _v1.copy(k.group.position).setY(0.7)
     if (k.isPlayer && k.giantT > 0) {
-      this.vfx.flash(_v1, { color: '#ffb3d9', size: 1.6, life: 0.2 })
+      this.vfx.flash(_v1, { color: '#ff7a45', size: 1.6, life: 0.2 })
       return
     }
     if (k.isPlayer && this._consumeShield()) return
-    this.vfx.impact(_v1, { color: '#ff5a3c', size: 1.2 })
+    this.vfx.impact(_v1, { color: '#ff5a26', size: 1.2 })
     this.ctx.audio.play('explode', { vol: 0.55 })
     this._spinOut(k, 1.2)
     this._damageKart(k, 0.08)
     if (k.isPlayer) this.ctx.engine.shake(0.4, 0.4)
     if (shell.owner === this.player && !k.isPlayer) {
       _v1.y = 2
-      this.vfx.text(_v1, 'HIT!', { color: '#ffb454', size: 0.9 })
+      this.vfx.text(_v1, 'HIT!', { color: '#ffb84d', size: 0.9 })
     }
   }
 
@@ -788,7 +788,7 @@ export default class KartScene {
     if (k.isPlayer && this._consumeShield()) return
     k.slickT = 1.5
     _v1.copy(k.group.position).setY(0.4)
-    this.vfx.burst(_v1, { color: '#9fd8ff', count: 10, speed: 3, size: 0.22, life: 0.4 })
+    this.vfx.burst(_v1, { color: '#c8552e', count: 10, speed: 3, size: 0.22, life: 0.4 })
     this.ctx.audio.play('bounce', { vol: 0.3 })
   }
 
@@ -813,8 +813,8 @@ export default class KartScene {
     const d = this.decoy
     if (!d) return
     if (withVfx) {
-      this.vfx.flash(d.group.position, { color: '#c58fff', size: 2.2 })
-      this.vfx.burst(d.group.position, { color: '#c58fff', count: 16, speed: 5, size: 0.24 })
+      this.vfx.flash(d.group.position, { color: '#b9d6b2', size: 2.2 })
+      this.vfx.burst(d.group.position, { color: '#b9d6b2', count: 16, speed: 5, size: 0.24 })
     }
     this.scene.remove(d.group)
     disposeObject3D(d.group)
@@ -843,7 +843,7 @@ export default class KartScene {
       if (p.ghostT <= 0) {
         p.visual.setGhost(false)
         _v1.copy(p.group.position).setY(0.9)
-        this.vfx.flash(_v1, { color: '#b8ecff', size: 1.8 })
+        this.vfx.flash(_v1, { color: '#d8d2c0', size: 1.8 })
       }
     }
     if (p.shieldOn) {
@@ -869,7 +869,7 @@ export default class KartScene {
     const lap = Math.floor(Math.max(0, this.player.sCont))
     if (lap !== this._lastLap) {
       if (lap === LAPS - 1 && this._lastLap !== undefined) {
-        this.hud.banner('FINAL LAP!', { color: '#ff9440', duration: 1.6 })
+        this.hud.banner('FINAL LAP!', { color: '#ff5a26', duration: 1.6 })
         this.ctx.audio.play('whistle', { vol: 0.7 })
       } else if (lap > 0 && lap < LAPS) {
         this.ctx.audio.play('go', { vol: 0.4 })
@@ -901,7 +901,7 @@ export default class KartScene {
       if (firer && target) {
         _v1.copy(target.group.position).sub(firer.group.position).setY(0).normalize()
         _v2.copy(firer.group.position).addScaledVector(_v1, 2).setY(0.7)
-        this.items.fireShell({ from: _v2, dir: _v1.clone(), owner: firer, target, homing: false, color: '#ff5a3c', speed: 32 })
+        this.items.fireShell({ from: _v2, dir: _v1.clone(), owner: firer, target, homing: false, color: '#ff5a26', speed: 32 })
       }
     }
   }
@@ -928,19 +928,19 @@ export default class KartScene {
     if (playerPos === 1) {
       profile.stats.wins.kart = (profile.stats.wins.kart || 0) + 1
       audio.play('victory')
-      this.hud.banner('VICTORY!', { color: '#ffd166', sub: 'TURBO KART CHAMPION', duration: 3 })
+      this.hud.banner('VICTORY!', { color: '#ffb84d', sub: 'CHAMPION OF THE WAR CHARIOTS', duration: 3 })
       for (let i = 0; i < 7; i++) {
         this._timeout(() => {
           _v1.copy(this.player.group.position)
           _v1.x += rand(-8, 8); _v1.z += rand(-8, 8); _v1.y = rand(2, 7)
-          this.vfx.burst(_v1, { color: pick(['#ffd166', '#ff9de2', '#7df9ff', '#7dffa8']), count: 26, speed: 7, size: 0.3, life: 0.9 })
+          this.vfx.burst(_v1, { color: pick(['#ffb84d', '#ff8c3b', '#ff5a26', '#e8dcc4']), count: 26, speed: 7, size: 0.3, life: 0.9 })
           this.ctx.audio.play('coin', { vol: 0.35 })
         }, 300 + i * 550)
       }
     } else {
       audio.play(playerPos <= 3 ? 'crowd' : 'defeat', { vol: 0.8 })
       this.hud.banner(`FINISHED ${ordinal(playerPos)}/6`, {
-        color: playerPos <= 3 ? '#7df9ff' : '#ff5c6e', sub: 'BETTER LUCK NEXT LAP', duration: 3,
+        color: playerPos <= 3 ? '#e8dcc4' : '#c23b2e', sub: 'RISE AGAIN, WARRIOR', duration: 3,
       })
     }
     this.ctx.saveProfile()

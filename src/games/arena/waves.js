@@ -1,6 +1,6 @@
 /**
- * NOVA ARENA wave director data: per-wave enemy mixes that shift brutal
- * over time, plus queue building. Wave 5 is the WARDEN NOVA boss wave.
+ * THE PIT wave director data: per-wave enemy mixes that shift brutal
+ * over time, plus queue building. Wave 5 is the PIT WARDEN boss wave.
  */
 export const WAVE_COUNT = 8
 export const BOSS_WAVE = 5

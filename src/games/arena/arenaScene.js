@@ -18,14 +18,14 @@ const HERO_SPEED = 9
 const BLASTER_INTERVAL = 0.16
 
 /**
- * NOVA ARENA — neon cosmic horde-survival brawler.
+ * THE PIT — torchlit horde-survival in a volcanic fighting pit.
  * WASD move, aim with cursor, hold LMB to fire, 1-4 (or Q/E/R) loadout skills.
- * 8 waves; wave 5 is the WARDEN NOVA boss.
+ * 8 waves; wave 5 is the PIT WARDEN boss.
  */
 export default class ArenaScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.88, bloomThreshold: 0.8, bloomRadius: 0.5, vignette: 0.56, saturation: 1.12, grain: 0.03 }
+    this.postOpts = { bloom: 0.85, bloomThreshold: 0.8, bloomRadius: 0.5, vignette: 0.6, saturation: 1.05, grain: 0.045 }
   }
 
   async init() {
@@ -56,11 +56,11 @@ export default class ArenaScene {
     this.aim = new THREE.Vector3(0, 0, 6)
     this.fireT = 0
 
-    // shield bubble (hidden until Aegis)
+    // shield bubble (hidden until Iron Bulwark)
     this.bubble = new THREE.Mesh(
       new THREE.SphereGeometry(1.05, 24, 18),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#8ea9ff').multiplyScalar(1.5), transparent: true, opacity: 0.22,
+        color: new THREE.Color('#9fb4c8').multiplyScalar(1.5), transparent: true, opacity: 0.22,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),
     )
@@ -68,8 +68,8 @@ export default class ArenaScene {
     this.bubble.visible = false
     this.hero.group.add(this.bubble)
 
-    // wall-push feedback sprite
-    this.edgeS = new THREE.Sprite(glowSpriteMaterial('#54e0ff', 0))
+    // wall-push feedback sprite (ember flare off the rock rim)
+    this.edgeS = new THREE.Sprite(glowSpriteMaterial('#ff8c3b', 0))
     this.edgeS.scale.set(7.5, 3, 1)
     this.scene.add(this.edgeS)
 
@@ -90,7 +90,7 @@ export default class ArenaScene {
     this.orbs = []
     this.orbPool = []
     this._orbGeo = new THREE.SphereGeometry(0.2, 12, 10)
-    this._orbMat = glowMaterial('#7dffa8', 2.4)
+    this._orbMat = glowMaterial('#ffb84d', 2.2)
     this._ghostMats = null
     this._buildCasters()
 
@@ -124,19 +124,19 @@ export default class ArenaScene {
     // ---------- HUD ----------
     const hud = this.hud = new HUD()
     this.abilityUi = hud.abilityBar(this.skillDefs, { game: 'arena', keys: WASD_KEY_LABELS })
-    this.hpBar = hud.bar({ label: 'HP', color: '#5cff8a' })
+    this.hpBar = hud.bar({ label: 'HP', color: '#8fae4a' })
     Object.assign(this.hpBar.root.style, { left: '26px', bottom: '34px', width: '300px' })
-    this.waveEl = hud.el('div', 'arena-wave', 'GET READY')
+    this.waveEl = hud.el('div', 'arena-wave', 'STEEL YOURSELF')
     const scoreBox = hud.el('div', 'arena-score', '<span>SCORE</span><b>0</b>')
     this.scoreNum = scoreBox.querySelector('b')
     this.bossBox = hud.el('div', 'arena-boss',
-      '<div class="arena-boss-name">WARDEN NOVA</div><div class="arena-boss-track"><div class="arena-boss-fill"></div></div>')
+      '<div class="arena-boss-name">PIT WARDEN</div><div class="arena-boss-track"><div class="arena-boss-fill"></div></div>')
     this.bossBox.style.display = 'none'
     this.bossFill = this.bossBox.querySelector('.arena-boss-fill')
     this.vgEl = hud.el('div', 'arena-vignette')
     this.lowEl = hud.el('div', 'arena-lowhp')
     this.hintBox = hud.hints([
-      ['WASD', 'Move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Blaster'], ['1-4', 'Skills'], ['H', 'Toggle help'],
+      ['WASD', 'Move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Hurl fire'], ['1-4', 'Skills'], ['H', 'Toggle help'],
     ])
 
     input.onKey((code, down) => {
@@ -149,7 +149,7 @@ export default class ArenaScene {
     audio.music('arena')
     profile.stats.plays.arena = (profile.stats.plays.arena || 0) + 1
     this.ctx.saveProfile()
-    this._timeout(() => { if (!this.over) this.hud.banner('WAVE 1', { color: '#7df9ff', sub: 'SURVIVE THE HORDE' }) }, 650)
+    this._timeout(() => { if (!this.over) this.hud.banner('WAVE 1', { color: '#ffb84d', sub: 'SURVIVE THE HORDE' }) }, 650)
 
     this.debug = {
       win: () => this._victory(),
@@ -252,16 +252,16 @@ export default class ArenaScene {
       this._fireBlaster()
     }
 
-    // titan form scale + stomps
+    // colossus form scale + stomps
     this.heroScale = damp(this.heroScale, this.giantT > 0 ? 1.75 : 1, 9, dt)
     this.hero.group.scale.setScalar(this.heroScale)
     if (this.giantT > 0 && (mx || mz)) {
       this.stompT -= gdt
       if (this.stompT <= 0) {
         this.stompT = 0.42
-        this.vfx.ring(pos, { color: '#ffb3d9', radius: 3, life: 0.4 })
+        this.vfx.ring(pos, { color: '#c9b083', radius: 3, life: 0.4 })
         this.ctx.audio.play('explode', { vol: 0.22 })
-        this._aoeEnemies(pos.x, pos.z, 3, 8, { color: '#ffb3d9', knock: 3.5, hitBoss: false })
+        this._aoeEnemies(pos.x, pos.z, 3, 8, { color: '#c9b083', knock: 3.5, hitBoss: false })
       }
     }
 
@@ -275,7 +275,7 @@ export default class ArenaScene {
     _v3.copy(_v2).sub(from)
     if (_v3.lengthSq() < 0.01) _v3.set(0, 0, 1)
     _v3.normalize()
-    const glow = this.ctx.profile.appearance.glow || '#7df9ff'
+    const glow = this.ctx.profile.appearance.glow || '#ffb84d'
     const h = this.vfx.projectile({ from, dir: _v3, speed: 34, color: glow, size: 0.26, life: 1.05, trail: true })
     this.bolts.push({ h, dmg: this.giantT > 0 ? 12 : 8, r: 0.42, big: null })
     this.hero.cast()
@@ -297,7 +297,7 @@ export default class ArenaScene {
       this.shield.hp -= dmg
       _v1.copy(pos)
       _v1.y = 1.1
-      this.vfx.flash(_v1, { color: '#8ea9ff', size: 2, life: 0.18 })
+      this.vfx.flash(_v1, { color: '#9fb4c8', size: 2, life: 0.18 })
       this.ctx.audio.play('shield', { vol: 0.5 })
       if (this.shield.hp <= 0) this._breakShield()
       this.iFrames = 0.25
@@ -318,7 +318,7 @@ export default class ArenaScene {
     }
     _v1.copy(pos)
     _v1.y = 1
-    this.vfx.burst(_v1, { color: '#ff5c6e', count: 12, speed: 5, size: 0.22 })
+    this.vfx.burst(_v1, { color: '#c23b2e', count: 12, speed: 5, size: 0.22 })
     if (this.hp <= 0) {
       this.hp = 0
       this._defeat()
@@ -336,12 +336,12 @@ export default class ArenaScene {
     this.decoy.hp -= e.def.dmg
     _v1.copy(this.decoy.hero.group.position)
     _v1.y = 1
-    this.vfx.flash(_v1, { color: '#c58fff', size: 1, life: 0.12 })
+    this.vfx.flash(_v1, { color: '#8f86a3', size: 1, life: 0.12 })
   }
 
   // ============================== combat helpers ==============================
 
-  _hitEnemy(e, dmg, { color = '#cfe9ff', size = 0.55, kx = 0, kz = 0 } = {}) {
+  _hitEnemy(e, dmg, { color = '#e8dcc4', size = 0.55, kx = 0, kz = 0 } = {}) {
     if (!e.alive) return
     if (kx || kz) { e.kx += kx; e.kz += kz }
     const killed = this.horde.damage(e, dmg)
@@ -361,14 +361,14 @@ export default class ArenaScene {
     this.kills++
     _v1.copy(pos)
     _v1.y += 1.1
-    this.vfx.text(_v1, '+10', { color: '#ffd166', size: 0.6, life: 0.8 })
+    this.vfx.text(_v1, '+10', { color: '#ffb84d', size: 0.6, life: 0.8 })
     this.streak++
     this.streakT = 4
     if (this.streak === 10) {
-      this.hud.banner('RAMPAGE!', { color: '#ff9440', duration: 1.4, cls: 'arena-streak' })
+      this.hud.banner('RAMPAGE!', { color: '#ff8c3b', duration: 1.4, cls: 'arena-streak' })
       this.ctx.audio.play('kill', { vol: 0.8 })
     } else if (this.streak === 20) {
-      this.hud.banner('UNSTOPPABLE!', { color: '#ff2d55', duration: 1.6, cls: 'arena-streak' })
+      this.hud.banner('END THEM!', { color: '#c23b2e', duration: 1.6, cls: 'arena-streak' })
       this.ctx.audio.play('kill', { vol: 1 })
     }
     if (e.type === 'exploder') this._explode(e)
@@ -379,19 +379,19 @@ export default class ArenaScene {
     if (e.exploded) return
     e.exploded = true
     const p = e.minion.group.position
-    this.vfx.ring(p, { color: '#4ce05f', radius: 3.2, life: 0.4 })
-    this.vfx.burst(p, { color: '#7dffa8', count: 22, speed: 8, size: 0.3 })
+    this.vfx.ring(p, { color: '#ff5a26', radius: 3.2, life: 0.4 })
+    this.vfx.burst(p, { color: '#ff8c3b', count: 22, speed: 8, size: 0.3 })
     _v1.copy(p)
     _v1.y = 0.8
-    this.vfx.flash(_v1, { color: '#4ce05f', size: 3 })
+    this.vfx.flash(_v1, { color: '#ff5a26', size: 3 })
     this.ctx.audio.play('explode', { vol: 0.5 })
     if (!this.over && distXZ(this.hero.group.position, p) < 3) this._damageHero(15, p, { knock: 4 })
     if (this.decoy && distXZ(this.decoy.hero.group.position, p) < 3) this.decoy.hp -= 15
-    this._aoeEnemies(p.x, p.z, 3, 15, { color: '#7dffa8', knock: 3, exclude: e })
+    this._aoeEnemies(p.x, p.z, 3, 15, { color: '#ff8c3b', knock: 3, exclude: e })
     this.horde.kill(e)
   }
 
-  _aoeEnemies(x, z, r, dmg, { color = '#ffd166', knock = 0, exclude = null, hitBoss = true } = {}) {
+  _aoeEnemies(x, z, r, dmg, { color = '#ffb84d', knock = 0, exclude = null, hitBoss = true } = {}) {
     for (const e of this.horde.active) {
       if (!e.alive || e === exclude) continue
       const p = e.minion.group.position
@@ -413,7 +413,7 @@ export default class ArenaScene {
     }
   }
 
-  _hitBoss(dmg, color = '#cfe9ff') {
+  _hitBoss(dmg, color = '#e8dcc4') {
     const boss = this.boss
     if (!boss || !boss.alive) return
     boss.damage(dmg)
@@ -434,7 +434,7 @@ export default class ArenaScene {
     if (!o) {
       const g = new THREE.Group()
       const core = new THREE.Mesh(this._orbGeo, this._orbMat)
-      const halo = new THREE.Sprite(glowSpriteMaterial('#7dffa8', 0.55))
+      const halo = new THREE.Sprite(glowSpriteMaterial('#ffb84d', 0.55))
       halo.scale.setScalar(1.3)
       g.add(core, halo)
       this.scene.add(g)
@@ -464,10 +464,10 @@ export default class ArenaScene {
       if (!this.over && d < 0.9) {
         this.hp = Math.min(100, this.hp + 12)
         this.ctx.audio.play('heal', { vol: 0.5 })
-        this.vfx.burst(p, { color: '#7dffa8', count: 14, speed: 4, size: 0.24 })
+        this.vfx.burst(p, { color: '#ffb84d', count: 14, speed: 4, size: 0.24 })
         _v1.copy(hp)
         _v1.y = 2
-        this.vfx.text(_v1, '+12', { color: '#7dffa8', size: 0.7 })
+        this.vfx.text(_v1, '+12', { color: '#ffb84d', size: 0.7 })
         o.g.visible = false
         this.orbPool.push(o)
         this.orbs.splice(i, 1)
@@ -547,12 +547,12 @@ export default class ArenaScene {
         const g = new THREE.Group()
         const disc = new THREE.Mesh(
           new THREE.CircleGeometry(r, 40),
-          new THREE.MeshBasicMaterial({ color: new THREE.Color('#9fd8ff').multiplyScalar(0.8), transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false }),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color('#c8d2d8').multiplyScalar(0.8), transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false }),
         )
         disc.rotation.x = -Math.PI / 2
         const rim = new THREE.Mesh(
           new THREE.RingGeometry(r - 0.24, r, 48),
-          new THREE.MeshBasicMaterial({ color: new THREE.Color('#cfeaff').multiplyScalar(1.9), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color('#e8eef0').multiplyScalar(1.9), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
         )
         rim.rotation.x = -Math.PI / 2
         rim.position.y = 0.02
@@ -713,7 +713,7 @@ export default class ArenaScene {
         this._ghostMats = null
         _v1.copy(this.hero.group.position)
         _v1.y = 1
-        this.vfx.flash(_v1, { color: '#b8ecff', size: 1.8 })
+        this.vfx.flash(_v1, { color: '#d8d2c2', size: 1.8 })
       }
     }
     if (this.shield) {
@@ -730,7 +730,7 @@ export default class ArenaScene {
     this.bubble.visible = false
     _v1.copy(this.hero.group.position)
     _v1.y = 1
-    this.vfx.burst(_v1, { color: '#8ea9ff', count: 20, speed: 6, size: 0.26 })
+    this.vfx.burst(_v1, { color: '#9fb4c8', count: 20, speed: 6, size: 0.26 })
     this.ctx.audio.play('shield', { vol: 0.4 })
   }
 
@@ -754,7 +754,7 @@ export default class ArenaScene {
         e.slowMul = Math.min(e.slowMul, 1 - z.slow)
         if (!z.hit.has(e)) {
           z.hit.add(e)
-          this._hitEnemy(e, z.dmg, { color: '#9fd8ff' })
+          this._hitEnemy(e, z.dmg, { color: '#c8d2d8' })
         }
       }
     }
@@ -767,7 +767,7 @@ export default class ArenaScene {
       const k = 1 - v.t / v.dur
       v.group.scale.setScalar(0.5 + 0.5 * k)
       if (v.t >= v.dur) {
-        this.vfx.burst(v.group.position, { color: '#7f7fff', count: 20, speed: 7, size: 0.28 })
+        this.vfx.burst(v.group.position, { color: '#a1252c', count: 20, speed: 7, size: 0.28 })
         this.scene.remove(v.group)
         disposeObject3D(v.group)
         this.vortices.splice(i, 1)
@@ -787,7 +787,7 @@ export default class ArenaScene {
         }
         if (!v.hit.has(e)) {
           v.hit.add(e)
-          this._hitEnemy(e, v.dmg, { color: '#9f9fff' })
+          this._hitEnemy(e, v.dmg, { color: '#c23b2e' })
         }
       }
     }
@@ -828,8 +828,8 @@ export default class ArenaScene {
     if (withVfx) {
       _v1.copy(d.hero.group.position)
       _v1.y = 1
-      this.vfx.flash(_v1, { color: '#c58fff', size: 2.4 })
-      this.vfx.burst(_v1, { color: '#c58fff', count: 22, speed: 6, size: 0.28 })
+      this.vfx.flash(_v1, { color: '#8f86a3', size: 2.4 })
+      this.vfx.burst(_v1, { color: '#8f86a3', count: 22, speed: 6, size: 0.28 })
       this.ctx.audio.play('explode', { vol: 0.3 })
     }
     this.scene.remove(d.hero.group)
@@ -863,7 +863,7 @@ export default class ArenaScene {
         this.breakT = 2.5
         const next = this.wave + 1
         this.hud.banner(`WAVE ${next}`, {
-          color: next === BOSS_WAVE ? '#ff2d55' : '#7df9ff',
+          color: next === BOSS_WAVE ? '#c23b2e' : '#ffb84d',
           duration: 1.9,
           sub: next === BOSS_WAVE ? 'THE WARDEN COMES' : '',
         })
@@ -885,7 +885,7 @@ export default class ArenaScene {
     const x = g.x + rand(-1.6, 1.6), z = g.z + rand(-1.6, 1.6)
     this.horde.spawn(type, x, z)
     _v1.set(g.x, 1.4, g.z)
-    this.vfx.flash(_v1, { color: '#c85aff', size: 2.6, life: 0.3 })
+    this.vfx.flash(_v1, { color: '#ff8c3b', size: 2.6, life: 0.3 })
   }
 
   // ============================== boss ==============================
@@ -907,14 +907,14 @@ export default class ArenaScene {
     this.boss.group.position.set(best.x, 0, best.z)
     best.flash = 1
     _v1.set(best.x, 3, best.z)
-    this.vfx.flash(_v1, { color: '#ff2d55', size: 6, life: 0.45 })
+    this.vfx.flash(_v1, { color: '#c23b2e', size: 6, life: 0.45 })
     this.ctx.audio.play('spawn', { vol: 0.9 })
-    this.hud.banner('WARDEN NOVA', { color: '#ff2d55', sub: 'GUARDIAN OF THE ARENA', duration: 2.4 })
+    this.hud.banner('PIT WARDEN', { color: '#c23b2e', sub: 'KEEPER OF THE PIT', duration: 2.4 })
     this.bossBox.style.display = ''
   }
 
   _bossSlam(pos) {
-    this.vfx.shockwave(pos, { color: '#ff2d55', radius: 6 })
+    this.vfx.shockwave(pos, { color: '#c23b2e', radius: 6 })
     this.ctx.engine.shake(0.5, 0.45)
     this.ctx.audio.play('explode', { vol: 0.65 })
     if (!this.over && distXZ(this.hero.group.position, pos) < 6.2) this._damageHero(20, pos, { knock: 7 })
@@ -924,19 +924,19 @@ export default class ArenaScene {
   _bossBurst(p) {
     this.ctx.audio.play('cast', { vol: 0.6 })
     _v1.set(p.x, 3.4, p.z)
-    this.vfx.flash(_v1, { color: '#ff2d55', size: 3.4, life: 0.25 })
+    this.vfx.flash(_v1, { color: '#c23b2e', size: 3.4, life: 0.25 })
     for (let k = 0; k < 8; k++) {
       const a = (k * TAU) / 8 + rand(0.25)
       _v1.set(p.x + Math.cos(a) * 1.6, 1.5, p.z + Math.sin(a) * 1.6)
       _v2.set(Math.cos(a), 0, Math.sin(a))
-      const h = this.vfx.projectile({ from: _v1, dir: _v2, speed: 11.5, color: '#ff2d55', size: 0.5, life: 3.4, trail: false })
+      const h = this.vfx.projectile({ from: _v1, dir: _v2, speed: 11.5, color: '#c23b2e', size: 0.5, life: 3.4, trail: false })
       this.bossBolts.push(h)
     }
   }
 
   _bossSummon(p) {
     this.ctx.audio.play('spawn', { vol: 0.6 })
-    this.vfx.ring(p, { color: '#ff2d55', radius: 4.5, life: 0.5 })
+    this.vfx.ring(p, { color: '#c23b2e', radius: 4.5, life: 0.5 })
     for (let k = 0; k < 4; k++) {
       const a = (k * TAU) / 4
       this.horde.spawn('grunt', p.x + Math.cos(a) * 2.4, p.z + Math.sin(a) * 2.4)
@@ -955,17 +955,17 @@ export default class ArenaScene {
     const pos = boss.group.position.clone()
     _v1.copy(pos)
     _v1.y = 5
-    this.vfx.text(_v1, '+250', { color: '#ffd166', size: 1.7, life: 1.4 })
+    this.vfx.text(_v1, '+250', { color: '#ffb84d', size: 1.7, life: 1.4 })
     this.ctx.audio.play('kill', { vol: 1 })
     const chain = (delay, r, color) => this._timeout(() => {
       this.vfx.shockwave(pos, { color, radius: r })
       this.ctx.engine.shake(0.55, 0.5)
       this.ctx.audio.play('explode', { vol: 0.7 })
     }, delay)
-    chain(0, 6, '#ff2d55')
-    chain(280, 9.5, '#ff9de2')
-    chain(560, 14, '#ffd166')
-    this.hud.banner('WARDEN DOWN', { color: '#ffd166', duration: 2.2 })
+    chain(0, 6, '#c23b2e')
+    chain(280, 9.5, '#ff5a26')
+    chain(560, 14, '#ffb84d')
+    this.hud.banner('WARDEN DOWN', { color: '#ffb84d', duration: 2.2 })
     this._timeout(() => this._removeBoss(), 2600)
   }
 
@@ -1046,7 +1046,7 @@ export default class ArenaScene {
         continue
       }
       if (!this.over && this.iFrames <= 0 && this.ghostT <= 0 && distXZ(h.pos, heroPos) < 0.95) {
-        this.vfx.impact(h.pos, { color: '#ff2d55', size: 0.8 })
+        this.vfx.impact(h.pos, { color: '#c23b2e', size: 0.8 })
         this._damageHero(10, h.pos, { knock: 3 })
         h.kill()
         this.bossBolts.splice(i, 1)
@@ -1072,14 +1072,14 @@ export default class ArenaScene {
     profile.stats.wins.arena = (profile.stats.wins.arena || 0) + 1
     this.ctx.saveProfile()
     this.hud.banner('ARENA CHAMPION', {
-      color: '#ffd166', duration: 0,
+      color: '#ffb84d', duration: 0,
       sub: `SCORE ${this.score} — ${this.kills} KILLS — RETURNING TO HUB`,
     })
     for (let i = 0; i < 6; i++) {
       this._timeout(() => {
         _v1.set(rand(-8, 8), rand(1, 5), rand(-8, 8)).add(this.hero.group.position)
         _v1.y = rand(1, 5)
-        this.vfx.burst(_v1, { color: pick(['#ffd166', '#7df9ff', '#ff9de2']), count: 24, speed: 7, size: 0.3 })
+        this.vfx.burst(_v1, { color: pick(['#ffb84d', '#ff8c3b', '#e8dcc4']), count: 24, speed: 7, size: 0.3 })
         this.ctx.audio.play('coin', { vol: 0.4 })
       }, 500 + i * 700)
     }
@@ -1095,7 +1095,7 @@ export default class ArenaScene {
     this.hero.setMoveSpeed(0)
     this.ctx.audio.play('defeat')
     this.hud.banner('DEFEATED', {
-      color: '#ff5c6e', duration: 0,
+      color: '#c23b2e', duration: 0,
       sub: `WAVE ${this.wave} — SCORE ${this.score}`,
     })
     const panel = this.hud.el('div', 'arena-end ui-interactive')

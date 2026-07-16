@@ -6,11 +6,11 @@ const _tan = new THREE.Vector3()
 const _left = new THREE.Vector3()
 
 export const AI_ROSTER = [
-  { name: 'BLAZE', primary: '#ff4757', secondary: '#5e1220', glow: '#ff8a5c', minion: '#ff7a6e', base: 25.6 },
-  { name: 'VOLT', primary: '#3d6cfa', secondary: '#101c4d', glow: '#7df9ff', minion: '#7db8ff', base: 25.2 },
-  { name: 'JADE', primary: '#2ed573', secondary: '#0d3d24', glow: '#7dffa8', minion: '#8fe8a8', base: 24.8 },
-  { name: 'HEX', primary: '#a55eea', secondary: '#2e1450', glow: '#c58fff', minion: '#c9a2ff', base: 25.0 },
-  { name: 'SOL', primary: '#ffa502', secondary: '#59380a', glow: '#ffd166', minion: '#ffd97a', base: 24.5 },
+  { name: 'RAGNAR', primary: '#a1252c', secondary: '#421316', glow: '#ff6b45', minion: '#c96a55', base: 25.6 },
+  { name: 'KORGATH', primary: '#6b6f78', secondary: '#23262c', glow: '#c9d4e4', minion: '#9aa4b2', base: 25.2 },
+  { name: 'THARGA', primary: '#5a6b2a', secondary: '#232b10', glow: '#b8cf5e', minion: '#a4b86a', base: 24.8 },
+  { name: 'MORDRA', primary: '#4a2a5e', secondary: '#1d1030', glow: '#a878d8', minion: '#9a7ec2', base: 25.0 },
+  { name: 'BRONN', primary: '#b0793a', secondary: '#4a2f12', glow: '#ffb84d', minion: '#d8a86a', base: 24.5 },
 ]
 
 /** Attach AI brain fields to a kart entity. */

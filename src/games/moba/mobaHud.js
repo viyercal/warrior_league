@@ -3,16 +3,16 @@ import { TEAMS, RIVER_ANGLE, LANE_HALF } from './constants.js'
 
 const MAP_W = 116, MAP_H = 52 // world span the minimap covers
 
-/** Builds all RIFT LEGENDS DOM HUD. Returns handles the scene drives each frame. */
+/** Builds all WAR RIFT DOM HUD. Returns handles the scene drives each frame. */
 export function buildMobaHud(g) {
   const hud = new HUD()
   const abilityUi = hud.abilityBar(g.skillDefs, { game: 'moba' })
 
   // ---- bottom-left: level chip + HP / energy ----
   const lvChip = hud.el('div', 'moba-level', '1')
-  const hpBar = hud.bar({ label: 'HP', color: '#5cff8a' })
+  const hpBar = hud.bar({ label: 'HP', color: '#8fc25a' })
   Object.assign(hpBar.root.style, { left: '84px', bottom: '64px', width: '300px' })
-  const enBar = hud.bar({ label: 'ENERGY', color: '#54a8ff' })
+  const enBar = hud.bar({ label: 'ENERGY', color: '#ff8c3b' })
   Object.assign(enBar.root.style, { left: '84px', bottom: '18px', width: '300px' })
 
   // ---- top-center clock / top-right stats ----
@@ -30,7 +30,7 @@ export function buildMobaHud(g) {
   const recallFill = recallEl.querySelector('.moba-recall-fill')
 
   // ---- death overlay ----
-  const deathEl = hud.el('div', 'moba-death', '<div class="moba-death-title">YOU DIED</div><div class="moba-death-count">6</div><div class="moba-death-sub">RESPAWNING</div>')
+  const deathEl = hud.el('div', 'moba-death', '<div class="moba-death-title">YOU HAVE FALLEN</div><div class="moba-death-count">6</div><div class="moba-death-sub">RISING AGAIN</div>')
   const deathCount = deathEl.querySelector('.moba-death-count')
 
   const vgEl = hud.el('div', 'moba-vignette')
@@ -55,22 +55,22 @@ export function buildMobaHud(g) {
   function drawMinimap() {
     const w = canvas.width, h = canvas.height
     mctx.clearRect(0, 0, w, h)
-    // terrain
-    mctx.fillStyle = '#173722'
+    // terrain — mud field, churned lane, dark stream
+    mctx.fillStyle = '#26211a'
     mctx.fillRect(0, 0, w, h)
-    mctx.fillStyle = 'rgba(140,106,70,0.85)'
+    mctx.fillStyle = 'rgba(108,80,54,0.9)'
     mctx.fillRect(px(-56), py(-LANE_HALF), px(56) - px(-56), py(LANE_HALF) - py(-LANE_HALF))
     // river band
     mctx.save()
     mctx.translate(px(0), py(0))
     mctx.rotate(-RIVER_ANGLE)
     const rw = (13 / MAP_W) * w
-    mctx.fillStyle = 'rgba(60,190,220,0.8)'
+    mctx.fillStyle = 'rgba(70,104,90,0.85)'
     mctx.fillRect(-rw / 2, -h, rw, h * 2)
     mctx.restore()
     // structures
     for (const s of g.structures.list) {
-      const c = s.alive ? TEAMS[s.team].color : '#2a2f3c'
+      const c = s.alive ? TEAMS[s.team].color : '#3a352c'
       mctx.fillStyle = c
       const x = px(s.pos.x), y = py(s.pos.z)
       if (s.kind === 'tower') {
@@ -94,15 +94,15 @@ export function buildMobaHud(g) {
     }
     // decoy
     if (g.decoy) {
-      mctx.fillStyle = '#c58fff'
+      mctx.fillStyle = '#8f86a3'
       mctx.beginPath()
       mctx.arc(px(g.decoy.pos.x), py(g.decoy.pos.z), 6, 0, Math.PI * 2)
       mctx.fill()
     }
-    // champions — bright chips with white border
+    // champions — bright chips with bone border
     const chip = (x, z, color) => {
       mctx.fillStyle = color
-      mctx.strokeStyle = '#ffffff'
+      mctx.strokeStyle = '#e8dcc4'
       mctx.lineWidth = 3
       mctx.beginPath()
       mctx.arc(px(x), py(z), 8, 0, Math.PI * 2)
@@ -112,7 +112,7 @@ export function buildMobaHud(g) {
     if (g.enemy.alive) chip(g.enemy.group.position.x, g.enemy.group.position.z, TEAMS.red.color)
     if (!g.playerDead) chip(g.hero.group.position.x, g.hero.group.position.z, TEAMS.blue.color)
     // border
-    mctx.strokeStyle = 'rgba(255,255,255,0.25)'
+    mctx.strokeStyle = 'rgba(216,199,160,0.3)'
     mctx.lineWidth = 2
     mctx.strokeRect(1, 1, w - 2, h - 2)
   }

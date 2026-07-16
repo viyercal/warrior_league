@@ -1,30 +1,30 @@
-# Arcade Games — Immersive Playable League
+# Warrior League — Immortal Warlords League
 
-A browser meta-game: forge **one hero** — your colors, your look, your four abilities — then drop them into full game clones through a Wii-style channel hub. Your hero, your skills, every game.
+A browser meta-game with a dark-fantasy warrior soul: forge **one warlord** — war paint, armor, and four battle arts — then march them into full game clones through a torchlit arena hub. Your warrior, your arts, every battleground.
 
-Built with Three.js. **Every asset is procedural** — no models, textures, fonts, or audio files. Toon + rim-light shaders, HDR bloom, dynamic shadows, procedural VFX, and a WebAudio synth soundtrack, all generated at runtime.
+A themed fork of [arcade_games](https://github.com/viyercal/arcade_games): same engine and mechanics, completely re-imagined art direction — torchlight, stone, bronze, iron, embers, and war banners in place of neon. Built with Three.js; **every asset is procedural** — no models, textures, fonts, or audio files. Toon + rim-light shaders, HDR bloom that reads as firelight, dynamic shadows, procedural VFX, and a war-drum synth soundtrack, all generated at runtime.
 
-## The games
+## The battlegrounds
 
-| Channel | Clone of | What your skills become |
+| Arena | Clone of | What your battle arts become |
 |---|---|---|
-| **Rift Legends** | League of Legends | Skillshots, blinks, meteors — lane vs an AI champion with minions, towers, gold & levels |
-| **Slam City 2K** | NBA 2K / NBA Jam | Ankle-breaker warps, titan dunks, comet alley-oops in a 1v1 half-court showdown |
-| **Nova Arena** | Horde brawler | Full power fantasy vs 8 waves and a boss on a neon disc in space |
-| **Turbo Kart GP** | Mario Kart | Homing shells, ice slicks, monster-kart mode — 3-lap sunset grand prix with drift boosts vs 5 AI |
-| **Brawl Stadium** | Super Smash Bros | Blink-dodges, gravity combos, comet spikes — damage-% knockback, 3 stocks, blast-zone KOs |
-| **Siege Protocol** | Tower defense | Lane frosts, decoys, orbital strikes — build turrets and hold the citadel through 10 waves |
+| **War Rift** | League of Legends | Shadow Steps, Flaming Spears, Skyfall Hammers — lane warfare vs an AI champion with raiders, watchtowers, gold & levels |
+| **Blood Court** | NBA 2K / NBA Jam | Gladiator ball in a torchlit colosseum — colossus dunks and comet alley-oops, first to 11 |
+| **The Pit** | Horde brawler | Full power fantasy vs 8 waves and the Pit Warden in a volcanic fighting pit |
+| **War Chariots** | Mario Kart | Flaming ballista bolts, ice slicks, colossus mode — a 3-lap death race through scorched badlands |
+| **Mortal Arena** | Super Smash Bros | Damage-% knockback over a lava chasm, 3 stocks, blood-red moon — last warrior standing |
+| **Last Bastion** | Tower defense | Build ballista towers and hold the gate through 10 waves and the Siege Colossus |
 
-The same 12-skill catalog (Blink Step, Comet Crash, Gravity Well, Titan Form, Phase Cloak…) is reinterpreted per game — the Hero Forge tooltips tell you what each skill does in each world before you enter.
+The same 12 battle arts (Shadow Step, Flaming Spear, Grave Chill, Earthbreaker, Bloodrush, Iron Bulwark, Warrior's Resolve, Phantom Twin, Chained Harrow, Colossus Form, Wraith Walk, Skyfall Hammer) are reinterpreted per battleground — the War Forge tooltips tell you what each art does in each world before you enter.
 
 ## Screenshots
 
 | | |
 |---|---|
-| ![Hub](docs/screenshots/hub.png) | ![Hero Forge](docs/screenshots/loadout.png) |
-| ![Rift Legends](docs/screenshots/moba.png) | ![Slam City 2K](docs/screenshots/hoops.png) |
-| ![Nova Arena](docs/screenshots/arena.png) | ![Turbo Kart GP](docs/screenshots/kart.png) |
-| ![Brawl Stadium](docs/screenshots/brawl.png) | ![Siege Protocol](docs/screenshots/siege.png) |
+| ![Hub](docs/screenshots/hub.png) | ![War Forge](docs/screenshots/loadout.png) |
+| ![War Rift](docs/screenshots/moba.png) | ![Blood Court](docs/screenshots/hoops.png) |
+| ![The Pit](docs/screenshots/arena.png) | ![War Chariots](docs/screenshots/kart.png) |
+| ![Mortal Arena](docs/screenshots/brawl.png) | ![Last Bastion](docs/screenshots/siege.png) |
 
 ## Run it
 
@@ -33,25 +33,25 @@ npm install
 npm run dev        # → http://localhost:5173
 ```
 
-Jump straight into a scene: `http://localhost:5173/?scene=moba|hoops|arena|hub|loadout` (`&mute=1` for silence).
+Jump straight into a scene: `http://localhost:5173/?scene=moba|hoops|arena|kart|brawl|siege|hub|loadout` (`&mute=1` for silence).
 
 ## Controls
 
-- **Hub** — hover/click a channel, ←/→ + Enter, C to customize
-- **Rift Legends** — right-click move/attack, QWER skills, B recall, Y camera lock, wheel zoom
-- **Slam City 2K** — WASD move, Shift sprint, hold/release Space to shoot (time the meter!), F steal, double-tap A/D crossover, 1-4 skills
-- **Nova Arena** — WASD move, aim with mouse, hold LMB blaster, 1-4 skills
-- **Turbo Kart GP** — W accelerate, A/D steer, hold Space to drift (release for mini-turbo), Shift spend boost, 1-4 skills
-- **Brawl Stadium** — A/D move, Space jump/air-jump, S fast-fall, J jab, K smash, double-tap A/D dodge, QWER skills
-- **Siege Protocol** — WASD move, hold LMB blaster, F build/upgrade turrets, 1-4 skills
+- **Hub** — hover/click an arena, ←/→ + Enter, C for the War Forge
+- **War Rift** — right-click move/attack, QWER arts, B recall, Y camera lock, wheel zoom
+- **Blood Court** — WASD move, Shift sprint, hold/release Space to shoot (time the meter!), F steal, double-tap A/D crossover, 1-4 arts
+- **The Pit** — WASD move, aim with mouse, hold LMB blaster, 1-4 arts
+- **War Chariots** — W accelerate, A/D steer, hold Space to drift (release for mini-turbo), Shift spend boost, 1-4 arts
+- **Mortal Arena** — A/D move, Space jump/air-jump, S fast-fall, J jab, K smash, double-tap A/D dodge, QWER arts
+- **Last Bastion** — WASD move, hold LMB blaster, F build/upgrade ballistae, 1-4 arts
 - **Esc** returns to the hub from anywhere; H toggles help in games
 
 ## Architecture
 
 - `src/core/` — engine (renderer, post chain, loop), input hub, scene router, procedural audio
-- `src/art/` — toon/rim/plasma/water materials, environment kit (skies, crystals, trees), character factory, VFX pool
-- `src/meta/` — hub, hero forge, the universal 12-skill catalog
-- `src/games/` — one folder per game, each a self-contained scene module
+- `src/art/` — toon/rim/plasma materials, environment kit, warrior character factory, VFX pool
+- `src/meta/` — hub, War Forge, the universal 12-art catalog
+- `src/games/` — one folder per battleground, each a self-contained scene module
 - `qa/` — Playwright screenshot + real-input probes used to verify every flow
 
-`CONTRACTS.md` documents the scene-module contract and shared API.
+`CONTRACTS.md` documents the scene-module contract, shared API, and the warrior art direction.

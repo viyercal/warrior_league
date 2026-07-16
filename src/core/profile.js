@@ -6,11 +6,11 @@ export const TRAILS = ['spark', 'ribbon', 'none']
 
 export function defaultProfile() {
   return {
-    name: 'NOVA',
+    name: 'RAVAGER',
     appearance: {
-      primary: '#3fa7ff',
-      secondary: '#232a4d',
-      glow: '#7df9ff',
+      primary: '#b0793a',
+      secondary: '#3a2a20',
+      glow: '#ff8c3b',
       head: 'visor',
       hair: 'spikes',
       trail: 'spark',

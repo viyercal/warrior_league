@@ -33,8 +33,8 @@ await page.screenshot({ path: 'qa/screens/flow-hub.png' })
 // Hub wall order (CHANNEL_DEFS): 0=moba 1=hoops 2=arena 3=siege 4=kart 5=brawl
 const GAMES = [['moba', 0], ['hoops', 1], ['arena', 2], ['siege', 3], ['kart', 4], ['brawl', 5]]
 const GAME_TITLES = {
-  moba: 'RIFT LEGENDS', hoops: 'SLAM CITY 2K', arena: 'NOVA ARENA',
-  kart: 'TURBO KART GP', brawl: 'BRAWL STADIUM', siege: 'SIEGE PROTOCOL',
+  moba: 'WAR RIFT', hoops: 'BLOOD COURT', arena: 'THE PIT',
+  kart: 'WAR CHARIOTS', brawl: 'MORTAL ARENA', siege: 'LAST BASTION',
 }
 for (const [game, idx] of GAMES) {
   const pos = await page.evaluate(i => window.__scene.debug.screenPos(i), idx)
@@ -63,14 +63,14 @@ for (const [game, idx] of GAMES) {
 await page.keyboard.press('KeyC')
 await sceneIs('loadout')
 await page.waitForTimeout(1400)
-// change PRIMARY color to swatch #2 ('#ff5c6e')
+// change PRIMARY color to swatch #2 ('#c23b2e' — blood crimson in the IWL palette)
 await page.locator('.loadout-row', { hasText: 'PRIMARY' }).locator('.loadout-swatch').nth(1).click()
 // select slot Q then equip Frost Ring (grid cell index 2, id 'frostring')
 await page.locator('.loadout-slot').nth(0).click()
 await page.locator('.loadout-skill').nth(2).click()
 await page.waitForTimeout(500)
 const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('ipl-profile-v2')))
-check('loadout: color persisted to ipl-profile-v2', stored?.appearance?.primary === '#ff5c6e', String(stored?.appearance?.primary))
+check('loadout: color persisted to ipl-profile-v2', stored?.appearance?.primary === '#c23b2e', String(stored?.appearance?.primary))
 check('loadout: skill swap persisted to ipl-profile-v2', stored?.loadout?.[0] === 'frostring', JSON.stringify(stored?.loadout))
 await page.screenshot({ path: 'qa/screens/flow-loadout-edit.png' })
 

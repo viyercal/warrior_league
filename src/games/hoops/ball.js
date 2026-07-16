@@ -8,23 +8,44 @@ const _right = new THREE.Vector3()
 const _tmp = new THREE.Vector3()
 
 function ballTexture() {
+  // battle-worn stitched leather
   return canvasTexture(256, 256, (ctx, w, h) => {
     const g = ctx.createRadialGradient(w * 0.38, h * 0.34, 20, w / 2, h / 2, w * 0.72)
-    g.addColorStop(0, '#ff9a4a')
-    g.addColorStop(0.6, '#f07423')
-    g.addColorStop(1, '#c2551a')
+    g.addColorStop(0, '#c07a38')
+    g.addColorStop(0.6, '#95571f')
+    g.addColorStop(1, '#5f3414')
     ctx.fillStyle = g
     ctx.fillRect(0, 0, w, h)
-    ctx.strokeStyle = '#3a1a08'
-    ctx.lineWidth = 5
+    // scuffed patches
+    ctx.globalAlpha = 0.1
+    for (let i = 0; i < 26; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? '#3d2008' : '#d8a862'
+      ctx.beginPath()
+      ctx.ellipse(rand(w), rand(h), rand(8, 26), rand(5, 14), rand(TAU), 0, TAU)
+      ctx.fill()
+    }
+    ctx.globalAlpha = 1
+    const seam = (draw) => {
+      ctx.strokeStyle = '#2a1408'
+      ctx.lineWidth = 6
+      draw()
+      ctx.stroke()
+      // bone-thread cross stitches over the seam
+      ctx.strokeStyle = 'rgba(232,220,196,0.5)'
+      ctx.lineWidth = 2
+      ctx.setLineDash([3, 7])
+      draw()
+      ctx.stroke()
+      ctx.setLineDash([])
+    }
     // vertical + horizontal seams (equirect maps to sphere)
-    ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.stroke()
-    ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke()
+    seam(() => { ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h) })
+    seam(() => { ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2) })
     // curved seams
-    ctx.beginPath(); ctx.ellipse(0, h / 2, w * 0.3, h * 0.42, 0, -Math.PI / 2, Math.PI / 2); ctx.stroke()
-    ctx.beginPath(); ctx.ellipse(w, h / 2, w * 0.3, h * 0.42, 0, Math.PI / 2, Math.PI * 1.5); ctx.stroke()
-    // pebble noise
-    ctx.globalAlpha = 0.05
+    seam(() => { ctx.beginPath(); ctx.ellipse(0, h / 2, w * 0.3, h * 0.42, 0, -Math.PI / 2, Math.PI / 2) })
+    seam(() => { ctx.beginPath(); ctx.ellipse(w, h / 2, w * 0.3, h * 0.42, 0, Math.PI / 2, Math.PI * 1.5) })
+    // grain noise
+    ctx.globalAlpha = 0.06
     ctx.fillStyle = '#000'
     for (let i = 0; i < 500; i++) ctx.fillRect(rand(w), rand(h), 2, 2)
     ctx.globalAlpha = 1
@@ -124,7 +145,7 @@ export class HoopsBall {
     if (!on && this._fireTrail) { this._fireTrail.stop(); this._fireTrail = null }
   }
 
-  setSprintTrail(on, color = '#7df9ff') {
+  setSprintTrail(on, color = '#ffb84d') {
     if (on && !this._sprintTrail) this._sprintTrail = this.env.vfx.trail(this.mesh, { color, size: 0.5, rate: 40, life: 0.3 })
     else if (!on) this._stopSprintTrail()
   }

@@ -14,25 +14,25 @@ const _v2 = new THREE.Vector3()
 
 const AI_ROSTER = [
   {
-    name: 'CRIMSON', color: '#ff4655',
-    appearance: { primary: '#ff4655', secondary: '#33121f', glow: '#ffb056', head: 'classic', hair: 'horns', cape: true },
+    name: 'BLOODFANG', color: '#c23b2e',
+    appearance: { primary: '#a1252c', secondary: '#3a1418', glow: '#ff8c3b', head: 'classic', hair: 'horns', cape: true },
   },
   {
-    name: 'VOLT', color: '#ffb428',
-    appearance: { primary: '#ffb428', secondary: '#274060', glow: '#7dffea', head: 'orb', hair: 'swept', cape: false },
+    name: 'IRONJAW', color: '#9aa3b2',
+    appearance: { primary: '#6b6f78', secondary: '#2c2620', glow: '#ffb84d', head: 'visor', hair: 'none', cape: false },
   },
 ]
 
 /**
- * BRAWL STADIUM — Smash-style free-for-all platform fighter on a floating
- * sky island. 3 stocks each, damage % knockback, last one standing wins.
- * A/D move, SPACE jump (+1 air jump), S fast-fall/drop, J jab combo,
- * K smash, double-tap A/D dodge roll, Q/W/E/R loadout skills.
+ * MORTAL ARENA — Smash-style free-for-all platform duel on an ancient stone
+ * slab over a lava chasm. 3 stocks each, damage % knockback, last warrior
+ * standing wins. A/D move, SPACE jump (+1 air jump), S fast-fall/drop,
+ * J jab combo, K smash, double-tap A/D dodge roll, Q/W/E/R loadout skills.
  */
 export default class BrawlScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.92, bloomThreshold: 0.8, bloomRadius: 0.55, vignette: 0.5, saturation: 1.12, grain: 0.03 }
+    this.postOpts = { bloom: 0.9, bloomThreshold: 0.8, bloomRadius: 0.55, vignette: 0.56, saturation: 1.06, grain: 0.04 }
   }
 
   async init() {
@@ -51,8 +51,8 @@ export default class BrawlScene {
     // ---------- fighters ----------
     const mk = opts => new Fighter({ scene: this.scene, vfx: this.vfx, audio, ...opts })
     this.player = mk({
-      appearance: profile.appearance, name: profile.name || 'NOVA',
-      color: profile.appearance.glow || '#7df9ff', team: 0, isPlayer: true, spawnX: -7,
+      appearance: profile.appearance, name: profile.name || 'WARLORD',
+      color: profile.appearance.glow || '#ffb84d', team: 0, isPlayer: true, spawnX: -7,
     })
     const ai1 = mk({ ...AI_ROSTER[0], team: 1, spawnX: 7 })
     const ai2 = mk({ ...AI_ROSTER[1], team: 2, spawnX: 0 })
@@ -63,11 +63,11 @@ export default class BrawlScene {
       this._heroTrail = this.vfx.trail(this.player.hero.hips, { color: profile.appearance.glow, size: 0.34, rate: 12, life: 0.5 })
     }
 
-    // shield bubble (Aegis)
+    // shield bubble (Iron Bulwark) — pale forged-steel sheen
     this.bubble = new THREE.Mesh(
       new THREE.SphereGeometry(1.1, 24, 18),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#8ea9ff').multiplyScalar(1.5), transparent: true, opacity: 0.22,
+        color: new THREE.Color('#c9b98e').multiplyScalar(1.5), transparent: true, opacity: 0.22,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),
     )
@@ -130,11 +130,14 @@ export default class BrawlScene {
     profile.stats.plays.brawl = (profile.stats.plays.brawl || 0) + 1
     this.ctx.saveProfile()
 
-    hud.banner('3 STOCKS', { sub: 'LAST ONE STANDING', color: '#ffd166', duration: 2 })
+    this._endThem = new Set() // fighters already called out by the announcer
+    hud.banner('ROUND 1', { sub: '3 STOCKS — LAST WARRIOR STANDING', color: '#ffb84d', duration: 2 })
     this._timeout(() => {
       if (this.over) return
       this.hud.countdown(audio).then(() => {
-        if (!this.disposed && !this.over) this.phase = 'fight'
+        if (this.disposed || this.over) return
+        this.phase = 'fight'
+        this._timeout(() => { if (!this.over) this.hud.banner('FIGHT!', { color: '#c23b2e', duration: 1.1 }) }, 450)
       })
     }, 1500)
 
@@ -194,6 +197,7 @@ export default class BrawlScene {
       this._separate(gdt)
       this._resolveMelee()
       for (const f of this.fighters) this._checkBlast(f)
+      this._announcer()
     }
     this._updateSkills(gdt, dt)
     this.bHud.update()
@@ -220,6 +224,17 @@ export default class BrawlScene {
     b.jump = b.jab = b.smash = b.drop = false
     b.dodge = 0
     return it
+  }
+
+  /** Pure display trigger: announcer call-out when a warrior teeters on their last stock. */
+  _announcer() {
+    for (const f of this.baseFighters) {
+      if (f.stocks !== 1 || f.dmg <= 120 || f.state !== 'fight' || this._endThem.has(f)) continue
+      this._endThem.add(f)
+      this.hud.banner('END THEM!', { sub: `${f.name} IS ON THE BRINK`, color: '#c23b2e', duration: 1.8 })
+      this.ctx.audio.play('crowd', { vol: 0.5 })
+      break
+    }
   }
 
   /** Soft push so grounded fighters don't stack inside each other. */
@@ -289,7 +304,7 @@ export default class BrawlScene {
     }
     if (d.shield && d.shield.hp > 0) {
       d.shield.hp -= dmg
-      this.vfx.flash(_v1, { color: '#8ea9ff', size: 2, life: 0.18 })
+      this.vfx.flash(_v1, { color: '#d8c9a0', size: 2, life: 0.18 })
       this.ctx.audio.play('shield', { vol: 0.5 })
       if (d.shield.hp <= 0) this._breakShield(d)
       return 0
@@ -327,7 +342,7 @@ export default class BrawlScene {
     f.shield = null
     this.bubble.visible = false
     _v1.set(f.pos.x, f.pos.y + 1, 0)
-    this.vfx.burst(_v1, { color: '#8ea9ff', count: 20, speed: 6, size: 0.26 })
+    this.vfx.burst(_v1, { color: '#c9b98e', count: 20, speed: 6, size: 0.26 })
     this.ctx.audio.play('shield', { vol: 0.4 })
   }
 
@@ -344,12 +359,13 @@ export default class BrawlScene {
     const ex = clamp(f.pos.x, -24, 24)
     const ey = clamp(f.pos.y + 1, -11.5, 19)
     _v1.set(ex, ey, 0)
-    // directional KO burst
-    this.vfx.flash(_v1, { color: '#ffffff', size: 7, life: 0.3 })
-    this.vfx.burst(_v1, { color: f.color, count: 34, speed: 13, size: 0.4, life: 0.7, up: 4 })
-    this.vfx.burst(_v1, { color: '#ffffff', count: 16, speed: 8, size: 0.3, life: 0.5 })
+    // KO blast: shattering-stone burst + ember plume
+    this.vfx.flash(_v1, { color: '#ffd9a0', size: 7, life: 0.3 })
+    this.vfx.burst(_v1, { color: f.color, count: 30, speed: 13, size: 0.4, life: 0.7, up: 4 })
+    this.vfx.burst(_v1, { color: '#8a7d6a', count: 20, speed: 9, size: 0.32, life: 0.8, up: 2, gravity: -18 })
+    this.vfx.burst(_v1, { color: '#ff8c3b', count: 24, speed: 7, size: 0.3, life: 0.95, up: 9, gravity: 3 })
     this.vfx.ring(_v1, { color: f.color, radius: 4, life: 0.4, y: ey })
-    this.vfx.text(_v1, 'KO!', { color: '#ff5c6e', size: 2, life: 1.1, rise: 1 })
+    this.vfx.text(_v1, 'KO!', { color: '#c23b2e', size: 2, life: 1.1, rise: 1 })
     this.ctx.engine.shake(0.55, 0.45)
     this.ctx.audio.play('explode', { vol: 0.8 })
 
@@ -360,7 +376,7 @@ export default class BrawlScene {
       killer.kos++
       this.bHud.feed(`${killer.name} KO'd ${f.name}!`, killer.color)
     } else {
-      this.bHud.feed(`${f.name} fell out of the sky!`, f.color)
+      this.bHud.feed(`${f.name} fell into the chasm!`, f.color)
     }
     if (f.stocks > 0) {
       f.startKO()
@@ -390,18 +406,19 @@ export default class BrawlScene {
     this.ctx.saveProfile()
     if (this.clone) this._removeClone(false)
 
+    const flawless = won && this.player.falls === 0
     this._timeout(() => {
       this.ctx.audio.play(won ? 'victory' : 'defeat')
       this.hud.banner(won ? 'CHAMPION' : 'DEFEATED', {
-        color: won ? '#ffd166' : '#ff5c6e', duration: 0,
-        sub: won ? 'THE STADIUM IS YOURS' : 'ALL STOCKS LOST',
+        color: won ? '#ffb84d' : '#c23b2e', duration: 0,
+        sub: won ? (flawless ? 'FLAWLESS!' : 'THE ARENA IS YOURS') : 'ALL STOCKS LOST',
       })
       if (won) {
         this.player.hero.setState('dance')
         for (let i = 0; i < 6; i++) {
           this._timeout(() => {
             _v1.set(this.player.pos.x + rand(-7, 7), this.player.pos.y + rand(1, 6), rand(-2, 2))
-            this.vfx.burst(_v1, { color: pick(['#ffd166', '#7df9ff', '#ff9de2', '#7dffa8']), count: 26, speed: 8, size: 0.32 })
+            this.vfx.burst(_v1, { color: pick(['#ffb84d', '#ff8c3b', '#c23b2e', '#e8dcc4']), count: 26, speed: 8, size: 0.32 })
             this.ctx.audio.play('coin', { vol: 0.35 })
           }, 300 + i * 650)
         }
@@ -482,7 +499,7 @@ export default class BrawlScene {
         audio.play('zap', { vol: 0.5 })
       },
 
-      // Frost Ring: chill zone on the platform surface under you
+      // Grave Chill: cursed cold zone on the platform surface under you
       slowfield: def => {
         const surf = p.platform || MAIN
         const x = clamp(p.pos.x, surf.x - surf.halfW, surf.x + surf.halfW)
@@ -491,12 +508,12 @@ export default class BrawlScene {
         const g = new THREE.Group()
         const disc = new THREE.Mesh(
           new THREE.CircleGeometry(r, 40),
-          new THREE.MeshBasicMaterial({ color: new THREE.Color('#9fd8ff').multiplyScalar(0.8), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false }),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color('#aebfb4').multiplyScalar(0.7), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false }),
         )
         disc.rotation.x = -Math.PI / 2
         const rim = new THREE.Mesh(
           new THREE.RingGeometry(r - 0.24, r, 48),
-          new THREE.MeshBasicMaterial({ color: new THREE.Color('#cfeaff').multiplyScalar(1.9), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color('#dce8dc').multiplyScalar(1.7), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
         )
         rim.rotation.x = -Math.PI / 2
         rim.position.y = 0.02
@@ -681,7 +698,7 @@ export default class BrawlScene {
         }
         this._ghostMats = null
         _v1.set(p.pos.x, p.pos.y + 1, 0)
-        this.vfx.flash(_v1, { color: '#b8ecff', size: 1.8 })
+        this.vfx.flash(_v1, { color: '#d8d2c4', size: 1.8 })
       }
     }
     if (p.shield) {
@@ -713,8 +730,8 @@ export default class BrawlScene {
           d.lastHitBy = p
           d.lastHitT = 4
           _v1.set(d.pos.x, d.pos.y + 1.8, 0)
-          this.vfx.text(_v1, `${z.dmg}%`, { color: '#9fd8ff', size: 0.6 })
-          this.vfx.impact(_v1, { color: '#9fd8ff', size: 0.6 })
+          this.vfx.text(_v1, `${z.dmg}%`, { color: '#cfe0d2', size: 0.6 })
+          this.vfx.impact(_v1, { color: '#cfe0d2', size: 0.6 })
         }
       }
     }
@@ -779,8 +796,8 @@ export default class BrawlScene {
     if (!c) return
     if (withVfx) {
       _v1.set(c.f.pos.x, c.f.pos.y + 1, 0)
-      this.vfx.flash(_v1, { color: '#c58fff', size: 2.2 })
-      this.vfx.burst(_v1, { color: '#c58fff', count: 20, speed: 6, size: 0.26 })
+      this.vfx.flash(_v1, { color: c.f.color, size: 2.2 })
+      this.vfx.burst(_v1, { color: c.f.color, count: 20, speed: 6, size: 0.26 })
       this.ctx.audio.play('explode', { vol: 0.25 })
     }
     c.f.dispose()

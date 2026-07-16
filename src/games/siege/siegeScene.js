@@ -23,9 +23,11 @@ const KILL_GOLD = 8
 const WAVE_BONUS = 60
 
 /**
- * SIEGE PROTOCOL — hold-the-citadel action tower defense.
+ * LAST BASTION — hold-the-gate action tower defense.
  * WASD move, aim with cursor, hold LMB to fire, 1-4 skills, F builds/upgrades
- * turrets on pads. 10 waves down two lanes; wave 10 is the MAGMA COLOSSUS.
+ * ballistas on platforms. 10 waves down two lanes; wave 10 is the SIEGE
+ * COLOSSUS. (Scene key, stats keys and state names keep the "siege"/"citadel"
+ * ids — display text only is rethemed.)
  */
 export default class SiegeScene {
   constructor(ctx) {
@@ -50,7 +52,7 @@ export default class SiegeScene {
     this.army = new RaiderArmy(this.scene)
     this.turrets = new TurretManager(this.scene, this.vfx, audio, {
       onFire: (target, dmg) => target.take(dmg),
-      onDestroyed: () => this.hud.hud.toast('TURRET DESTROYED — rebuild half price'),
+      onDestroyed: () => this.hud.hud.toast('BALLISTA DESTROYED — rebuild half price'),
     })
     this._padAdapters = this.turrets.pads.map(pad => ({
       x: pad.x, z: pad.z, alive: false,
@@ -64,8 +66,8 @@ export default class SiegeScene {
     if (profile.appearance.trail !== 'none') {
       this.heroTrail = this.vfx.trail(this.hero.hips, { color: profile.appearance.glow, size: 0.38, rate: 14, life: 0.5 })
     }
-    // personal glow pool — keeps the hero readable against the night basalt
-    this.heroLight = new THREE.PointLight(profile.appearance.glow || '#7df9ff', 7, 8, 2)
+    // personal torchlight pool — keeps the hero readable against the night mud
+    this.heroLight = new THREE.PointLight(profile.appearance.glow || '#ff8c3b', 7, 8, 2)
     this.heroLight.position.y = 2.3
     this.hero.group.add(this.heroLight)
     this.hp = 100
@@ -79,7 +81,7 @@ export default class SiegeScene {
     this.bubble = new THREE.Mesh(
       new THREE.SphereGeometry(1.05, 24, 18),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#8ea9ff').multiplyScalar(1.5), transparent: true, opacity: 0.22,
+        color: new THREE.Color('#aebcd0').multiplyScalar(1.5), transparent: true, opacity: 0.22,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),
     )
@@ -150,7 +152,7 @@ export default class SiegeScene {
     profile.stats.plays.siege = (profile.stats.plays.siege || 0) + 1
     this.ctx.saveProfile()
     this._timeout(() => {
-      if (!this.over) this.hud.hud.banner('SIEGE PROTOCOL', { color: '#54e0ff', sub: 'HOLD THE CITADEL — 10 WAVES', duration: 2.4 })
+      if (!this.over) this.hud.hud.banner('LAST BASTION', { color: '#ffb84d', sub: 'HOLD THE GATE — 10 WAVES', duration: 2.4 })
     }, 600)
 
     this.debug = {
@@ -256,9 +258,9 @@ export default class SiegeScene {
       this.stompT -= gdt
       if (this.stompT <= 0) {
         this.stompT = 0.42
-        this.vfx.ring(pos, { color: '#ffb3d9', radius: 3, life: 0.4 })
+        this.vfx.ring(pos, { color: '#d8b98a', radius: 3, life: 0.4 })
         this.ctx.audio.play('explode', { vol: 0.2 })
-        this._aoeRaiders(pos.x, pos.z, 3, 8, { color: '#ffb3d9', knock: 3.5, hitBoss: false })
+        this._aoeRaiders(pos.x, pos.z, 3, 8, { color: '#d8b98a', knock: 3.5, hitBoss: false })
       }
     }
 
@@ -289,7 +291,7 @@ export default class SiegeScene {
     _v3.copy(_v2).sub(from)
     if (_v3.lengthSq() < 0.01) _v3.set(0, 0, 1)
     _v3.normalize()
-    const glow = this.ctx.profile.appearance.glow || '#7df9ff'
+    const glow = this.ctx.profile.appearance.glow || '#ff8c3b'
     const h = this.vfx.projectile({ from, dir: _v3, speed: 34, color: glow, size: 0.26, life: 1.05, trail: true })
     this.bolts.push({ h, dmg: this.giantT > 0 ? 12 : 8, r: 0.42, big: null, blaster: true })
     this.hero.cast()
@@ -305,7 +307,7 @@ export default class SiegeScene {
       this.shield.hp -= dmg
       _v1.copy(pos)
       _v1.y = 1.1
-      this.vfx.flash(_v1, { color: '#8ea9ff', size: 2, life: 0.18 })
+      this.vfx.flash(_v1, { color: '#aebcd0', size: 2, life: 0.18 })
       this.ctx.audio.play('shield', { vol: 0.5 })
       if (this.shield.hp <= 0) this._breakShield()
       this.iFrames = 0.25
@@ -348,8 +350,8 @@ export default class SiegeScene {
     this.hero.group.position.set(SPAWN_POINT.x, 0, SPAWN_POINT.z)
     this.heroK.set(0, 0, 0)
     _v1.set(SPAWN_POINT.x, 1, SPAWN_POINT.z)
-    this.vfx.flash(_v1, { color: '#54e0ff', size: 3 })
-    this.vfx.ring(this.hero.group.position, { color: '#54e0ff', radius: 3, life: 0.5 })
+    this.vfx.flash(_v1, { color: '#ffb84d', size: 3 })
+    this.vfx.ring(this.hero.group.position, { color: '#ffb84d', radius: 3, life: 0.5 })
     this.ctx.audio.play('spawn', { vol: 0.6 })
   }
 
@@ -362,7 +364,7 @@ export default class SiegeScene {
     this.decoy.hp -= e.def.dmg
     _v1.copy(this.decoy.hero.group.position)
     _v1.y = 1
-    this.vfx.flash(_v1, { color: '#c58fff', size: 1, life: 0.12 })
+    this.vfx.flash(_v1, { color: '#b9aed2', size: 1, life: 0.12 })
   }
 
   _raiderHitCitadel(e) {
@@ -373,7 +375,7 @@ export default class SiegeScene {
 
   // ============================== combat ==============================
 
-  _hitRaider(e, dmg, { color = '#cfe9ff', size = 0.55, kx = 0, kz = 0 } = {}) {
+  _hitRaider(e, dmg, { color = '#ffe6c4', size = 0.55, kx = 0, kz = 0 } = {}) {
     if (!e.alive) return
     if (kx || kz) { e.kx += kx; e.kz += kz }
     const killed = this.army.damage(e, dmg)
@@ -419,7 +421,7 @@ export default class SiegeScene {
     if (!this.over) {
       if (distXZ(this.hero.group.position, p) < 3) this._damageHero(e.def.dmg, p, { knock: 4 })
       if (this.decoy && distXZ(this.decoy.hero.group.position, p) < 3) this.decoy.hp -= e.def.dmg
-      // magma blast scorches the citadel walls when it pops at the gate
+      // the blast scorches the bastion walls when it pops at the gate
       if (distXZ(this.citadel.group.position, p) < 13) {
         this.hud.citadelHit()
         if (this.citadel.damage(e.def.cdmg, p)) this._citadelDown()
@@ -455,7 +457,7 @@ export default class SiegeScene {
     }
   }
 
-  _hitBoss(dmg, color = '#cfe9ff') {
+  _hitBoss(dmg, color = '#ffe6c4') {
     const boss = this.boss
     if (!boss || !boss.alive) return
     boss.damage(dmg)
@@ -476,7 +478,7 @@ export default class SiegeScene {
     if (!pad) { this.hud.setPrompt(null); return }
     if (!pad.turret) {
       const cost = this.turrets.buildCost(pad)
-      this.hud.setPrompt(`— BUILD TURRET (${cost}g)`, this.gold >= cost)
+      this.hud.setPrompt(`— BUILD BALLISTA (${cost}g)`, this.gold >= cost)
     } else if (!pad.turret.dead && pad.turret.buildT <= 0 && pad.turret.level < 3) {
       const cost = UPGRADE_COST[pad.turret.level - 1]
       this.hud.setPrompt(`— UPGRADE Lv${pad.turret.level + 1} (${cost}g)`, this.gold >= cost)
@@ -510,11 +512,11 @@ export default class SiegeScene {
     for (const e of this.army.active) {
       if (!e.alive) continue
       // one adapter per pooled raider object — identity is stable across reuse
-      if (!e.adapter) e.adapter = { pos: e.minion.group.position, take: dmg => this._hitRaider(e, dmg, { color: '#9feaff', size: 0.45 }) }
+      if (!e.adapter) e.adapter = { pos: e.minion.group.position, take: dmg => this._hitRaider(e, dmg, { color: '#ffd9a0', size: 0.45 }) }
       this._targets.push(e.adapter)
     }
     if (this.boss && this.boss.alive) {
-      if (!this._bossAdapter) this._bossAdapter = { pos: this.boss.group.position, take: dmg => this._hitBoss(dmg, '#9feaff') }
+      if (!this._bossAdapter) this._bossAdapter = { pos: this.boss.group.position, take: dmg => this._hitBoss(dmg, '#ffd9a0') }
       this._bossAdapter.pos = this.boss.group.position
       this._targets.push(this._bossAdapter)
     }
@@ -579,12 +581,12 @@ export default class SiegeScene {
         const g = new THREE.Group()
         const disc = new THREE.Mesh(
           new THREE.CircleGeometry(r, 40),
-          new THREE.MeshBasicMaterial({ color: new THREE.Color('#9fd8ff').multiplyScalar(0.8), transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false }),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color('#c8d4da').multiplyScalar(0.8), transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false }),
         )
         disc.rotation.x = -Math.PI / 2
         const rim = new THREE.Mesh(
           new THREE.RingGeometry(r - 0.24, r, 48),
-          new THREE.MeshBasicMaterial({ color: new THREE.Color('#cfeaff').multiplyScalar(1.9), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color('#e8f0f4').multiplyScalar(1.9), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
         )
         rim.rotation.x = -Math.PI / 2
         rim.position.y = 0.02
@@ -788,7 +790,7 @@ export default class SiegeScene {
         e.slowMul = Math.min(e.slowMul, 1 - z.slow)
         if (!z.hit.has(e)) {
           z.hit.add(e)
-          this._hitRaider(e, z.dmg, { color: '#9fd8ff' })
+          this._hitRaider(e, z.dmg, { color: '#cfd8dc' })
         }
       }
     }
@@ -801,7 +803,7 @@ export default class SiegeScene {
       const k = 1 - v.t / v.dur
       v.group.scale.setScalar(0.5 + 0.5 * k)
       if (v.t >= v.dur) {
-        this.vfx.burst(v.group.position, { color: '#7f7fff', count: 20, speed: 7, size: 0.28 })
+        this.vfx.burst(v.group.position, { color: '#c23b2e', count: 20, speed: 7, size: 0.28 })
         this.scene.remove(v.group)
         disposeObject3D(v.group)
         this.vortices.splice(i, 1)
@@ -821,7 +823,7 @@ export default class SiegeScene {
         }
         if (!v.hit.has(e)) {
           v.hit.add(e)
-          this._hitRaider(e, v.dmg, { color: '#9f9fff' })
+          this._hitRaider(e, v.dmg, { color: '#d88a8a' })
         }
       }
     }
@@ -862,8 +864,8 @@ export default class SiegeScene {
     if (withVfx) {
       _v1.copy(d.hero.group.position)
       _v1.y = 1
-      this.vfx.flash(_v1, { color: '#c58fff', size: 2.4 })
-      this.vfx.burst(_v1, { color: '#c58fff', count: 22, speed: 6, size: 0.28 })
+      this.vfx.flash(_v1, { color: '#b9aed2', size: 2.4 })
+      this.vfx.burst(_v1, { color: '#b9aed2', count: 22, speed: 6, size: 0.28 })
       this.ctx.audio.play('explode', { vol: 0.3 })
     }
     this.scene.remove(d.hero.group)
@@ -902,9 +904,9 @@ export default class SiegeScene {
         this.ctx.audio.play('coin', { vol: 0.6 })
         const next = this.wave + 1
         this.hud.hud.banner(`WAVE ${next}`, {
-          color: next === BOSS_WAVE ? '#ff2d55' : '#ff8a3c',
+          color: next === BOSS_WAVE ? '#c23b2e' : '#ff8a3c',
           duration: 2,
-          sub: next === BOSS_WAVE ? 'THE MAGMA COLOSSUS AWAKENS'
+          sub: next === BOSS_WAVE ? 'THE SIEGE COLOSSUS AWAKENS'
             : next === 5 ? 'SHIELDBEARERS — FLANK THEM OR PIERCE WITH SKILLS' : '',
         })
       }
@@ -916,7 +918,7 @@ export default class SiegeScene {
     this.waveState = 'active'
     this.spawnQueue = buildWaveQueue(n)
     this.spawnT = 0.2
-    if (n === 1) this.hud.hud.banner('WAVE 1', { color: '#ff8a3c', sub: 'THEY COME FROM BOTH PORTALS', duration: 2 })
+    if (n === 1) this.hud.hud.banner('WAVE 1', { color: '#ff8a3c', sub: 'THEY MARCH FROM BOTH WAR CAMPS', duration: 2 })
     if (n === BOSS_WAVE) this._spawnBoss()
   }
 
@@ -944,17 +946,17 @@ export default class SiegeScene {
         if (this.citadel.damage(dmg, this.boss.group.position)) this._citadelDown()
       },
       enrage: () => {
-        this.hud.hud.banner('ENRAGED', { color: '#ff2d55', duration: 1.6, cls: 'siege-streak' })
+        this.hud.hud.banner('ENRAGED', { color: '#c23b2e', duration: 1.6, cls: 'siege-streak' })
         this.ctx.audio.play('kill', { vol: 0.8 })
-        this.vfx.ring(this.boss.group.position, { color: '#ff2d55', radius: 6, life: 0.6 })
+        this.vfx.ring(this.boss.group.position, { color: '#c23b2e', radius: 6, life: 0.6 })
       },
     })
     const p = this.boss.group.position
     _v1.set(p.x, 4, p.z)
-    this.vfx.flash(_v1, { color: '#ff2d55', size: 7, life: 0.5 })
+    this.vfx.flash(_v1, { color: '#c23b2e', size: 7, life: 0.5 })
     this.ctx.engine.shake(0.4, 0.6)
     this.ctx.audio.play('spawn', { vol: 0.9 })
-    this.hud.hud.banner('MAGMA COLOSSUS', { color: '#ff2d55', sub: 'IT MARCHES ON THE CITADEL', duration: 2.6 })
+    this.hud.hud.banner('SIEGE COLOSSUS', { color: '#c23b2e', sub: 'IT MARCHES ON THE GATE', duration: 2.6 })
     this.hud.showBoss()
   }
 
@@ -1033,8 +1035,8 @@ export default class SiegeScene {
       this.ctx.audio.play('explode', { vol: 0.7 })
       this._aoeRaiders(pos.x, pos.z, r + 30, 400, { color, knock: 8, hitBoss: false })
     }, delay)
-    chain(0, 7, '#ff2d55')
-    chain(320, 11, '#ff9de2')
+    chain(0, 7, '#c23b2e')
+    chain(320, 11, '#ff8c3b')
     chain(640, 16, '#ffd166')
     this.hud.hud.banner('COLOSSUS FELLED', { color: '#ffd166', duration: 2.2 })
     this._timeout(() => {
@@ -1087,7 +1089,7 @@ export default class SiegeScene {
           if (b.blaster && RaiderArmy.frontBlocked(e, vel.x / vl, vel.z / vl)) {
             dmg *= 0.5
             e.shieldFlash = 1
-            this.vfx.flash(bp, { color: '#9fd0ff', size: 1.1, life: 0.14 })
+            this.vfx.flash(bp, { color: '#c9d4e0', size: 1.1, life: 0.14 })
             this.ctx.audio.play('shield', { vol: 0.16 })
           } else {
             this.vfx.flash(bp, { color: '#ffffff', size: 0.6, life: 0.1 })
@@ -1149,7 +1151,7 @@ export default class SiegeScene {
     for (let i = 0; i < 6; i++) {
       this._timeout(() => {
         _v1.set(cit.x + rand(-9, 9), rand(2, 9), cit.z + rand(-11, 2))
-        this.vfx.burst(_v1, { color: ['#ffd166', '#54e0ff', '#7df9ff'][i % 3], count: 26, speed: 7, size: 0.3 })
+        this.vfx.burst(_v1, { color: ['#ffd166', '#ff8c3b', '#e8dcc4'][i % 3], count: 26, speed: 7, size: 0.3 })
         this.ctx.audio.play('coin', { vol: 0.4 })
       }, 500 + i * 700)
     }
@@ -1168,7 +1170,7 @@ export default class SiegeScene {
     this.hero.setMoveSpeed(0)
     this.citadel.shatter()
 
-    // crystal shatter: burst chain + shake + fade to ash
+    // the beacon dies: burst chain + shake + fade to ash
     const cp = this.citadel.group.position
     const spire = () => _v1.set(cp.x + rand(-1.5, 1.5), rand(4.5, 8), cp.z + rand(-1.5, 1.5))
     const chain = (delay, size, color) => this._timeout(() => {
@@ -1177,11 +1179,11 @@ export default class SiegeScene {
       this.ctx.engine.shake(0.5, 0.4)
       this.ctx.audio.play('explode', { vol: 0.7 })
     }, delay)
-    chain(0, 1.4, '#7df9ff')
-    chain(300, 1.6, '#54e0ff')
+    chain(0, 1.4, '#cfe4ff')
+    chain(300, 1.6, '#9fc4ff')
     chain(650, 2, '#ffffff')
     this._timeout(() => {
-      this.vfx.shockwave(cp, { color: '#54e0ff', radius: 13 })
+      this.vfx.shockwave(cp, { color: '#9fc4ff', radius: 13 })
       this.ctx.engine.shake(0.7, 0.6)
       this.ctx.audio.play('explode', { vol: 0.9 })
       this.hud.fadeOut()

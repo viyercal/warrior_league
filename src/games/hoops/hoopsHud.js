@@ -4,7 +4,7 @@ import { clamp } from '../../core/utils.js'
 
 const _v = new THREE.Vector3()
 
-/** All DOM for SLAM CITY 2K: scoreboard, shot clock, shot meter, stamina, banners. */
+/** All DOM for BLOOD COURT: scoreboard, shot clock, shot meter, stamina, banners. */
 export class HoopsHud {
   constructor(audio) {
     this.hud = new HUD()
@@ -32,7 +32,7 @@ export class HoopsHud {
     this.meter.style.display = 'none'
 
     // --- stamina ---
-    this.stamina = this.hud.bar({ label: 'STAMINA', color: '#5cff8a' })
+    this.stamina = this.hud.bar({ label: 'STAMINA', color: '#ff8c3b' })
     this.stamina.root.style.left = '22px'
     this.stamina.root.style.bottom = '24px'
 
@@ -66,8 +66,8 @@ export class HoopsHud {
   setFire(on) { this.fireTag.style.display = on ? 'block' : 'none' }
   setStamina(frac) { this.stamina.set(frac, `${Math.round(frac * 100)}`) }
 
-  /** Announcer banner: SWISH! / REJECTED! / ON FIRE! ... (never overlaps) */
-  announce(text, { color = '#ffd166', sub = '', duration = 1.6 } = {}) {
+  /** Announcer banner: FLAWLESS! / DENIED! / ON FIRE! ... (never overlaps) */
+  announce(text, { color = '#ffb84d', sub = '', duration = 1.6 } = {}) {
     if (this._banner?.isConnected) this._banner.remove()
     this._banner = this.hud.banner(text, { color, sub, duration, cls: 'hoops-ann' })
   }
@@ -106,8 +106,8 @@ export class HoopsHud {
   /** End screen with a return button. Returns the button element. */
   endScreen(won, onHub) {
     this.announce(won ? 'VICTORY' : 'DEFEAT', {
-      color: won ? '#7dffa8' : '#ff5c6e',
-      sub: won ? 'SLAM CITY IS YOURS' : 'RUN IT BACK?',
+      color: won ? '#ffb84d' : '#c23b2e',
+      sub: won ? 'THE BLOOD COURT IS YOURS' : 'RISE AND FIGHT AGAIN',
       duration: 0,
     })
     const btn = this.hud.el('button', 'hoops-hub-btn ui-interactive', 'RETURN TO HUB')

@@ -5,7 +5,8 @@ const _v1 = new THREE.Vector3()
 const _v2 = new THREE.Vector3()
 
 /**
- * Track hazards: shells (homing + straight), ice slicks, comets.
+ * Track hazards: flaming ballista bolts (homing + straight), smoldering
+ * ash-slicks, falling star-hammers. Same logic as ever — only the fire changed.
  * The scene resolves hits via the onHit callback (shield/ghost/giant rules).
  */
 export class Items {
@@ -19,8 +20,8 @@ export class Items {
     this._slickGeo = new THREE.CircleGeometry(1, 26)
   }
 
-  /** Fire a shell. target may be null (flies straight along dir). */
-  fireShell({ from, dir, owner, target, homing = false, color = '#ff5a3c', speed = 34 }) {
+  /** Fire a flaming bolt. target may be null (flies straight along dir). */
+  fireShell({ from, dir, owner, target, homing = false, color = '#ff5a26', speed = 34 }) {
     const h = this.vfx.projectile({ from, dir, speed, color, size: 0.58, life: 5, light: 1.6, trail: true })
     this.shells.push({ h, owner, target, homing, speed })
     this.audio.play('zap', { vol: 0.45 })
@@ -28,19 +29,19 @@ export class Items {
 
   dropSlick(pos, { radius = 4, duration = 3.5, owner = null } = {}) {
     const mesh = new THREE.Mesh(this._slickGeo, new THREE.MeshBasicMaterial({
-      color: new THREE.Color('#9fd8ff').multiplyScalar(1.25), transparent: true, opacity: 0.5,
+      color: new THREE.Color('#c23b2e').multiplyScalar(1.25), transparent: true, opacity: 0.5,
       blending: THREE.AdditiveBlending, depthWrite: false,
     }))
     mesh.rotation.x = -Math.PI / 2
     mesh.scale.setScalar(radius)
     mesh.position.set(pos.x, 0.045, pos.z)
     this.scene.add(mesh)
-    this.vfx.ring(pos, { color: '#9fd8ff', radius, life: 0.4 })
+    this.vfx.ring(pos, { color: '#c23b2e', radius, life: 0.4 })
     this.slicks.push({ mesh, x: pos.x, z: pos.z, r: radius, t: duration, owner, hit: new Set() })
   }
 
-  /** Delayed orbital strike homing on `target` kart. */
-  castComet(target, { radius = 4.5, delay = 0.9, color = '#ff9de2' } = {}, onImpact) {
+  /** Delayed falling-star strike homing on `target` kart. */
+  castComet(target, { radius = 4.5, delay = 0.9, color = '#ff8c3b' } = {}, onImpact) {
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(0.85, 1, 40),
       new THREE.MeshBasicMaterial({
@@ -88,7 +89,7 @@ export class Items {
       }
       // decoy interception
       if (ctx.decoy && distXZ(s.h.pos, ctx.decoy.group.position) < 1.5) {
-        this.vfx.impact(s.h.pos, { color: '#c58fff', size: 1.1 })
+        this.vfx.impact(s.h.pos, { color: '#b9d6b2', size: 1.1 })
         this.audio.play('hit', { vol: 0.4 })
         s.h.kill()
         this.shells.splice(i, 1)

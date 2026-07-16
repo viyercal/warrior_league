@@ -11,8 +11,9 @@ export function fmtTime(sec) {
 }
 
 /**
- * All DOM HUD for TURBO KART GP: position, lap/clock, boost + damage bars,
- * speed, minimap, drift flash, popups, wrong-way, speedlines, finish panel.
+ * All DOM HUD for WAR CHARIOTS (parchment + bronze): position, lap/clock,
+ * boost + damage bars, speed, minimap, drift flash, popups, wrong-way,
+ * speedlines, finish panel.
  */
 export function buildKartHud(hud, { skillDefs, minimapPts }) {
   const ability = hud.abilityBar(skillDefs, { game: 'kart', keys: WASD_KEY_LABELS })

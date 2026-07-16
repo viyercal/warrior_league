@@ -1,40 +1,50 @@
-/* ============ BRAWL STADIUM HUD ============ */
+/* ============ MORTAL ARENA HUD — carved stone, iron & bronze ============ */
 
-/* fighter damage chips */
+/* fighter plaques: chiseled stone slabs with a bronze seam */
 .brawl-chips {
   position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
   display: flex; gap: 14px; z-index: 12;
 }
 .brawl-chip {
-  --fc: #7df9ff;
+  --fc: #ffb84d;
   min-width: 118px;
   padding: 8px 14px 10px;
   text-align: center;
-  background: rgba(8, 12, 26, 0.72);
-  border: 1px solid color-mix(in srgb, var(--fc) 55%, transparent);
-  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(74, 66, 54, 0.55), rgba(20, 16, 12, 0.2) 30%, rgba(0, 0, 0, 0.35)),
+    rgba(32, 27, 21, 0.88);
+  border: 1px solid color-mix(in srgb, var(--fc) 40%, #5a4326);
+  border-top-color: color-mix(in srgb, var(--fc) 55%, #8a6a3a);
+  border-radius: 6px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--fc) 22%, transparent), inset 0 0 16px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 16px color-mix(in srgb, var(--fc) 20%, transparent),
+    inset 0 1px 0 rgba(232, 220, 196, 0.14),
+    inset 0 -6px 14px rgba(0, 0, 0, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.55);
   transition: opacity 0.4s, filter 0.4s;
 }
-.brawl-chip-out { opacity: 0.35; filter: grayscale(0.9); }
+.brawl-chip-out { opacity: 0.35; filter: grayscale(0.9) brightness(0.7); }
 .brawl-chip-name {
   font-family: var(--font-display);
   font-size: 12px; font-weight: 800; letter-spacing: 0.18em;
+  font-variant: small-caps;
   color: var(--ink);
+  text-shadow: 0 1px 2px #000;
   display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 .brawl-dot {
-  width: 9px; height: 9px; border-radius: 50%;
+  width: 9px; height: 9px; border-radius: 2px;
+  transform: rotate(45deg);
   background: var(--fc);
-  box-shadow: 0 0 8px var(--fc);
+  box-shadow: 0 0 8px var(--fc), inset 0 0 2px rgba(0, 0, 0, 0.6);
   display: inline-block;
 }
 .brawl-pct {
   font-family: var(--font-display);
   font-size: 30px; font-weight: 800; font-style: italic;
-  color: #fff;
-  text-shadow: 0 0 14px rgba(0, 0, 0, 0.8), 0 2px 4px #000;
+  color: #e8dcc4;
+  text-shadow: 0 0 14px rgba(0, 0, 0, 0.85), 0 2px 3px #000, 0 0 22px rgba(255, 90, 38, 0.25);
   line-height: 1.1;
 }
 .brawl-pct.pop { animation: brawlPctPop 0.32s ease; }
@@ -44,35 +54,42 @@
   55% { transform: scale(1.2) rotate(2.5deg); }
   100% { transform: scale(1); }
 }
+/* stock studs: ember gems set into the stone */
 .brawl-pips { display: flex; justify-content: center; gap: 6px; margin-top: 3px; }
 .brawl-pip {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  width: 10px; height: 10px; border-radius: 2px;
+  transform: rotate(45deg);
+  background: rgba(20, 16, 12, 0.8);
+  border: 1px solid rgba(176, 121, 58, 0.4);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
   transition: background 0.25s, box-shadow 0.25s;
 }
 .brawl-pip.on {
   background: var(--fc);
-  border-color: transparent;
-  box-shadow: 0 0 8px var(--fc);
+  border-color: color-mix(in srgb, var(--fc) 60%, #fff 10%);
+  box-shadow: 0 0 8px var(--fc), inset 0 0 3px rgba(255, 244, 220, 0.6);
 }
 
-/* kill feed */
+/* kill feed: branded leather strips */
 .brawl-feed {
   position: absolute; top: 68px; right: 24px;
   display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
   z-index: 12;
 }
 .brawl-feed-item {
-  --fc: #ffd166;
+  --fc: #ffb84d;
   font-family: var(--font-display);
   font-size: 13px; font-weight: 800; letter-spacing: 0.12em;
+  font-variant: small-caps;
   color: var(--ink);
-  background: rgba(8, 12, 26, 0.78);
+  background:
+    linear-gradient(180deg, rgba(74, 53, 42, 0.5), rgba(0, 0, 0, 0.3)),
+    rgba(30, 22, 16, 0.85);
+  border: 1px solid rgba(176, 121, 58, 0.35);
   border-right: 3px solid var(--fc);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 6px 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(232, 220, 196, 0.08);
   animation: brawlFeedIn 0.25s ease;
   transition: opacity 0.45s, transform 0.45s;
 }
@@ -82,15 +99,21 @@
   100% { opacity: 1; transform: translateX(0); }
 }
 
-/* results panel */
+/* results panel: a stone tablet */
 .brawl-results {
   position: absolute; left: 50%; top: 54%; transform: translateX(-50%);
   width: 380px;
-  background: rgba(7, 10, 22, 0.9);
-  border: 1px solid rgba(140, 170, 255, 0.35);
-  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(84, 74, 60, 0.4), rgba(0, 0, 0, 0.25) 26%, rgba(0, 0, 0, 0.4)),
+    rgba(28, 23, 18, 0.92);
+  border: 1px solid rgba(176, 121, 58, 0.5);
+  border-top-color: rgba(232, 220, 196, 0.25);
+  border-radius: 10px;
   backdrop-filter: blur(16px);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    0 18px 60px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(232, 220, 196, 0.12),
+    inset 0 0 40px rgba(0, 0, 0, 0.45);
   padding: 18px 22px 20px;
   text-align: center;
   z-index: 30;
@@ -100,40 +123,50 @@
   font-family: var(--font-display);
   font-size: 20px; font-weight: 800; font-style: italic; letter-spacing: 0.3em;
   color: var(--gold);
-  text-shadow: 0 0 18px rgba(255, 209, 102, 0.5);
+  text-shadow: 0 0 18px rgba(255, 184, 77, 0.45), 0 2px 3px #000;
   margin-bottom: 12px;
 }
 .brawl-results-title.lose {
-  color: #ff5c6e;
-  text-shadow: 0 0 18px rgba(255, 92, 110, 0.5);
+  color: #e04a3a;
+  text-shadow: 0 0 18px rgba(194, 59, 46, 0.55), 0 2px 3px #000;
 }
 .brawl-results-table { margin-bottom: 14px; }
 .brawl-results-row {
-  --fc: #7df9ff;
+  --fc: #ffb84d;
   display: grid; grid-template-columns: 1fr 56px 56px;
   align-items: center;
   padding: 6px 8px;
   font-family: var(--font-display);
   font-size: 14px; font-weight: 700; letter-spacing: 0.08em;
   color: var(--ink);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(176, 121, 58, 0.18);
 }
 .brawl-results-head {
-  font-size: 10px; letter-spacing: 0.3em; color: var(--ink-dim);
+  font-size: 10px; letter-spacing: 0.3em; font-variant: small-caps;
+  color: var(--ink-dim);
 }
 .brawl-results-name { display: flex; align-items: center; gap: 8px; text-align: left; }
+/* forged bronze plaque button */
 .brawl-hub-btn {
   font-family: var(--font-display);
   font-size: 14px; font-weight: 800; letter-spacing: 0.2em;
-  color: #06121f;
-  background: linear-gradient(180deg, #9ff3ff, #58c8f0);
-  border: none; border-radius: 10px;
+  font-variant: small-caps;
+  color: #1c1108;
+  background: linear-gradient(180deg, #e0aa5e, #b0793a 55%, #8a5a26);
+  border: 1px solid #5c3d1a;
+  border-top-color: #f0cf9a;
+  border-radius: 6px;
   padding: 10px 26px;
   cursor: pointer;
-  box-shadow: 0 0 22px rgba(125, 249, 255, 0.4);
-  transition: transform 0.12s, box-shadow 0.12s;
+  text-shadow: 0 1px 0 rgba(255, 226, 178, 0.5);
+  box-shadow: 0 0 22px rgba(255, 140, 59, 0.3), 0 3px 8px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(90, 50, 12, 0.55);
+  transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
 }
-.brawl-hub-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(125, 249, 255, 0.65); }
+.brawl-hub-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+  box-shadow: 0 0 30px rgba(255, 140, 59, 0.5), 0 5px 12px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(90, 50, 12, 0.55);
+}
 .brawl-results-auto {
   margin-top: 8px;
   font-size: 11px; letter-spacing: 0.14em;

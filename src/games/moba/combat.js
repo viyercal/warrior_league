@@ -63,12 +63,12 @@ export function makeCasters(g) {
       const grp = new THREE.Group()
       const disc = new THREE.Mesh(
         new THREE.CircleGeometry(r, 40),
-        new THREE.MeshBasicMaterial({ color: new THREE.Color('#9fd8ff').multiplyScalar(0.8), transparent: true, opacity: 0.26, blending: THREE.AdditiveBlending, depthWrite: false }),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color('#b8c4c8').multiplyScalar(0.8), transparent: true, opacity: 0.26, blending: THREE.AdditiveBlending, depthWrite: false }),
       )
       disc.rotation.x = -Math.PI / 2
       const rim = new THREE.Mesh(
         new THREE.RingGeometry(r - 0.24, r, 48),
-        new THREE.MeshBasicMaterial({ color: new THREE.Color('#cfeaff').multiplyScalar(1.9), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color('#dde5e0').multiplyScalar(1.9), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
       )
       rim.rotation.x = -Math.PI / 2
       rim.position.y = 0.02
@@ -142,7 +142,7 @@ export function makeCasters(g) {
           g.decoy.hp -= dmg
           _v1.copy(g.decoy.pos)
           _v1.y = 1
-          g.vfx.flash(_v1, { color: '#c58fff', size: 1, life: 0.12 })
+          g.vfx.flash(_v1, { color: '#8f86a3', size: 1, life: 0.12 })
         },
       }
       c.y = 1
@@ -227,8 +227,8 @@ export function removeDecoy(g, withVfx) {
   if (withVfx) {
     _v1.copy(d.pos)
     _v1.y = 1
-    g.vfx.flash(_v1, { color: '#c58fff', size: 2.4 })
-    g.vfx.burst(_v1, { color: '#c58fff', count: 22, speed: 6, size: 0.28 })
+    g.vfx.flash(_v1, { color: '#8f86a3', size: 2.4 })
+    g.vfx.burst(_v1, { color: '#8f86a3', count: 22, speed: 6, size: 0.28 })
     g.ctx.audio.play('explode', { vol: 0.3 })
   }
   g.scene.remove(d.hero.group)
@@ -257,7 +257,7 @@ export function updateSkillEffects(g, dt) {
       g.ghostMats = null
       _v1.copy(g.hero.group.position)
       _v1.y = 1
-      g.vfx.flash(_v1, { color: '#b8ecff', size: 1.8 })
+      g.vfx.flash(_v1, { color: '#d8d2c2', size: 1.8 })
     }
   }
   if (g.shield) {
@@ -323,14 +323,14 @@ export function updateSkillEffects(g, dt) {
       e.slowMul = Math.min(e.slowMul, 1 - z.slow)
       if (!z.hit.has(e)) {
         z.hit.add(e)
-        g.hitMinion(e, z.dmg, { color: '#9fd8ff' })
+        g.hitMinion(e, z.dmg, { color: '#b8c4c8' })
       }
     }
     if (g.enemy.alive && distXZ(g.enemy.group.position, z) < z.r + 0.5) {
       g.enemy.slowMul = Math.min(g.enemy.slowMul, 1 - z.slow)
       if (!z.hit.has(g.enemy)) {
         z.hit.add(g.enemy)
-        g.hitEnemyChamp(z.dmg, { color: '#9fd8ff' })
+        g.hitEnemyChamp(z.dmg, { color: '#b8c4c8' })
       }
     }
   }
@@ -343,7 +343,7 @@ export function updateSkillEffects(g, dt) {
     v.r2.rotation.z -= dt * 2.6
     v.group.scale.setScalar(0.5 + 0.5 * (1 - v.t / v.dur))
     if (v.t >= v.dur) {
-      g.vfx.burst(v.group.position, { color: '#7f7fff', count: 20, speed: 7, size: 0.28 })
+      g.vfx.burst(v.group.position, { color: '#a1252c', count: 20, speed: 7, size: 0.28 })
       g.scene.remove(v.group)
       disposeObject3D(v.group)
       g.vortices.splice(i, 1)
@@ -365,12 +365,12 @@ export function updateSkillEffects(g, dt) {
       if (!e.alive || e.team !== 'red') continue
       if (suck(e.minion.group.position, false) && !v.hit.has(e)) {
         v.hit.add(e)
-        g.hitMinion(e, v.dmg, { color: '#9f9fff' })
+        g.hitMinion(e, v.dmg, { color: '#c88a8a' })
       }
     }
     if (g.enemy.alive && suck(g.enemy.group.position, true) && !v.hit.has(g.enemy)) {
       v.hit.add(g.enemy)
-      g.hitEnemyChamp(v.dmg, { color: '#9f9fff' })
+      g.hitEnemyChamp(v.dmg, { color: '#c88a8a' })
     }
   }
 

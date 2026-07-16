@@ -1,7 +1,46 @@
-# IPL — Immersive Playable League: Module Contracts
+# IWL — Immortal Warlords League: Module Contracts
 
 Read this fully before writing any code. The shared core/art layer is FROZEN —
 do not modify any file outside the ones you own.
+
+## Warrior theme (READ FIRST — overrides all older neon references below)
+
+This fork is the "IMMORTAL WARLORDS LEAGUE" (IWL) retheme. The game must feel
+like a gritty, grounded dark-fantasy warrior epic — a Mortal-Kombat-adjacent
+tournament atmosphere: torchlight, stone, iron, bronze, leather, bone, embers,
+war banners. NOT neon, NOT sci-fi, NO cyan/magenta.
+
+**Palette** (use these hexes, or close relatives): charcoal stone `#2a2621`,
+iron `#6b6f78`, aged bronze `#b0793a`, blood crimson `#a1252c` (accents
+`#c23b2e`), ember orange `#ff8c3b`, forge fire `#ff5a26`, torch gold `#ffb84d`,
+bone `#e8dcc4`, dark leather `#4a352a`, night skies in deep umber/indigo
+(`#1a1420` to `#3a2030` horizons). Glow/bloom still exists but must read as
+FIRELIGHT and rune-embers, not neon.
+
+**Tone guardrails**: stylized and gritty — sparks, embers, dust, crimson
+energy; NO gore, dismemberment, or blood pools. Announcer-style banners like
+"FIGHT!", "FLAWLESS!", "END THEM!" are great; do NOT use trademarked phrases
+("FATALITY", "MORTAL KOMBAT", "FINISH HIM").
+
+**Rebrand — DISPLAY TEXT ONLY.** Scene keys, routes, profile ids, stats keys
+ALL STAY THE SAME. Only the strings shown to the player change:
+
+| scene key | old title | new title | new subtitle |
+|-----------|-----------|-----------|--------------|
+| (app)     | IPL / IMMERSIVE PLAYABLE LEAGUE | IWL / IMMORTAL WARLORDS LEAGUE | FORGE YOUR LEGEND |
+| moba      | RIFT LEGENDS   | WAR RIFT     | 1V1 LANE WARFARE |
+| hoops     | SLAM CITY 2K   | BLOOD COURT  | GLADIATOR B-BALL |
+| arena     | NOVA ARENA     | THE PIT      | HORDE SURVIVAL |
+| kart      | TURBO KART GP  | WAR CHARIOTS | 3-LAP DEATH RACE |
+| brawl     | BRAWL STADIUM  | MORTAL ARENA | LAST WARRIOR STANDING |
+| siege     | SIEGE PROTOCOL | LAST BASTION | HOLD THE GATE |
+
+The shared core already ships the warrior look: the Hero is an armored warlord
+(bronze/iron plate, leather, ragged cloak, ember rune accents), `styles.css`
+is a stone/bronze/parchment design system, and the 12 skills in
+`src/meta/skills.js` are re-flavored to warrior fantasy (same ids/archetypes/
+params — only names/icons/colors/descriptions changed). Match your scene's
+environments, VFX tints, and copy to this direction.
 
 ## Vision & quality bar
 

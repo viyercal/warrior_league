@@ -15,9 +15,9 @@ const _v2 = new THREE.Vector3()
 const _v3 = new THREE.Vector3()
 
 /**
- * RIFT LEGENDS — single-lane 1v1 MOBA vs an AI champion.
+ * WAR RIFT — single-lane 1v1 MOBA vs an AI warlord.
  * Right-click to move / attack, QWER loadout skills, B recall, Y camera lock.
- * Destroy the enemy nexus (towers gate it, standard MOBA rules).
+ * Shatter the enemy war crystal (towers gate it, standard MOBA rules).
  */
 export default class MobaScene {
   constructor(ctx) {
@@ -50,11 +50,11 @@ export default class MobaScene {
     if (profile.appearance.trail !== 'none') {
       this.heroTrail = this.vfx.trail(this.hero.hips, { color: profile.appearance.glow, size: 0.38, rate: 14, life: 0.5 })
     }
-    this.playerBar = new HealthBar(this.hero.group, { w: 1.35, y: 2.45, color: '#5cff8a', h: 0.13 })
+    this.playerBar = new HealthBar(this.hero.group, { w: 1.35, y: 2.45, color: '#8fc25a', h: 0.13 })
     this.bubble = new THREE.Mesh(
       new THREE.SphereGeometry(1.05, 24, 18),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#8ea9ff').multiplyScalar(1.5), transparent: true, opacity: 0.22,
+        color: new THREE.Color('#9aa8b8').multiplyScalar(1.5), transparent: true, opacity: 0.22,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),
     )
@@ -121,7 +121,7 @@ export default class MobaScene {
 
     // ---------- click markers ----------
     this.markers = {}
-    for (const [key, color] of [['move', '#5cff8a'], ['atk', '#ff5c5c']]) {
+    for (const [key, color] of [['move', '#ffb84d'], ['atk', '#c23b2e']]) {
       const m = new THREE.Mesh(
         new THREE.RingGeometry(0.72, 0.95, 36),
         new THREE.MeshBasicMaterial({
@@ -160,7 +160,7 @@ export default class MobaScene {
     profile.stats.plays.moba = (profile.stats.plays.moba || 0) + 1
     this.ctx.saveProfile()
     this._timeout(() => {
-      if (!this.over) this.ui.hud.banner('RIFT LEGENDS', { color: '#54e0ff', sub: 'DESTROY THE ENEMY NEXUS', duration: 2.6 })
+      if (!this.over) this.ui.hud.banner('WAR RIFT', { color: '#ffb84d', sub: 'SHATTER THE ENEMY WAR CRYSTAL', duration: 2.6 })
     }, 600)
 
     this.debug = {
@@ -177,7 +177,7 @@ export default class MobaScene {
   moveSpeed() { return HERO.speed * this.itemSpd * (this.buffT > 0 ? 1.6 : 1) }
   cancelOrders() { this.moveTarget = null; this.chaseTgt = null }
 
-  dmgNum(pos, str, { color = '#eaf2ff', size = 0.62 } = {}) {
+  dmgNum(pos, str, { color = '#e8dcc4', size = 0.62 } = {}) {
     if (this._txt <= 0) return
     this._txt--
     this.vfx.text(pos, str, { color, size, life: 0.75, rise: 2.1 })
@@ -190,7 +190,7 @@ export default class MobaScene {
       this.shield.hp -= dmg
       _v1.copy(pos)
       _v1.y = 1.1
-      this.vfx.flash(_v1, { color: '#8ea9ff', size: 2, life: 0.18 })
+      this.vfx.flash(_v1, { color: '#9aa8b8', size: 2, life: 0.18 })
       this.ctx.audio.play('shield', { vol: 0.5 })
       if (this.shield.hp <= 0) this.breakShield()
       return
@@ -202,7 +202,7 @@ export default class MobaScene {
     this.ctx.audio.play('hit', { vol: 0.5 })
     _v1.copy(pos)
     _v1.y = 2.3
-    this.dmgNum(_v1, String(Math.round(dmg)), { color: '#ff6a6a', size: 0.7 })
+    this.dmgNum(_v1, String(Math.round(dmg)), { color: '#e05a48', size: 0.7 })
     if (srcPos) {
       _v2.copy(pos).sub(srcPos)
       _v2.y = 0
@@ -217,7 +217,7 @@ export default class MobaScene {
     this.playerBar.set(this.hp / this.maxHp)
     _v1.copy(this.hero.group.position)
     _v1.y = 2.3
-    this.dmgNum(_v1, `+${Math.round(amount)}`, { color: '#7dffa8', size: 0.75 })
+    this.dmgNum(_v1, `+${Math.round(amount)}`, { color: '#9fce6a', size: 0.75 })
   }
 
   breakShield() {
@@ -226,12 +226,12 @@ export default class MobaScene {
     this.bubble.visible = false
     _v1.copy(this.hero.group.position)
     _v1.y = 1
-    this.vfx.burst(_v1, { color: '#8ea9ff', count: 20, speed: 6, size: 0.26 })
+    this.vfx.burst(_v1, { color: '#9aa8b8', count: 20, speed: 6, size: 0.26 })
     this.ctx.audio.play('shield', { vol: 0.4 })
   }
 
   /** Player-sourced hit on a red minion (applies level/item/titan scaling). */
-  hitMinion(e, base, { color = '#eaf2ff', kx = 0, kz = 0 } = {}) {
+  hitMinion(e, base, { color = '#e8dcc4', kx = 0, kz = 0 } = {}) {
     if (!e.alive) return
     const dmg = Math.round(base * this.dmgMul())
     if (kx || kz) { e.kx += kx; e.kz += kz }
@@ -242,19 +242,19 @@ export default class MobaScene {
   }
 
   /** Player-sourced hit on the enemy champion. */
-  hitEnemyChamp(base, { color = '#eaf2ff' } = {}) {
+  hitEnemyChamp(base, { color = '#e8dcc4' } = {}) {
     if (!this.enemy.alive) return
     const dmg = Math.round(base * this.dmgMul())
     _v1.copy(this.enemy.group.position)
     _v1.y += 2.2
     this.dmgNum(_v1, String(dmg), { color, size: 0.7 })
     _v1.y -= 1.1
-    this.vfx.flash(_v1, { color: '#ff8a8a', size: 0.9, life: 0.12 })
+    this.vfx.flash(_v1, { color: '#e06a52', size: 0.9, life: 0.12 })
     this.enemy.damage(dmg, { byPlayer: true })
   }
 
   /** Player AoE vs all red units. */
-  aoeEnemies(x, z, r, dmg, { color = '#ffd166', knock = 0 } = {}) {
+  aoeEnemies(x, z, r, dmg, { color = '#ffb84d', knock = 0 } = {}) {
     for (const e of this.army.active) {
       if (!e.alive || e.team !== 'red') continue
       const p = e.minion.group.position
@@ -289,7 +289,7 @@ export default class MobaScene {
     this.cs++
     _v1.copy(e.minion.group.position)
     _v1.y += 1.6
-    this.vfx.text(_v1, `+${GOLD.cs}g`, { color: '#ffd166', size: 0.62, life: 0.9 })
+    this.vfx.text(_v1, `+${GOLD.cs}g`, { color: '#ffb84d', size: 0.62, life: 0.9 })
     this.ctx.audio.play('coin', { vol: 0.5 })
     this._addGold(GOLD.cs)
     this._addXp(XP.cs)
@@ -297,12 +297,12 @@ export default class MobaScene {
 
   onEnemySlain(byPlayer) {
     this.kills++
-    this.ui.hud.banner('ENEMY SLAIN', { color: '#ffd166', duration: 2, sub: byPlayer ? `+${GOLD.kill} GOLD` : '' })
+    this.ui.hud.banner('ENEMY SLAIN', { color: '#ffb84d', duration: 2, sub: byPlayer ? `+${GOLD.kill} GOLD` : '' })
     this.ctx.audio.play('kill', { vol: 0.9 })
     if (byPlayer) {
       _v1.copy(this.enemy.group.position)
       _v1.y = 2.6
-      this.vfx.text(_v1, `+${GOLD.kill}g`, { color: '#ffd166', size: 1, life: 1.2 })
+      this.vfx.text(_v1, `+${GOLD.kill}g`, { color: '#ffb84d', size: 1, life: 1.2 })
       this._addGold(GOLD.kill)
       this._addXp(XP.kill)
     }
@@ -311,21 +311,21 @@ export default class MobaScene {
   onStructureDestroyed(s, byTeam) {
     if (s.kind === 'tower') {
       if (s.team === 'red') {
-        this.ui.hud.banner('TOWER DESTROYED', { color: '#ffd166', duration: 2.2, sub: 'THE LANE IS OPEN' })
+        this.ui.hud.banner('WATCHTOWER FELLED', { color: '#ffb84d', duration: 2.2, sub: 'THE LANE IS OPEN' })
         if (byTeam === 'blue') {
           _v1.copy(s.pos)
           _v1.y = 4
-          this.vfx.text(_v1, `+${GOLD.tower}g`, { color: '#ffd166', size: 0.95, life: 1.2 })
+          this.vfx.text(_v1, `+${GOLD.tower}g`, { color: '#ffb84d', size: 0.95, life: 1.2 })
           this._addGold(GOLD.tower)
         }
       } else {
-        this.ui.hud.banner('YOUR TOWER HAS FALLEN', { color: '#ff5c6e', duration: 2.2 })
+        this.ui.hud.banner('YOUR WATCHTOWER HAS FALLEN', { color: '#c23b2e', duration: 2.2 })
       }
       return
     }
-    // nexus down — cinematic chain, then the end state
+    // war crystal down — cinematic chain, then the end state
     const posC = s.pos.clone()
-    for (const [delay, r, color] of [[150, 7, '#ffffff'], [420, 11, s.team === 'red' ? '#ffd166' : '#ff5c6e'], [720, 15, '#ffffff']]) {
+    for (const [delay, r, color] of [[150, 7, '#ffe6c8'], [420, 11, s.team === 'red' ? '#ffb84d' : '#c23b2e'], [720, 15, '#ffe6c8']]) {
       this._timeout(() => {
         posC.y = 0
         this.vfx.shockwave(posC, { color, radius: r })
@@ -345,11 +345,11 @@ export default class MobaScene {
       this.nextItemAt += GOLD.itemEvery
       this.itemDmg *= 1.06
       this.itemSpd *= 1.04
-      this.ui.hud.toast('ITEM FORGED: +DMG +SPD')
+      this.ui.hud.toast('FORGED AT THE WAR CAMP: +DMG +SPD')
       this.ctx.audio.play('coin', { vol: 0.8 })
       _v1.copy(this.hero.group.position)
       _v1.y = 1.4
-      this.vfx.flash(_v1, { color: '#ffd166', size: 2.2 })
+      this.vfx.flash(_v1, { color: '#ffb84d', size: 2.2 })
     }
   }
 
@@ -362,10 +362,10 @@ export default class MobaScene {
       this.ui.setLevel(this.level)
       this.ui.pulseLevel()
       const pos = this.hero.group.position
-      this.vfx.ring(pos, { color: '#ffd166', radius: 2.6, life: 0.6 })
+      this.vfx.ring(pos, { color: '#ffb84d', radius: 2.6, life: 0.6 })
       _v1.copy(pos)
       _v1.y = 2.6
-      this.vfx.text(_v1, 'LEVEL UP!', { color: '#ffd166', size: 1, life: 1.2 })
+      this.vfx.text(_v1, 'LEVEL UP!', { color: '#ffb84d', size: 1, life: 1.2 })
       this.ctx.audio.play('levelup')
     }
   }
@@ -390,7 +390,7 @@ export default class MobaScene {
     const pos = this.hero.group.position
     _v1.copy(pos)
     _v1.y = 1
-    this.vfx.impact(_v1, { color: '#ff5c6e', size: 1.6 })
+    this.vfx.impact(_v1, { color: '#c23b2e', size: 1.6 })
   }
 
   _respawnPlayer() {
@@ -583,20 +583,20 @@ export default class MobaScene {
       this.ui.recall.set(this.recallT / HERO.recallTime)
       if (this.recallPulseT <= 0) {
         this.recallPulseT = 0.55
-        this.vfx.ring(pos, { color: '#9fd8ff', radius: 2.3, life: 0.55 })
+        this.vfx.ring(pos, { color: '#b8d4e8', radius: 2.3, life: 0.55 })
       }
       if (this.recallT >= HERO.recallTime) {
         this._cancelRecall()
         _v1.copy(pos)
         _v1.y = 1
-        this.vfx.flash(_v1, { color: '#9fd8ff', size: 2.6 })
+        this.vfx.flash(_v1, { color: '#b8d4e8', size: 2.6 })
         pos.set(-SPAWN_X, 0, 0)
         this.hp = this.maxHp
         this.energy = HERO.energy
         this.playerBar.hide()
         if (this.camLock) this.camFocus.copy(pos)
         _v1.set(-SPAWN_X, 1, 0)
-        this.vfx.flash(_v1, { color: '#9fd8ff', size: 3 })
+        this.vfx.flash(_v1, { color: '#b8d4e8', size: 3 })
         this.ctx.audio.play('heal')
       }
     }
@@ -655,7 +655,7 @@ export default class MobaScene {
     _v2.y = this.chaseTgt.type === 'structure' ? 3 : 1
     _v3.copy(_v2).sub(from)
     if (_v3.lengthSq() < 0.01) _v3.set(1, 0, 0)
-    const glow = this.ctx.profile.appearance.glow || '#7df9ff'
+    const glow = this.ctx.profile.appearance.glow || '#ffb84d'
     const h = this.vfx.projectile({ from, dir: _v3.normalize(), speed: 30, color: glow, size: 0.3, life: 1.4, trail: true })
     this.autoBolts.push({ h, tgt: this.chaseTgt })
   }
@@ -671,13 +671,13 @@ export default class MobaScene {
       const d = _v2.length()
       const hitR = b.tgt.type === 'structure' ? b.tgt.s.radius + 0.4 : 0.85
       if (d < hitR) {
-        this.vfx.flash(b.h.pos, { color: '#ffffff', size: 0.7, life: 0.1 })
+        this.vfx.flash(b.h.pos, { color: '#ffe6c8', size: 0.7, life: 0.1 })
         if (b.tgt.type === 'minion') this.hitMinion(b.tgt.e, HERO.atkDmg)
         else if (b.tgt.type === 'echamp') this.hitEnemyChamp(HERO.atkDmg)
         else {
           const dmg = Math.round(HERO.atkDmg * this.dmgMul())
           _v1.y = 4
-          this.dmgNum(_v1, String(dmg), { color: '#eaf2ff', size: 0.6 })
+          this.dmgNum(_v1, String(dmg), { color: '#e8dcc4', size: 0.6 })
           this.structures.damage(b.tgt.s, dmg, 'blue')
         }
         b.h.kill()
@@ -762,7 +762,7 @@ export default class MobaScene {
     const profile = this.ctx.profile
     profile.stats.wins.moba = (profile.stats.wins.moba || 0) + 1
     this.ctx.saveProfile()
-    this.ui.hud.banner('VICTORY', { color: '#ffd166', duration: 0, sub: 'THE RIFT IS YOURS' })
+    this.ui.hud.banner('VICTORY', { color: '#ffb84d', duration: 0, sub: 'THE WAR RIFT IS YOURS' })
     endPanel(this.ui.hud, this.ctx)
     for (let i = 0; i < 8; i++) {
       this._timeout(() => {
@@ -770,7 +770,7 @@ export default class MobaScene {
         _v1.x += rand(-9, 9)
         _v1.z += rand(-7, 7)
         _v1.y = rand(2, 7)
-        this.vfx.burst(_v1, { color: pick(['#ffd166', '#54e0ff', '#ff9de2', '#7dffa8']), count: 26, speed: 8, size: 0.32, gravity: -4 })
+        this.vfx.burst(_v1, { color: pick(['#ffb84d', '#ff8c3b', '#ff5a26', '#e8dcc4']), count: 26, speed: 8, size: 0.32, gravity: -4 })
         this.ctx.audio.play('coin', { vol: 0.4 })
       }, 400 + i * 650)
     }
@@ -784,7 +784,7 @@ export default class MobaScene {
     this.ui.death.hide()
     this.ctx.audio.play('defeat')
     this.hero.setState('ko')
-    this.ui.hud.banner('DEFEAT', { color: '#ff5c6e', duration: 0, sub: 'YOUR NEXUS HAS FALLEN' })
+    this.ui.hud.banner('DEFEAT', { color: '#c23b2e', duration: 0, sub: 'YOUR WAR CRYSTAL LIES SHATTERED' })
     endPanel(this.ui.hud, this.ctx)
     this._timeout(() => this.ctx.goTo('hub'), 8000)
   }

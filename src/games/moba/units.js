@@ -26,11 +26,11 @@ function barMat(color, opacity) {
 }
 
 export class HealthBar {
-  constructor(parent, { w = 0.9, y = 1.25, color = '#5cff8a', h = 0.11 } = {}) {
+  constructor(parent, { w = 0.9, y = 1.25, color = '#8fc25a', h = 0.11 } = {}) {
     this.w = w
     this.group = new THREE.Group()
     this.group.position.y = y
-    this.bg = new THREE.Sprite(barMat('#0b0f1c', 0.88))
+    this.bg = new THREE.Sprite(barMat('#14100b', 0.88))
     this.bg.scale.set(w + 0.09, h + 0.06, 1)
     this.bg.renderOrder = 800
     this.fill = new THREE.Sprite(barMat(color, 1))
@@ -127,7 +127,7 @@ export class MinionArmy {
         evil: team === 'red',
         scale: type === 'caster' ? 0.92 : 1,
       })
-      const bar = new HealthBar(minion.group, { w: 0.85, y: 1.15, color: team === 'blue' ? '#5cff8a' : '#ff5c5c' })
+      const bar = new HealthBar(minion.group, { w: 0.85, y: 1.15, color: team === 'blue' ? '#8fc25a' : '#d84838' })
       e = { team, type, minion, bar, scale: type === 'caster' ? 0.92 : 1 }
       this.g.scene.add(minion.group)
     }
@@ -327,7 +327,7 @@ export class Structures {
         pos: new THREE.Vector3(def.x, 0, def.z), radius: 2.1,
         hp: TOWER.hp, maxHp: TOWER.hp, alive: true,
         def, target: null, aimT: 0, cd: 0, flashT: 0,
-        bar: new HealthBar(def.group, { w: 2.6, y: 7.6, color: def.team === 'blue' ? '#5cff8a' : '#ff5c5c', h: 0.16 }),
+        bar: new HealthBar(def.group, { w: 2.6, y: 7.6, color: def.team === 'blue' ? '#8fc25a' : '#d84838', h: 0.16 }),
       }
       s.trimBase = def.trimMesh.material.color.clone()
       this.list.push(s)
@@ -339,7 +339,7 @@ export class Structures {
         pos: new THREE.Vector3(def.x, 0, 0), radius: 3.4,
         hp: NEXUS_HP, maxHp: NEXUS_HP, alive: true,
         def, target: null, aimT: 0, cd: 0, flashT: 0,
-        bar: new HealthBar(def.group, { w: 3.4, y: 9.4, color: team === 'blue' ? '#5cff8a' : '#ff5c5c', h: 0.2 }),
+        bar: new HealthBar(def.group, { w: 3.4, y: 9.4, color: team === 'blue' ? '#8fc25a' : '#d84838', h: 0.2 }),
       })
     }
   }
@@ -405,7 +405,7 @@ export class Structures {
         s.flashT = 0.8
         _a.copy(s.pos)
         _a.y = 3
-        this.g.dmgNum(_a, 'IMMUNE', { color: '#9fc8ff', size: 0.7 })
+        this.g.dmgNum(_a, 'WARDED', { color: '#d8cfae', size: 0.7 })
       }
       return
     }
@@ -512,7 +512,7 @@ export class EnemyChampion {
   constructor(g) {
     this.g = g
     this.hero = createHero(
-      { primary: '#8a1638', secondary: '#1c0b18', glow: '#ff3b2d', head: 'orb', hair: 'horns', cape: true, trail: 'none' },
+      { primary: '#8a1638', secondary: '#1c0b18', glow: '#ff5a26', head: 'orb', hair: 'horns', cape: true, trail: 'none' },
       { auraRing: true },
     )
     this.group = this.hero.group
@@ -554,7 +554,7 @@ export class EnemyChampion {
     this.dashTrail = null
     _a.copy(this.group.position)
     _a.y = 1
-    this.g.vfx.impact(_a, { color: '#ff3b2d', size: 1.6 })
+    this.g.vfx.impact(_a, { color: '#ff5a26', size: 1.6 })
     this.g.onEnemySlain(byPlayer)
     return true
   }
@@ -567,7 +567,7 @@ export class EnemyChampion {
     this.hero.setState('normal')
     this.group.position.set(SPAWN_X, 0, 0)
     _a.set(SPAWN_X, 1, 0)
-    this.g.vfx.flash(_a, { color: '#ff3b2d', size: 3 })
+    this.g.vfx.flash(_a, { color: '#ff5a26', size: 3 })
     this.g.audio.play('spawn', { vol: 0.5 })
   }
 
@@ -581,7 +581,7 @@ export class EnemyChampion {
     if (_a.lengthSq() < 0.01) _a.set(-1, 0, 0)
     const h = this.g.vfx.projectile({
       from, dir: _a.normalize(), speed: ENEMY.boltSpeed,
-      color: '#ff8c4d', size: 0.5, life: 2.4, trail: true, light: 1.6,
+      color: '#ff8c3b', size: 0.5, life: 2.4, trail: true, light: 1.6,
     })
     this.bolts.push({ h, dmg, tgt })
   }
@@ -611,7 +611,7 @@ export class EnemyChampion {
         hit = true
       }
       if (hit) {
-        g.vfx.impact(b.h.pos, { color: '#ff8c4d', size: 0.8 })
+        g.vfx.impact(b.h.pos, { color: '#ff8c3b', size: 0.8 })
         b.h.kill()
         this.bolts.splice(i, 1)
       }
@@ -668,7 +668,7 @@ export class EnemyChampion {
       this.hero.cast()
       g.audio.play('dash', { vol: 0.5 })
       this.dashTrail?.stop()
-      this.dashTrail = g.vfx.trail(hero.hips, { color: '#ff3b2d', size: 0.6, rate: 46, life: 0.35 })
+      this.dashTrail = g.vfx.trail(hero.hips, { color: '#ff5a26', size: 0.6, rate: 46, life: 0.35 })
     }
 
     // ---- movement / actions ----
@@ -682,7 +682,7 @@ export class EnemyChampion {
         // nova slam finisher
         this.dashTrail?.stop()
         this.dashTrail = null
-        g.vfx.shockwave(p, { color: '#ff3b2d', radius: ENEMY.novaR })
+        g.vfx.shockwave(p, { color: '#ff5a26', radius: ENEMY.novaR })
         g.ctx.engine.shake(0.32, 0.35)
         g.audio.play('explode', { vol: 0.55 })
         if (pTarget && dist < ENEMY.novaR + 0.6) g.damagePlayer(ENEMY.novaDmg, p, { knock: 6 })

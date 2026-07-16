@@ -3,14 +3,15 @@ import { createMinion, createHero } from '../../art/characterFactory.js'
 import { rand, TAU, distXZ } from '../../core/utils.js'
 
 /**
- * Enemy archetypes. Minion instances are pooled per-type (color/scale baked
- * into the pooled instance) so waves never re-create geometry.
+ * Enemy archetypes — bone / ash / ember / magma raider tints.
+ * Minion instances are pooled per-type (color/scale baked into the pooled
+ * instance) so waves never re-create geometry.
  */
 export const ENEMY_TYPES = {
-  grunt:    { color: '#d84545', scale: 1.0, hp: 20, speed: 3.4,  dmg: 5,  reach: 1.15 },
-  sprinter: { color: '#ff9440', scale: 0.8, hp: 10, speed: 6.15, dmg: 4,  reach: 1.0 },
-  brute:    { color: '#5b2678', scale: 1.9, hp: 60, speed: 1.85, dmg: 12, reach: 1.8 },
-  exploder: { color: '#4ce05f', scale: 1.0, hp: 14, speed: 4.7,  dmg: 15, reach: 1.5 },
+  grunt:    { color: '#b0a184', scale: 1.0, hp: 20, speed: 3.4,  dmg: 5,  reach: 1.15 }, // bone
+  sprinter: { color: '#c9772e', scale: 0.8, hp: 10, speed: 6.15, dmg: 4,  reach: 1.0 },  // ember
+  brute:    { color: '#544639', scale: 1.9, hp: 60, speed: 1.85, dmg: 12, reach: 1.8 },  // ash
+  exploder: { color: '#b53220', scale: 1.0, hp: 14, speed: 4.7,  dmg: 15, reach: 1.5 },  // magma
 }
 
 export class Horde {
@@ -159,11 +160,11 @@ export class Horde {
       e.minion.setMoving(moving)
       e.minion.update(dt)
 
-      // exploder menace pulse (scale + green emissive)
+      // exploder menace pulse (scale + magma emissive)
       if (e.type === 'exploder') {
         const pu = 0.5 + 0.5 * Math.sin(e.minion.t * 9)
         g.scale.setScalar(def.scale * (1 + 0.09 * pu))
-        if (e.minion._flash <= 0) e.minion.bodyMat.emissive.setRGB(0.05 * pu, 0.55 * pu, 0.12 * pu)
+        if (e.minion._flash <= 0) e.minion.bodyMat.emissive.setRGB(0.7 * pu, 0.22 * pu, 0.04 * pu)
       }
     }
 
@@ -193,7 +194,7 @@ export class Horde {
 }
 
 /**
- * WARDEN NOVA — wave-5 boss. Giant dark hero that stalks, ground-slams
+ * PIT WARDEN — wave-5 boss. Giant blood-iron warlord that stalks, ground-slams
  * (telegraphed), fires radial bursts, and summons grunts at half HP.
  * hooks: { heroPos, arenaR, slam(pos), radialBurst(pos), summonMinions(pos) }
  */
@@ -202,7 +203,7 @@ export class Boss {
     this.scene = scene
     this.hooks = hooks
     this.hero = createHero(
-      { primary: '#8a1638', secondary: '#170a1e', glow: '#ff2d55', head: 'orb', hair: 'horns', cape: true },
+      { primary: '#6e1a1c', secondary: '#26201c', glow: '#ff5a26', head: 'orb', hair: 'horns', cape: true },
       { auraRing: true },
     )
     this.hero.group.scale.setScalar(2.6)
@@ -223,7 +224,7 @@ export class Boss {
     this.tele = new THREE.Mesh(
       new THREE.RingGeometry(0.78, 1, 48),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#ff2d55').multiplyScalar(1.8),
+        color: new THREE.Color('#c23b2e').multiplyScalar(1.8),
         transparent: true, opacity: 0.5,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),

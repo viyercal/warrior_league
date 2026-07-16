@@ -95,22 +95,22 @@ export class Fighter {
     this._dodgeTrail = null
     this._launchTrail = null
 
-    // smash charge glow on the striking glove
-    this.chargeS = new THREE.Sprite(glowSpriteMaterial('#ffd166', 0))
+    // smash charge glow on the striking glove — gathering forge-fire
+    this.chargeS = new THREE.Sprite(glowSpriteMaterial('#ffb84d', 0))
     this.chargeS.scale.setScalar(0.001)
     this.hero.arms.R.glove.add(this.chargeS)
 
-    // invulnerability shimmer
-    this.shimmer = new THREE.Sprite(glowSpriteMaterial('#c8f4ff', 0))
+    // invulnerability shimmer — warded torchlight
+    this.shimmer = new THREE.Sprite(glowSpriteMaterial('#ffe0b0', 0))
     this.shimmer.scale.set(2.6, 3.4, 1)
     this.shimmer.position.y = 1
     this.root.add(this.shimmer)
 
-    // descending respawn pad
+    // descending respawn pad — a rune-lit stone disc lowered from above
     const pad = this.pad = new THREE.Group()
     const disc = new THREE.Mesh(
       new THREE.CylinderGeometry(1.35, 1.6, 0.16, 18),
-      toonMaterial({ color: '#8fa7e8', rim: '#dff2ff', rimStrength: 0.5 }),
+      toonMaterial({ color: '#6a5d4a', rim: '#ffd9a0', rimStrength: 0.5 }),
     )
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.06, 8, 28), glowMaterial(this.glow, 1.8))
     ring.rotation.x = Math.PI / 2
@@ -220,7 +220,7 @@ export class Fighter {
         this.vel.y = JUMP_V
         this.grounded = false
         _v1.set(this.pos.x, this.pos.y + 0.05, 0)
-        this.vfx.burst(_v1, { color: '#e8f2d8', count: 7, speed: 2.6, size: 0.16, life: 0.4, gravity: -4, up: 1 })
+        this.vfx.burst(_v1, { color: '#c9b89a', count: 7, speed: 2.6, size: 0.16, life: 0.4, gravity: -4, up: 1 })
       } else if (this.airJumps > 0) {
         this.airJumps--
         this.vel.y = AIR_JUMP_V
@@ -291,7 +291,7 @@ export class Fighter {
         if (wasAir && impact > 7) {
           _v1.set(this.pos.x, p.y + 0.05, 0)
           this.vfx.burst(_v1, {
-            color: '#d9ecc4', count: impact > 14 ? 14 : 8, speed: 3.4, size: 0.2,
+            color: '#bfae8e', count: impact > 14 ? 14 : 8, speed: 3.4, size: 0.2,
             life: 0.5, gravity: -5, up: 2,
           })
           if (impact > 14) this.audio.play('bounce', { vol: 0.14 })

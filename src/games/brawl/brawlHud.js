@@ -1,6 +1,6 @@
 /**
- * Brawl-specific DOM HUD: fighter damage chips + stock pips, kill feed,
- * results panel. Built on the shared HUD toolkit.
+ * Mortal Arena DOM HUD: carved-stone fighter plaques (damage % + stock studs),
+ * kill feed, results panel. Built on the shared HUD toolkit.
  */
 export class BrawlHud {
   constructor(hud, fighters) {
@@ -27,8 +27,8 @@ export class BrawlHud {
         const rose = f.dmg > r.lastDmg
         r.lastDmg = f.dmg
         r.pct.textContent = `${Math.round(f.dmg)}%`
-        const k = Math.min(1, f.dmg / 150)
-        r.pct.style.color = `rgb(255, ${Math.round(242 - 190 * k)}, ${Math.round(238 - 208 * k)})`
+        const k = Math.min(1, f.dmg / 150) // bone -> blood as damage racks up
+        r.pct.style.color = `rgb(${Math.round(232 + 23 * k)}, ${Math.round(220 - 161 * k)}, ${Math.round(196 - 150 * k)})`
         if (rose) {
           r.pct.classList.remove('pop')
           void r.pct.offsetWidth
@@ -43,7 +43,7 @@ export class BrawlHud {
     }
   }
 
-  feed(msg, color = '#ffd166') {
+  feed(msg, color = '#ffb84d') {
     const e = this.hud.el('div', 'brawl-feed-item', msg, this.feedBox)
     e.style.setProperty('--fc', color)
     while (this.feedBox.children.length > 5) this.feedBox.firstChild.remove()

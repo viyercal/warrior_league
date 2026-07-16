@@ -17,7 +17,7 @@ let pass = 0, fail = 0
 const check = (name, ok) => { ok ? pass++ : fail++; console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`) }
 
 for (const scene of ['hoops', 'arena']) {
-  await page.goto(`http://localhost:5173/?scene=${scene}&mute=1`, { waitUntil: 'load' })
+  await page.goto(`http://localhost:${process.env.IPL_PORT || '5173'}/?scene=${scene}&mute=1`, { waitUntil: 'load' })
   await page.waitForTimeout(5500)
   await page.mouse.move(720, 300)
 

@@ -12,8 +12,8 @@ const CAM_POS = new THREE.Vector3(0, 4.0, 12.6)
 const CAM_LOOK = new THREE.Vector3(0, 2.7, -2.5)
 
 /**
- * IPL HUB — Wii-channel menu reimagined as a AAA stylized game lobby.
- * Floating hero platform + live-diorama channel wall over a dusk skyscape.
+ * IWL HUB — torchlit mountain-temple courtyard at dusk.
+ * Stone hero platform + live-diorama channel wall of carved stone frames.
  */
 export default class HubScene {
   constructor(ctx) {
@@ -44,8 +44,8 @@ export default class HubScene {
     platform.group.add(this.hero.group)
     this.heroWorld = new THREE.Vector3()
 
-    // warm key light just for the hero pedestal area
-    const heroLight = new THREE.PointLight('#ffe8cf', 9, 9, 2)
+    // warm torchlight just for the hero pedestal area
+    const heroLight = new THREE.PointLight('#ffd9a8', 9, 9, 2)
     heroLight.position.set(1.5, 3.0, 4.0)
     platform.group.add(heroLight)
 
@@ -91,7 +91,7 @@ export default class HubScene {
     const hud = this.hud = new HUD()
 
     hud.el('div', 'hub-logo',
-      '<div class="hub-logo-main">IPL</div><div class="hub-logo-sub">IMMERSIVE PLAYABLE LEAGUE</div>')
+      '<div class="hub-logo-main">IWL</div><div class="hub-logo-sub">IMMORTAL WARLORDS LEAGUE</div>')
 
     const skillChips = profile.loadout.map(id => {
       const s = getSkill(id)
@@ -101,17 +101,17 @@ export default class HubScene {
       `<div class="hub-player-name"><span class="hub-player-dot" style="--dot:${profile.appearance.glow}"></span>${profile.name}</div>
        <div class="hub-skills">${skillChips}</div>`)
 
-    const btn = hud.el('button', 'ghost hub-customize', 'CUSTOMIZE HERO')
+    const btn = hud.el('button', 'ghost hub-customize', 'FORGE YOUR WARLORD')
     btn.addEventListener('click', () => {
       this.ctx.audio.play('click')
       this.ctx.goTo('loadout', { game: null })
     })
 
     hud.hints([
-      ['MOUSE', 'Hover / click a channel'],
-      ['← → 1-6', 'Cycle channels'],
-      ['ENTER', 'Launch channel'],
-      ['C', 'Customize hero'],
+      ['MOUSE', 'Hover / click an arena'],
+      ['← → 1-6', 'Cycle arenas'],
+      ['ENTER', 'March to battle'],
+      ['C', 'Visit the war forge'],
     ])
 
     this.plates = this.channels.map(ch => {

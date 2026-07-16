@@ -1,14 +1,14 @@
 import { HUD } from '../../ui/hud.js'
 import { WAVE_COUNT } from './raiders.js'
 
-/** All SIEGE PROTOCOL DOM: citadel bar, wave/gold readouts, prompts, boss bar. */
+/** All LAST BASTION DOM: bastion bar, wave/gold readouts, prompts, boss bar. */
 export class SiegeHud {
   constructor(skillDefs, abilityOpts) {
     const hud = this.hud = new HUD()
 
-    // citadel HP — big segmented bar, top center
+    // bastion HP — big segmented bar, top center (stats keys stay "citadel")
     const cit = hud.el('div', 'siege-citadel')
-    hud.el('div', 'siege-citadel-label', '<span class="siege-cit-icon">◈</span> CITADEL', cit)
+    hud.el('div', 'siege-citadel-label', '<span class="siege-cit-icon">♜</span> BASTION', cit)
     const track = hud.el('div', 'siege-citadel-track', '', cit)
     this.citFill = hud.el('div', 'siege-citadel-fill', '', track)
     for (let i = 1; i < 10; i++) {
@@ -42,7 +42,7 @@ export class SiegeHud {
 
     // boss bar
     this.bossBox = hud.el('div', 'siege-boss',
-      '<div class="siege-boss-name">MAGMA COLOSSUS</div><div class="siege-boss-track"><div class="siege-boss-fill"></div></div>')
+      '<div class="siege-boss-name">SIEGE COLOSSUS</div><div class="siege-boss-track"><div class="siege-boss-fill"></div></div>')
     this.bossBox.style.display = 'none'
     this.bossFill = this.bossBox.querySelector('.siege-boss-fill')
 
@@ -55,7 +55,7 @@ export class SiegeHud {
     this.respawnSecs = this.respawnEl.querySelector('span')
 
     this.hintBox = hud.hints([
-      ['WASD', 'Move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Blaster'],
+      ['WASD', 'Move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Attack'],
       ['1-4', 'Skills'], ['F', 'Build / upgrade'], ['H', 'Toggle help'],
     ])
   }

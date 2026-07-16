@@ -26,7 +26,7 @@ export class SceneManager {
 
   async goTo(name, params = {}) {
     if (this._busy) return
-    if (!this.loaders[name]) { console.error(`[IPL] unknown scene "${name}"`); return }
+    if (!this.loaders[name]) { console.error(`[IWL] unknown scene "${name}"`); return }
     this._busy = true
     try {
       this.fader.classList.add('on')
@@ -61,7 +61,7 @@ export class SceneManager {
       window.__scene = mod
       this.fader.classList.remove('on')
     } catch (e) {
-      console.error('[IPL] scene load failed:', e)
+      console.error('[IWL] scene load failed:', e)
       this.fader.classList.remove('on')
     } finally {
       this._busy = false

@@ -28,19 +28,19 @@ const mkEntity = hero => ({
   scaleCur: 1,
 })
 
-/** SLAM CITY 2K — NBA-Jam-soul 1v1 half-court in a glossy night arena. */
+/** BLOOD COURT — NBA-Jam-soul 1v1 gladiator ball in a torchlit colosseum. */
 export default class HoopsScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.72, bloomThreshold: 0.86, bloomRadius: 0.5, vignette: 0.55, saturation: 1.12 }
+    this.postOpts = { bloom: 0.72, bloomThreshold: 0.86, bloomRadius: 0.5, vignette: 0.6, saturation: 1.06 }
     this._timers = []
   }
 
   async init() {
     const { engine, profile, audio } = this.ctx
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color('#070919')
-    this.scene.fog = new THREE.Fog('#0a0d20', 20, 58)
+    this.scene.background = new THREE.Color('#140d12')
+    this.scene.fog = new THREE.Fog('#1a1420', 20, 62)
     this.scene.environment = engine.envMap
 
     this.camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.1, 200)
@@ -54,7 +54,7 @@ export default class HoopsScene {
     const playerHero = createHero(profile.appearance)
     this.scene.add(playerHero.group)
     const aiHero = createHero({
-      primary: '#ff4f4f', secondary: '#3a1420', glow: '#ffcf5c',
+      primary: '#a1252c', secondary: '#2a2621', glow: '#ff8c3b',
       head: 'classic', hair: 'horns', cape: false,
     })
     this.scene.add(aiHero.group)
@@ -206,8 +206,8 @@ export default class HoopsScene {
     this.ctx.audio.play('zap', { vol: 0.35 })
     const d = distXZ(p.hero.group.position, g.ai.hero.group.position)
     if (d < 1.75 && Math.random() < (g.ai.windup ? 0.2 : 0.55)) {
-      this.vfx.impact(this.ball.pos, { color: '#7df9ff', size: 0.8 })
-      this.hud.announce('STEAL!', { color: '#7df9ff', duration: 1.1 })
+      this.vfx.impact(this.ball.pos, { color: '#ffb84d', size: 0.8 })
+      this.hud.announce('STEAL!', { color: '#ffb84d', duration: 1.1 })
       this.ctx.audio.play('kill', { vol: 0.4 })
       g.ai.windup = null
       this._resetCheck('player', 'CLEAN PICK')
@@ -253,7 +253,7 @@ export default class HoopsScene {
     const val = isThree(p.hero.group.position) ? 3 : 2
     const quality = perfect ? 'perfect' : good ? 'good' : 'bad'
     this.hud.meterResult(quality)
-    if (g.onFire && val === 3 && dist > 7.6) this.hud.announce('HEAT CHECK', { color: '#ff9a3c', duration: 1.2 })
+    if (g.onFire && val === 3 && dist > 7.6) this.hud.announce('HEAT CHECK', { color: '#ff8c3b', duration: 1.2 })
     this._starfireFlight = g.eff.starfire
     g.eff.starfire = false
     this._startJump(p, 0.62, 1.0)
@@ -339,13 +339,13 @@ export default class HoopsScene {
     if (p.jumpT > 0 && dp < 2.35) {
       const k = 1 - p.jumpT / p.jumpDur
       if (k > 0.05 && k < 0.72) {
-        this.hud.announce('REJECTED!', { color: '#7df9ff', duration: 1.4 })
+        this.hud.announce('DENIED!', { color: '#ffb84d', duration: 1.4 })
         this.ctx.audio.play('hit')
         this.ctx.audio.play('crowd', { vol: 0.4 })
         this.ctx.engine.shake(0.3, 0.3)
         _tmp.copy(A).sub(COURT.RIM_FLOOR).setY(0).normalize()
         this.ball.swat(_tmp.multiplyScalar(rand(4, 6)).setY(rand(2.5, 4)))
-        this.vfx.impact(this.ball.pos, { color: '#7df9ff', size: 1.1 })
+        this.vfx.impact(this.ball.pos, { color: '#ffb84d', size: 1.1 })
         return
       }
     }
@@ -365,20 +365,20 @@ export default class HoopsScene {
     _tmp.copy(COURT.RIM_FLOOR).sub(A).setY(0).normalize()
     ai.imp.addScaledVector(_tmp2.set(-_tmp.z, 0, _tmp.x), dir * 6.5)
     this.ctx.audio.play('dash', { vol: 0.25 })
-    this.vfx.ring(A, { color: '#ff6a6a', radius: 1.1, life: 0.22 })
+    this.vfx.ring(A, { color: '#c23b2e', radius: 1.1, life: 0.22 })
   }
 
   _aiStealAttempt() {
     const g = this.game
     if (g.phase !== 'live' || this.ball.holder !== 'player' || g.player.metering) return
     if (g.eff.aegisT > 0 || g.eff.ghostT > 0) {
-      this.vfx.flash(_tmp.copy(g.player.hero.group.position).setY(1.2), { color: '#8ea9ff', size: 1.6 })
+      this.vfx.flash(_tmp.copy(g.player.hero.group.position).setY(1.2), { color: '#8c939f', size: 1.6 })
       return // unstealable
     }
     g.ai.hero.cast()
     if (Math.random() < 0.42) {
       this.ctx.audio.play('zap', { vol: 0.4 })
-      this.hud.announce('STOLEN!', { color: '#ff6a6a', duration: 1.2 })
+      this.hud.announce('STOLEN!', { color: '#c23b2e', duration: 1.2 })
       this._resetCheck('ai', 'CPU BALL')
     }
   }
@@ -397,9 +397,9 @@ export default class HoopsScene {
     if (you) this.ctx.audio.play('crowd', { vol: 0.5, delay: 0.1 })
 
     const rimTop = COURT.RIM.clone().setY(COURT.RIM.y + 0.6)
-    this.vfx.text(rimTop, `+${val}`, { color: you ? '#7df9ff' : '#ff6a6a', size: 1.3 })
-    if (banner) this.hud.announce(banner, { color: '#ffd166', duration: 1.6 })
-    else if (perfect) this.hud.announce('SWISH!', { color: '#ffd166', duration: 1.3 })
+    this.vfx.text(rimTop, `+${val}`, { color: you ? '#ffb84d' : '#c23b2e', size: 1.3 })
+    if (banner) this.hud.announce(banner, { color: '#ffb84d', duration: 1.6 })
+    else if (perfect) this.hud.announce('FLAWLESS!', { color: '#ffb84d', duration: 1.3 })
     if (dunk || comet) this.arena.netFlare()
 
     if (you) {
@@ -407,7 +407,7 @@ export default class HoopsScene {
       if (g.streak >= 3 && !g.onFire) {
         g.onFire = true
         this.hud.setFire(true)
-        this.hud.announce('ON FIRE!', { color: '#ff9a3c', sub: 'CAN\'T MISS', duration: 2 })
+        this.hud.announce('ON FIRE!', { color: '#ff8c3b', sub: 'THE FORGE BURNS IN YOU', duration: 2 })
         this.ctx.audio.play('levelup')
         this.ball.setFire(true)
         g.player.hero.ring.visible = true
@@ -426,7 +426,7 @@ export default class HoopsScene {
   _cometSlam(value) {
     const g = this.game
     if (g.phase !== 'live' || g.phase === 'end') return
-    this.hud.announce('COMET SLAM!', { color: '#ff9de2', duration: 1.8 })
+    this.hud.announce('SKYFALL SLAM!', { color: '#ff8c3b', duration: 1.8 })
     this._confetti(COURT.RIM)
     this.ball.dropThrough()
     this._score('you', value, { comet: true })
@@ -458,11 +458,11 @@ export default class HoopsScene {
     this.ctx.audio.play('crowd', { vol: 0.7, delay: 0.05 })
     this.arena.netFlare()
     this.arena.crowd.hype(1.4)
-    this.vfx.shockwave(COURT.RIM_FLOOR, { color: titan ? '#ffb3d9' : '#ffd166', radius: 5.5 })
-    this.vfx.impact(COURT.RIM, { color: '#ffd166', size: 1.8 })
+    this.vfx.shockwave(COURT.RIM_FLOOR, { color: titan ? '#ff5a26' : '#ffb84d', radius: 5.5 })
+    this.vfx.impact(COURT.RIM, { color: '#ffb84d', size: 1.8 })
     this.ball.dropThrough()
     g.phase = 'live' // _score flips to 'made'
-    this._score('you', 2, { dunk: true, banner: titan ? 'POSTERIZED!' : 'SLAM DUNK!' })
+    this._score('you', 2, { dunk: true, banner: titan ? 'COLOSSUS SLAM!' : 'SLAM DUNK!' })
   }
 
   _turnover(newOffense, msg) {
@@ -497,7 +497,7 @@ export default class HoopsScene {
     this.hud.setPossession(offense)
     this.arena.jumbo.set({ you: g.score.you, cpu: g.score.cpu, clock: g.clock, poss: offense })
     this.hud.announce('CHECK', {
-      color: offense === 'player' ? '#7df9ff' : '#ff6a6a',
+      color: offense === 'player' ? '#ffb84d' : '#c23b2e',
       sub: msg || (offense === 'player' ? 'YOUR BALL' : 'CPU BALL'), duration: 0.85,
     })
     this.ctx.audio.play('whistle', { vol: 0.35 })
@@ -539,8 +539,8 @@ export default class HoopsScene {
     this._later(() => this.ctx.goTo('hub'), 8000)
   }
 
-  _confetti(pos) {
-    for (const c of ['#7df9ff', '#ffd166', '#ff5c8a', '#7dffa8']) {
+  _confetti(pos) { // ember sparks, not paper
+    for (const c of ['#ffb84d', '#ff8c3b', '#c23b2e', '#e8dcc4']) {
       this.vfx.burst(pos, { color: c, count: 18, speed: 6, size: 0.28, life: 1.1, gravity: -6, up: 4 })
     }
   }

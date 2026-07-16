@@ -1,13 +1,15 @@
-/* ============ SLAM CITY 2K HUD (all classes prefixed .hoops-/.hs-/.hm-) ============ */
+/* ============ BLOOD COURT HUD (all classes prefixed .hoops-/.hs-/.hm-) ============
+   Stone, iron, bronze, bone — glow reads as firelight, never neon. */
 
-/* ---------- scoreboard ---------- */
+/* ---------- scoreboard: bronze-bound iron plate ---------- */
 .hoops-score {
   position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
   display: flex; align-items: stretch; gap: 0;
-  background: linear-gradient(180deg, rgba(10, 14, 34, 0.9), rgba(6, 8, 20, 0.82));
-  border: 1px solid rgba(125, 249, 255, 0.28);
-  border-radius: 14px;
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.55), 0 0 24px rgba(125, 249, 255, 0.12);
+  background: linear-gradient(180deg, rgba(42, 32, 24, 0.92), rgba(18, 12, 8, 0.86));
+  border: 1px solid rgba(176, 121, 58, 0.55);
+  border-radius: 10px;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6), 0 0 24px rgba(255, 140, 59, 0.14),
+    inset 0 1px 0 rgba(232, 220, 196, 0.12);
   backdrop-filter: blur(10px);
   overflow: hidden;
   z-index: 12;
@@ -20,71 +22,71 @@
   font-family: var(--font-display);
   font-size: 15px; font-weight: 800; letter-spacing: 0.3em;
 }
-.hs-you .hs-name { color: #7df9ff; text-shadow: 0 0 12px rgba(125, 249, 255, 0.7); }
-.hs-cpu .hs-name { color: #ff6a6a; text-shadow: 0 0 12px rgba(255, 106, 106, 0.7); }
+.hs-you .hs-name { color: #ffb84d; text-shadow: 0 0 12px rgba(255, 184, 77, 0.65); }
+.hs-cpu .hs-name { color: #c9432f; text-shadow: 0 0 12px rgba(194, 59, 46, 0.7); }
 .hs-pts {
   font-family: var(--font-display);
   font-size: 34px; font-weight: 800; font-style: italic;
-  color: #fff; min-width: 40px; text-align: center;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  color: #e8dcc4; min-width: 40px; text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
 }
 .hs-mid {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 6px 14px; gap: 2px;
-  background: rgba(4, 6, 14, 0.6);
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 7, 4, 0.65);
+  border-left: 1px solid rgba(176, 121, 58, 0.3);
+  border-right: 1px solid rgba(176, 121, 58, 0.3);
 }
 .hs-poss { font-size: 13px; line-height: 1; }
-.hs-poss.hp-you { color: #7df9ff; text-shadow: 0 0 10px #7df9ff; }
-.hs-poss.hp-cpu { color: #ff6a6a; text-shadow: 0 0 10px #ff6a6a; }
+.hs-poss.hp-you { color: #ffb84d; text-shadow: 0 0 10px #ff8c3b; }
+.hs-poss.hp-cpu { color: #c9432f; text-shadow: 0 0 10px #a1252c; }
 .hs-clock {
   font-family: var(--font-display);
   font-size: 24px; font-weight: 800;
-  color: #f4ecd7;
+  color: #e8dcc4;
   min-width: 38px; text-align: center;
-  border: 1px solid rgba(244, 236, 215, 0.25);
-  border-radius: 8px; padding: 0 6px;
-  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(232, 220, 196, 0.3);
+  border-radius: 6px; padding: 0 6px;
+  background: rgba(0, 0, 0, 0.5);
 }
 .hs-clock.hs-clock-low {
-  color: #ff4d4d; border-color: rgba(255, 77, 77, 0.6);
+  color: #e04338; border-color: rgba(224, 67, 56, 0.65);
   animation: hoopsClockPulse 0.5s ease infinite alternate;
 }
 @keyframes hoopsClockPulse {
-  from { box-shadow: 0 0 4px rgba(255, 77, 77, 0.3); }
-  to { box-shadow: 0 0 16px rgba(255, 77, 77, 0.85); }
+  from { box-shadow: 0 0 4px rgba(224, 67, 56, 0.3); }
+  to { box-shadow: 0 0 16px rgba(224, 67, 56, 0.85); }
 }
 
-/* ---------- shot meter ---------- */
+/* ---------- shot meter: ember band on charred iron ---------- */
 .hoops-meter {
   position: absolute; left: 0; top: 0;
   width: 16px; height: 150px;
   margin-top: -75px;
-  background: rgba(5, 8, 18, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(16, 10, 6, 0.85);
+  border: 1px solid rgba(176, 121, 58, 0.6);
   border-radius: 9px;
   overflow: hidden;
   z-index: 14;
-  box-shadow: 0 0 14px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 14px rgba(0, 0, 0, 0.65);
 }
 .hm-band {
   position: absolute; left: 0; width: 100%;
-  background: linear-gradient(180deg, rgba(120, 255, 160, 0.95), rgba(60, 220, 110, 0.9));
-  box-shadow: 0 0 12px rgba(92, 255, 138, 0.9);
+  background: linear-gradient(180deg, rgba(255, 140, 59, 0.95), rgba(255, 90, 38, 0.9));
+  box-shadow: 0 0 12px rgba(255, 140, 59, 0.9);
 }
 .hm-fill {
   position: absolute; left: 2px; right: 2px; bottom: 0;
-  background: linear-gradient(0deg, #ffd166, #fff8e0);
+  background: linear-gradient(0deg, #e8dcc4, #fff6e2);
   border-radius: 6px;
-  box-shadow: 0 0 10px rgba(255, 209, 102, 0.8);
+  box-shadow: 0 0 10px rgba(232, 220, 196, 0.7);
 }
-.hoops-meter.hm-perfect { animation: hmFlash 0.45s ease; border-color: #7dffa8; }
-.hoops-meter.hm-good { animation: hmFlash 0.35s ease; border-color: #ffd166; }
-.hoops-meter.hm-bad { animation: hmShake 0.3s ease; border-color: #ff5c6e; }
+.hoops-meter.hm-perfect { animation: hmFlash 0.45s ease; border-color: #ffb84d; }
+.hoops-meter.hm-good { animation: hmFlash 0.35s ease; border-color: #b0793a; }
+.hoops-meter.hm-bad { animation: hmShake 0.3s ease; border-color: #c23b2e; }
 @keyframes hmFlash {
-  0% { box-shadow: 0 0 30px rgba(125, 255, 168, 0.9); }
-  100% { box-shadow: 0 0 14px rgba(0, 0, 0, 0.6); }
+  0% { box-shadow: 0 0 30px rgba(255, 184, 77, 0.9); }
+  100% { box-shadow: 0 0 14px rgba(0, 0, 0, 0.65); }
 }
 @keyframes hmShake {
   0%, 100% { margin-left: 0; }
@@ -92,13 +94,13 @@
   75% { margin-left: 5px; }
 }
 
-/* ---------- on-fire tag ---------- */
+/* ---------- on-fire tag: forge fire ---------- */
 .hoops-fire {
   position: absolute; top: 86px; left: 50%; transform: translateX(-50%);
   font-family: var(--font-display);
   font-size: 16px; font-weight: 800; letter-spacing: 0.24em;
-  color: #ff9a3c;
-  text-shadow: 0 0 16px rgba(255, 122, 40, 0.9);
+  color: #ff8c3b;
+  text-shadow: 0 0 16px rgba(255, 90, 38, 0.95), 0 0 34px rgba(255, 140, 59, 0.5);
   animation: hoopsFirePulse 0.6s ease infinite alternate;
   z-index: 12;
 }

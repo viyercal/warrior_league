@@ -6,12 +6,12 @@ import { crystal } from '../art/environment.js'
 import { rand, damp, clamp, TAU, angleLerp } from '../core/utils.js'
 
 export const CHANNEL_DEFS = [
-  { title: 'RIFT LEGENDS', sub: '5V5 LANE WARFARE', game: 'moba', accent: '#3fe8a8' },
-  { title: 'SLAM CITY 2K', sub: 'ARCADE B-BALL', game: 'hoops', accent: '#ff9a3c' },
-  { title: 'NOVA ARENA', sub: 'HORDE SURVIVAL', game: 'arena', accent: '#ff4fd8' },
-  { title: 'SIEGE PROTOCOL', sub: 'CITADEL DEFENSE', game: 'siege', accent: '#45d8ff' },
-  { title: 'TURBO KART GP', sub: '3-LAP GRAND PRIX', game: 'kart', accent: '#ffcf4a' },
-  { title: 'BRAWL STADIUM', sub: 'PLATFORM FIGHTER', game: 'brawl', accent: '#ff4655' },
+  { title: 'WAR RIFT', sub: '1V1 LANE WARFARE', game: 'moba', accent: '#8fae4a' },
+  { title: 'BLOOD COURT', sub: 'GLADIATOR B-BALL', game: 'hoops', accent: '#c23b2e' },
+  { title: 'THE PIT', sub: 'HORDE SURVIVAL', game: 'arena', accent: '#ff5a26' },
+  { title: 'LAST BASTION', sub: 'HOLD THE GATE', game: 'siege', accent: '#9fb8c8' },
+  { title: 'WAR CHARIOTS', sub: '3-LAP DEATH RACE', game: 'kart', accent: '#ffb84d' },
+  { title: 'MORTAL ARENA', sub: 'LAST WARRIOR STANDING', game: 'brawl', accent: '#e8dcc4' },
 ]
 
 const W = 3.3, H = 2.1, R = 0.26, B = 0.15
@@ -41,11 +41,14 @@ function buildGeos() {
   border.holes.push(roundedRect(iw, ih, ir))
   const rim = roundedRect(iw + 0.12, ih + 0.12, ir + 0.04)
   rim.holes.push(roundedRect(iw - 0.02, ih - 0.02, ir))
+  const banner = new THREE.PlaneGeometry(0.4, 0.72, 1, 4)
+  banner.translate(0, -0.36, 0) // pivot at the hanging rod
   return {
     border: new THREE.ExtrudeGeometry(border, { depth: 0.16, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.025, bevelSegments: 2, curveSegments: 5 }),
     rim: new THREE.ExtrudeGeometry(rim, { depth: 0.03, bevelEnabled: false, curveSegments: 5 }),
     back: new THREE.ShapeGeometry(roundedRect(iw, ih, ir), 5),
     hit: new THREE.PlaneGeometry(W + 0.25, H + 0.25),
+    banner,
   }
 }
 
@@ -59,28 +62,68 @@ function spark(color, opacity = 0.4, scale = 0.5) {
   return s
 }
 
+/** Ragged war-banner cloth in a channel's accent color. */
+function bannerTexture(accent) {
+  const body = mix(accent, '#241812', 0.42)
+  const edge = mix(accent, '#120c08', 0.68)
+  return canvasTexture(64, 128, (ctx, w, h) => {
+    ctx.clearRect(0, 0, w, h)
+    // ragged pointed cloth
+    ctx.beginPath()
+    ctx.moveTo(4, 2)
+    ctx.lineTo(w - 4, 2)
+    ctx.lineTo(w - 6, h * 0.72)
+    ctx.lineTo(w * 0.5, h - 4)
+    ctx.lineTo(6, h * 0.72)
+    ctx.closePath()
+    ctx.fillStyle = body
+    ctx.fill()
+    ctx.lineWidth = 5
+    ctx.strokeStyle = edge
+    ctx.stroke()
+    // top rod + stitch line
+    ctx.fillStyle = '#6b4a26'
+    ctx.fillRect(0, 0, w, 7)
+    ctx.strokeStyle = 'rgba(232,220,196,0.35)'
+    ctx.lineWidth = 2
+    ctx.setLineDash([4, 5])
+    ctx.beginPath(); ctx.moveTo(8, 14); ctx.lineTo(w - 8, 14); ctx.stroke()
+    ctx.setLineDash([])
+    // bone emblem
+    ctx.strokeStyle = '#e8dcc4'
+    ctx.lineWidth = 4
+    const cx = w / 2, cy = h * 0.42
+    ctx.beginPath()
+    ctx.moveTo(cx, cy - 14); ctx.lineTo(cx + 11, cy); ctx.lineTo(cx, cy + 14); ctx.lineTo(cx - 11, cy)
+    ctx.closePath()
+    ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(cx, cy - 22); ctx.lineTo(cx, cy + 22); ctx.stroke()
+  })
+}
+
 // ---------- diorama stages ----------
 
+// WAR RIFT: scorched lane sliver — ember obelisk, bone vs crimson minions
 function mobaStage() {
   const stage = new THREE.Group()
-  const tex = groundTexture({ base: '#25683a', blotches: ['#2f7a48', '#1d5230', '#398a50'], size: 256, count: 130 })
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(0.98, 26), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, envMapIntensity: 0.35 }))
+  const tex = groundTexture({ base: '#3f3428', blotches: ['#4a3e2e', '#332a20', '#524434'], size: 256, count: 130 })
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(0.98, 26), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, envMapIntensity: 0.3 }))
   floor.rotation.x = -Math.PI / 2
   floor.scale.set(1.42, 1, 1)
   stage.add(floor)
-  const lane = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 0.4), new THREE.MeshStandardMaterial({ color: '#8a6b3f', roughness: 1, envMapIntensity: 0.35 }))
+  const lane = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 0.4), new THREE.MeshStandardMaterial({ color: '#5c4a34', roughness: 1, envMapIntensity: 0.3 }))
   lane.rotation.x = -Math.PI / 2
   lane.position.y = 0.006
   stage.add(lane)
 
-  const nexus = crystal({ color1: '#0b4f3f', color2: '#3fffc0', height: 1.15 })
+  const nexus = crystal({ color1: '#3a140e', color2: '#ff8c3b', height: 1.15 })
   nexus.scale.setScalar(0.6)
   nexus.position.set(-1.12, 0, -0.12)
   stage.add(nexus)
 
   const mobs = [
-    { m: createMinion({ color: '#8ff0cc', scale: 0.55 }), x: -0.7, z: 0.14, dir: 1, sp: 0.5 },
-    { m: createMinion({ color: '#ff8585', evil: true, scale: 0.55 }), x: 0.6, z: -0.16, dir: -1, sp: 0.42 },
+    { m: createMinion({ color: '#d8cbb0', scale: 0.55 }), x: -0.7, z: 0.14, dir: 1, sp: 0.5 },
+    { m: createMinion({ color: '#c23b2e', evil: true, scale: 0.55 }), x: 0.6, z: -0.16, dir: -1, sp: 0.42 },
   ]
   for (const o of mobs) {
     o.m.setMoving(true)
@@ -103,17 +146,21 @@ function mobaStage() {
   }
 }
 
+// BLOOD COURT: sand gladiator court with bone lines and a crimson key
 function courtTexture() {
   return canvasTexture(256, 140, (ctx, w, h) => {
     const g = ctx.createLinearGradient(0, 0, 0, h)
-    g.addColorStop(0, '#a8794a')
-    g.addColorStop(1, '#8a5c30')
+    g.addColorStop(0, '#a8825a')
+    g.addColorStop(1, '#7a5c38')
     ctx.fillStyle = g
     ctx.fillRect(0, 0, w, h)
-    ctx.strokeStyle = 'rgba(90,50,20,0.25)'
+    ctx.strokeStyle = 'rgba(60,40,20,0.28)'
     ctx.lineWidth = 2
     for (let x = 0; x < w; x += 22) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke() }
-    ctx.strokeStyle = 'rgba(255,245,230,0.6)'
+    // crimson painted key
+    ctx.fillStyle = 'rgba(161,37,44,0.4)'
+    ctx.fillRect(w - 66, h / 2 - 34, 60, 68)
+    ctx.strokeStyle = 'rgba(232,220,196,0.65)'
     ctx.lineWidth = 3
     ctx.beginPath(); ctx.arc(w * 0.35, h / 2, 26, 0, TAU); ctx.stroke()
     ctx.strokeRect(w - 66, h / 2 - 34, 60, 68)
@@ -123,35 +170,35 @@ function courtTexture() {
 
 function hoopsStage() {
   const stage = new THREE.Group()
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(2.55, 1.3), new THREE.MeshStandardMaterial({ map: courtTexture(), roughness: 0.7, envMapIntensity: 0.45 }))
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(2.55, 1.3), new THREE.MeshStandardMaterial({ map: courtTexture(), roughness: 0.8, envMapIntensity: 0.35 }))
   floor.rotation.x = -Math.PI / 2
   stage.add(floor)
 
-  // hoop assembly on the right, facing court center
+  // hoop assembly: iron pillar, bone backboard, ember rim
   const hoop = new THREE.Group()
   hoop.position.set(1.02, 0, 0)
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.95, 8), toonMaterial({ color: '#2c3350', rimStrength: 0.3 }))
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.034, 0.95, 8), toonMaterial({ color: '#4a423a', rim: '#c9a06a', rimStrength: 0.35 }))
   pole.position.y = 0.47
   hoop.add(pole)
-  const board = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.3, 0.44), toonMaterial({ color: '#e8ecf5', rim: '#ffffff', rimStrength: 0.4 }))
+  const board = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.3, 0.44), toonMaterial({ color: '#d8ccb4', rim: '#fff2d8', rimStrength: 0.4 }))
   board.position.set(-0.04, 0.88, 0)
   hoop.add(board)
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.014, 8, 20), glowMaterial('#ff8c3c', 1.7))
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.014, 8, 20), glowMaterial('#ff8c3b', 1.7))
   rim.rotation.x = Math.PI / 2
   rim.position.set(-0.17, 0.78, 0)
   hoop.add(rim)
   const net = new THREE.Mesh(
     new THREE.CylinderGeometry(0.1, 0.06, 0.14, 8, 2, true),
-    new THREE.MeshBasicMaterial({ color: '#ffffff', wireframe: true, transparent: true, opacity: 0.4 }),
+    new THREE.MeshBasicMaterial({ color: '#e8dcc4', wireframe: true, transparent: true, opacity: 0.4 }),
   )
   net.position.set(-0.17, 0.7, 0)
   hoop.add(net)
   stage.add(hoop)
 
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.095, 14, 12), toonMaterial({ color: '#ff8c3c', rim: '#ffd9a0', rimStrength: 0.55 }))
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.095, 14, 12), toonMaterial({ color: '#a8552a', rim: '#ffd9a0', rimStrength: 0.55 }))
   ball.castShadow = false
   stage.add(ball)
-  const ballGlow = spark('#ff9a3c', 0.25, 0.45)
+  const ballGlow = spark('#ff8c3b', 0.22, 0.45)
   stage.add(ballGlow)
 
   let t = rand(10)
@@ -166,30 +213,31 @@ function hoopsStage() {
       ball.scale.set(1 / Math.sqrt(squash), squash, 1 / Math.sqrt(squash))
       ball.rotation.z -= dt * 4
       ballGlow.position.copy(ball.position)
-      rim.material.color.set('#ff8c3c').multiplyScalar(1.5 + Math.sin(t * 2) * 0.3)
+      rim.material.color.set('#ff8c3b').multiplyScalar(1.5 + Math.sin(t * 2) * 0.3)
     },
   }
 }
 
+// THE PIT: lava-lit fighting pit — fire orb, circling raiders
 function arenaStage() {
   const stage = new THREE.Group()
   const disc = new THREE.Mesh(
     new THREE.CylinderGeometry(0.95, 1.02, 0.09, 30),
-    energyMaterial({ color1: '#38104f', color2: '#ff4fd8', speed: 0.8, intensity: 0.68 }),
+    energyMaterial({ color1: '#26100a', color2: '#ff5a26', speed: 0.6, intensity: 0.62 }),
   )
   disc.position.y = -0.045
   stage.add(disc)
-  const edge = new THREE.Mesh(new THREE.TorusGeometry(0.99, 0.02, 8, 40), glowMaterial('#ff7ae4', 1.3))
+  const edge = new THREE.Mesh(new THREE.TorusGeometry(0.99, 0.02, 8, 40), glowMaterial('#ff8c3b', 1.25))
   edge.rotation.x = Math.PI / 2
   stage.add(edge)
 
-  const orb = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 12), glowMaterial('#ff9df0', 2.6))
-  const orbHalo = spark('#ff4fd8', 0.4, 0.7)
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 12), glowMaterial('#ffb84d', 2.4))
+  const orbHalo = spark('#ff5a26', 0.4, 0.7)
   stage.add(orb, orbHalo)
 
   const mobs = [
-    { m: createMinion({ color: '#a06bff', evil: true, scale: 0.52 }), a: 0, sp: 1.15 },
-    { m: createMinion({ color: '#ff6b9a', evil: true, scale: 0.52 }), a: Math.PI, sp: 1.15 },
+    { m: createMinion({ color: '#c23b2e', evil: true, scale: 0.52 }), a: 0, sp: 1.15 },
+    { m: createMinion({ color: '#ff8c3b', evil: true, scale: 0.52 }), a: Math.PI, sp: 1.15 },
   ]
   for (const o of mobs) {
     o.m.setMoving(true)
@@ -214,40 +262,40 @@ function arenaStage() {
   }
 }
 
-// ---------- TURBO KART GP: looping track ribbon + 2 karts trading the lead ----------
+// ---------- WAR CHARIOTS: scorched death-race loop + 2 chariots trading the lead ----------
 
 function trackTexture() {
   return canvasTexture(512, 512, (ctx, w, h) => {
     const cx = w / 2, cy = h / 2, rx = 182, ry = 128
-    // infield + verge grass
+    // scorched infield + verge
     const g = ctx.createLinearGradient(0, 0, 0, h)
-    g.addColorStop(0, '#2a7c42')
-    g.addColorStop(1, '#1b5730')
+    g.addColorStop(0, '#4a3826')
+    g.addColorStop(1, '#33261a')
     ctx.fillStyle = g
     ctx.fillRect(0, 0, w, h)
     for (let i = 0; i < 90; i++) {
-      ctx.fillStyle = ['#2f8a4c', '#1a552b', '#256e3d'][i % 3]
+      ctx.fillStyle = ['#54422c', '#2e2318', '#463824'][i % 3]
       ctx.globalAlpha = 0.35
       ctx.beginPath()
       ctx.ellipse(Math.random() * w, Math.random() * h, 8 + Math.random() * 18, 5 + Math.random() * 10, 0, 0, TAU)
       ctx.fill()
     }
     ctx.globalAlpha = 1
-    // asphalt ribbon
-    ctx.strokeStyle = '#363b4e'
+    // packed-dirt raceway
+    ctx.strokeStyle = '#4c4038'
     ctx.lineWidth = 58
     ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, TAU); ctx.stroke()
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)'
+    ctx.strokeStyle = 'rgba(255,235,200,0.05)'
     ctx.lineWidth = 44
     ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, TAU); ctx.stroke()
-    // red-white kerbs (kept below bloom threshold)
+    // crimson-and-bone kerb stones (kept below bloom threshold)
     ctx.lineWidth = 5
     ctx.setLineDash([16, 16])
     for (const [rr, off] of [[31, 0], [-31, 16]]) {
-      ctx.strokeStyle = '#b83636'
+      ctx.strokeStyle = '#8a2a24'
       ctx.lineDashOffset = off
       ctx.beginPath(); ctx.ellipse(cx, cy, rx + rr, ry + rr, 0, 0, TAU); ctx.stroke()
-      ctx.strokeStyle = '#b9bab2'
+      ctx.strokeStyle = '#b5a98c'
       ctx.lineDashOffset = off + 16
       ctx.beginPath(); ctx.ellipse(cx, cy, rx + rr, ry + rr, 0, 0, TAU); ctx.stroke()
     }
@@ -258,11 +306,11 @@ function trackTexture() {
     ctx.lineDashOffset = 0
     ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, TAU); ctx.stroke()
     ctx.setLineDash([])
-    // checkered start line (track runs vertically at the right apex)
+    // bone-checkered start line (track runs vertically at the right apex)
     const sx = cx + rx
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 3; j++) {
-        ctx.fillStyle = (i + j) % 2 ? '#0d0f16' : '#c9cbc4'
+        ctx.fillStyle = (i + j) % 2 ? '#1c150e' : '#c8bfa8'
         ctx.fillRect(sx - 28 + i * 7, cy - 7 + j * 5, 7, 5)
       }
     }
@@ -273,16 +321,16 @@ function checkerTexture() {
   return canvasTexture(160, 32, (ctx, w, h) => {
     for (let i = 0; i < 10; i++) {
       for (let j = 0; j < 2; j++) {
-        ctx.fillStyle = (i + j) % 2 ? '#101318' : '#c9cbc4'
+        ctx.fillStyle = (i + j) % 2 ? '#1c150e' : '#c8bfa8'
         ctx.fillRect(i * 16, j * 16, 16, 16)
       }
     }
   })
 }
 
-function miniKart(bodyColor, glowColor) {
+function miniChariot(bodyColor, glowColor) {
   const g = new THREE.Group()
-  const bodyMat = toonMaterial({ color: bodyColor, rim: '#ffffff', rimStrength: 0.55 })
+  const bodyMat = toonMaterial({ color: bodyColor, rim: '#ffd9a0', rimStrength: 0.5 })
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.05, 0.24), bodyMat)
   body.position.y = 0.055
   g.add(body)
@@ -292,10 +340,10 @@ function miniKart(bodyColor, glowColor) {
   const spoiler = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.016, 0.04), bodyMat)
   spoiler.position.set(0, 0.105, -0.115)
   g.add(spoiler)
-  const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.042, 10, 8), toonMaterial({ color: glowColor, rim: '#ffffff', rimStrength: 0.6 }))
-  helmet.position.set(0, 0.115, -0.02)
-  g.add(helmet)
-  const wheelMat = toonMaterial({ color: '#1d212c', rimStrength: 0.22 })
+  const helm = new THREE.Mesh(new THREE.SphereGeometry(0.042, 10, 8), toonMaterial({ color: '#b0793a', rim: '#ffe2ad', rimStrength: 0.6 }))
+  helm.position.set(0, 0.115, -0.02)
+  g.add(helm)
+  const wheelMat = toonMaterial({ color: '#2a241e', rim: '#8a6a48', rimStrength: 0.22 })
   const wheelGeo = new THREE.CylinderGeometry(0.036, 0.036, 0.028, 10)
   for (const [x, z] of [[-0.092, 0.085], [0.092, 0.085], [-0.092, -0.085], [0.092, -0.085]]) {
     const wl = new THREE.Mesh(wheelGeo, wheelMat)
@@ -316,7 +364,7 @@ function kartStage() {
   const stage = new THREE.Group()
   const floor = new THREE.Mesh(
     new THREE.CircleGeometry(0.98, 26),
-    new THREE.MeshStandardMaterial({ map: trackTexture(), roughness: 0.9, envMapIntensity: 0.35 }),
+    new THREE.MeshStandardMaterial({ map: trackTexture(), roughness: 0.9, envMapIntensity: 0.3 }),
   )
   floor.rotation.x = -Math.PI / 2
   floor.scale.set(1.42, 1, 1)
@@ -326,8 +374,8 @@ function kartStage() {
   const KRX = (182 / 256) * 0.98 * 1.42
   const KRZ = (128 / 256) * 0.98
 
-  // start gantry over the right apex
-  const postMat = toonMaterial({ color: '#2c3350', rim: '#8fa3ff', rimStrength: 0.4 })
+  // start gantry over the right apex: rough timber posts + war checker
+  const postMat = toonMaterial({ color: '#4a352a', rim: '#c9a06a', rimStrength: 0.4 })
   for (const dx of [-0.22, 0.22]) {
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.02, 0.36, 8), postMat)
     post.position.set(KRX + dx, 0.18, 0)
@@ -340,15 +388,15 @@ function kartStage() {
   banner.position.set(KRX, 0.385, 0)
   stage.add(banner)
 
-  // infield dressing: cones + a glowing boost pad on the back straight
+  // infield dressing: bronze spikes + a glowing ember rune-pad on the back straight
   for (const [x, z] of [[0.34, 0.14], [-0.42, -0.12], [0.05, -0.3]]) {
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.085, 8), toonMaterial({ color: '#ff8a3c', rim: '#ffd9a0', rimStrength: 0.5 }))
-    cone.position.set(x, 0.042, z)
-    stage.add(cone)
+    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.085, 8), toonMaterial({ color: '#b0793a', rim: '#ffd9a0', rimStrength: 0.5 }))
+    spike.position.set(x, 0.042, z)
+    stage.add(spike)
   }
   const pad = new THREE.Mesh(
     new THREE.PlaneGeometry(0.2, 0.13),
-    new THREE.MeshBasicMaterial({ color: '#58ffd8', transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ color: '#ff8c3b', transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }),
   )
   pad.rotation.x = -Math.PI / 2
   const padA = Math.PI * 1.18
@@ -357,8 +405,8 @@ function kartStage() {
   stage.add(pad)
 
   const karts = [
-    { k: miniKart('#ff9f2b', '#ffd24a'), a: rand(TAU), sp: 1.42, lane: 0.93, bob: rand(TAU) },
-    { k: miniKart('#38b8ff', '#7df9ff'), a: rand(TAU), sp: 1.3, lane: 1.07, bob: rand(TAU) },
+    { k: miniChariot('#a1252c', '#ffb84d'), a: rand(TAU), sp: 1.42, lane: 0.93, bob: rand(TAU) },
+    { k: miniChariot('#6b6f78', '#ff8a5c'), a: rand(TAU), sp: 1.3, lane: 1.07, bob: rand(TAU) },
   ]
   for (const o of karts) stage.add(o.k.group)
 
@@ -380,34 +428,49 @@ function kartStage() {
   }
 }
 
-// ---------- BRAWL STADIUM: floating island, two fighters trading pokes ----------
+// ---------- MORTAL ARENA: floating duel stone, torch pillars, two warriors trading blows ----------
 
 function brawlStage() {
   const stage = new THREE.Group()
 
-  // drifting sky puffs behind the island
-  const puffs = [spark('#bfe4ff', 0.08, 0.9), spark('#ffd9e8', 0.07, 0.7)]
+  // drifting battle-smoke behind the arena
+  const puffs = [spark('#9a8a7e', 0.08, 0.9), spark('#6b5a50', 0.07, 0.7)]
   puffs[0].position.set(-0.85, 1.05, -0.55)
   puffs[1].position.set(0.9, 0.75, -0.6)
   stage.add(...puffs)
 
-  // main floating island
+  // main floating duel stone
   const isl = new THREE.Group()
-  const sideMat = toonMaterial({ color: '#5a4668', rim: '#a88ad4', rimStrength: 0.35 })
-  const topMat = toonMaterial({ color: '#3fa060', rim: '#d8ffd0', rimStrength: 0.4 })
+  const sideMat = toonMaterial({ color: '#4a4038', rim: '#b09878', rimStrength: 0.3 })
+  const topMat = toonMaterial({ color: '#6b5844', rim: '#e8d8c0', rimStrength: 0.35 })
   const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.62, 0.16, 9), [sideMat, topMat, sideMat])
   cap.position.y = 0.22
   isl.add(cap)
   const cone = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.05, 0.52, 9), sideMat)
   cone.position.y = -0.13
   isl.add(cone)
-  const trim = new THREE.Mesh(new THREE.TorusGeometry(0.71, 0.014, 8, 32), glowMaterial('#63b8ff', 1.5))
+  const trim = new THREE.Mesh(new THREE.TorusGeometry(0.71, 0.014, 8, 32), glowMaterial('#ffb84d', 1.4))
   trim.rotation.x = Math.PI / 2
   trim.position.y = 0.3
   isl.add(trim)
-  const halo = spark('#63b8ff', 0.26, 1.7)
+  const halo = spark('#ff8c3b', 0.22, 1.7)
   halo.position.y = -0.42
   isl.add(halo)
+
+  // duel pillars with torch tips (ride the stone's bob)
+  const torches = []
+  for (const dx of [-0.52, 0.52]) {
+    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 0.5, 6), sideMat)
+    pillar.position.set(dx, 0.55, -0.38)
+    isl.add(pillar)
+    const capstone = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.05, 0.13), topMat)
+    capstone.position.set(dx, 0.82, -0.38)
+    isl.add(capstone)
+    const fl = spark('#ffb84d', 0.75, 0.26)
+    fl.position.set(dx, 0.92, -0.38)
+    isl.add(fl)
+    torches.push({ fl, ph: rand(TAU) })
+  }
   stage.add(isl)
 
   // two side ledges
@@ -416,7 +479,7 @@ function brawlStage() {
     const ledge = new THREE.Group()
     const lc = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.16, 0.09, 8), [sideMat, topMat, sideMat])
     ledge.add(lc)
-    const lg = spark('#63b8ff', 0.2, 0.55)
+    const lg = spark('#ffb84d', 0.18, 0.55)
     lg.position.y = -0.14
     ledge.add(lg)
     ledge.position.set(dx, 0.64, -0.12)
@@ -424,10 +487,10 @@ function brawlStage() {
     ledges.push(ledge)
   }
 
-  // fighters: sky-blue vs crimson, facing off
+  // duelists: bone-pale champion vs crimson challenger
   const F = [
-    { m: createMinion({ color: '#63b8ff', scale: 0.5 }), x: -0.3, ph: 0, dir: 1 },
-    { m: createMinion({ color: '#ff6b7a', scale: 0.5 }), x: 0.3, ph: 1.4, dir: -1 },
+    { m: createMinion({ color: '#d8cbb0', scale: 0.5 }), x: -0.3, ph: 0, dir: 1 },
+    { m: createMinion({ color: '#c23b2e', scale: 0.5 }), x: 0.3, ph: 1.4, dir: -1 },
   ]
   const TOP = 0.3
   for (const f of F) {
@@ -452,6 +515,11 @@ function brawlStage() {
       for (let i = 0; i < 2; i++) ledges[i].position.y = 0.64 + Math.sin(t * 1.1 + i * 2.4) * 0.05
       puffs[0].position.x = -0.85 + Math.sin(t * 0.22) * 0.12
       puffs[1].position.x = 0.9 + Math.sin(t * 0.18 + 2) * 0.1
+      for (const tc of torches) {
+        const f = 0.8 + 0.2 * Math.sin(t * 9 + tc.ph)
+        tc.fl.scale.setScalar(0.26 * f)
+        tc.fl.material.opacity = 0.55 + 0.3 * f
+      }
 
       // fight timeline: alternate attacker lunges, spark pops at contact
       const k = (t / CYCLE) % 1
@@ -475,54 +543,96 @@ function brawlStage() {
   }
 }
 
-// ---------- SIEGE PROTOCOL: cyan citadel vs streaming red raiders ----------
+// ---------- LAST BASTION: stone gate + golden ward vs streaming crimson raiders ----------
+
+/** Miniature bastion gate: twin towers, wall, torch tips. Has .tick like crystal(). */
+function bastionGate() {
+  const g = new THREE.Group()
+  const stone = toonMaterial({ color: '#5c5246', rim: '#d9b088', rimStrength: 0.42 })
+  const dark = toonMaterial({ color: '#453c32', rim: '#a8875c', rimStrength: 0.32 })
+  for (const dx of [-0.2, 0.2]) {
+    const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.52, 7), stone)
+    tower.position.set(dx, 0.26, 0)
+    g.add(tower)
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.1, 0.07, 7), dark)
+    crown.position.set(dx, 0.55, 0)
+    g.add(crown)
+  }
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.3, 0.09), stone)
+  wall.position.y = 0.15
+  g.add(wall)
+  const parapet = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.05, 0.11), dark)
+  parapet.position.y = 0.32
+  g.add(parapet)
+  const gate = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.18, 0.1), toonMaterial({ color: '#4a352a', rim: '#b0793a', rimStrength: 0.4 }))
+  gate.position.y = 0.09
+  g.add(gate)
+  const torches = []
+  for (const dx of [-0.2, 0.2]) {
+    const fl = spark('#ffb84d', 0.85, 0.26)
+    fl.position.set(dx, 0.64, 0)
+    g.add(fl)
+    torches.push({ fl, ph: rand(TAU) })
+  }
+  let t = rand(10)
+  g.tick = dt => {
+    t += dt
+    for (const tc of torches) {
+      const f = 0.8 + 0.2 * Math.sin(t * 8 + tc.ph)
+      tc.fl.scale.setScalar(0.26 * f)
+      tc.fl.material.opacity = 0.6 + 0.3 * f
+    }
+  }
+  return g
+}
 
 function siegeStage() {
   const stage = new THREE.Group()
-  const tex = groundTexture({ base: '#1b2033', blotches: ['#242b47', '#141827', '#2d3557'], size: 256, count: 140 })
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(0.98, 26), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, envMapIntensity: 0.4 }))
+  const tex = groundTexture({ base: '#2e2620', blotches: ['#3a3028', '#241e18', '#443830'], size: 256, count: 140 })
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(0.98, 26), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, envMapIntensity: 0.35 }))
   floor.rotation.x = -Math.PI / 2
   floor.scale.set(1.42, 1, 1)
   stage.add(floor)
 
   const CIT = new THREE.Vector3(-0.62, 0, -0.06)
-  const citadel = crystal({ color1: '#0b3f66', color2: '#54e0ff', height: 1.0 })
-  citadel.scale.setScalar(0.62)
+  const citadel = bastionGate()
+  citadel.scale.setScalar(1.55)
   citadel.position.copy(CIT)
+  citadel.rotation.y = Math.PI / 2.3
   stage.add(citadel)
 
-  // shield dome + ground ward ring
+  // golden ward dome + ground rune ring
   const dome = new THREE.Mesh(
     new THREE.SphereGeometry(0.42, 18, 12),
-    new THREE.MeshBasicMaterial({ color: '#54e0ff', transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ color: '#ffb84d', transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false }),
   )
   dome.position.set(CIT.x, 0.22, CIT.z)
   stage.add(dome)
   const ward = new THREE.Mesh(
     new THREE.RingGeometry(0.44, 0.49, 40),
-    new THREE.MeshBasicMaterial({ color: '#54e0ff', transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+    new THREE.MeshBasicMaterial({ color: '#ffb84d', transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
   )
   ward.rotation.x = -Math.PI / 2
   ward.position.set(CIT.x, 0.01, CIT.z)
   stage.add(ward)
 
-  // turret: dark base + glowing head with a barrel that tracks its prey
+  // watch-ballista: stone base + burning sight-orb with a bolt-thrower that tracks its prey
   const turret = new THREE.Group()
   turret.position.set(0.02, 0, 0.3)
-  const tBase = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.085, 0.24, 10), toonMaterial({ color: '#2c3350', rim: '#8fd8ff', rimStrength: 0.5 }))
+  const tBase = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.085, 0.24, 10), toonMaterial({ color: '#4a423a', rim: '#d9b088', rimStrength: 0.45 }))
   tBase.position.y = 0.12
   turret.add(tBase)
   const tHead = new THREE.Group()
   tHead.position.y = 0.27
-  const tOrb = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), glowMaterial('#7df3ff', 2.2))
+  const tOrb = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), glowMaterial('#ffb84d', 2.0))
   tHead.add(tOrb)
-  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.022, 0.12), toonMaterial({ color: '#41507a', rim: '#9fe4ff', rimStrength: 0.5 }))
+  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.022, 0.12), toonMaterial({ color: '#4a352a', rim: '#c9a06a', rimStrength: 0.5 }))
   barrel.position.z = 0.075
   tHead.add(barrel)
   turret.add(tHead)
   stage.add(turret)
 
-  // raider swarm streaming in from the east rim: glowing dots + halo sprites
+  // raider swarm streaming in from the east rim: burning dots + halo sprites
   const raiderGeo = new THREE.SphereGeometry(0.032, 10, 8)
   const raiderMat = glowMaterial('#ff4a2e', 2.1)
   const raiders = []
@@ -541,8 +651,8 @@ function siegeStage() {
     raiders.push(r)
   }
 
-  // turret beam + kill flash (reused)
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 1, 6, 1, true), glowMaterial('#8df4ff', 2.6))
+  // ballista bolt-flash + kill flash (reused)
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 1, 6, 1, true), glowMaterial('#ffd98a', 2.4))
   beam.visible = false
   stage.add(beam)
   const killFlash = spark('#ff8a5c', 0, 0.3)
@@ -563,7 +673,7 @@ function siegeStage() {
       t += dt
       citadel.tick(dt)
 
-      // raiders press toward the citadel; the dome repels them in a pulse
+      // raiders press toward the gate; the ward repels them in a pulse
       for (const r of raiders) {
         const p = r.mesh.position
         _dir.set(CIT.x - p.x, 0, CIT.z - p.z)
@@ -574,7 +684,7 @@ function siegeStage() {
         p.y = 0.05 + Math.abs(Math.sin(t * 7 + r.wob)) * 0.02
       }
 
-      // turret zap: nearest raider to the citadel gets deleted
+      // ballista shot: nearest raider to the gate gets deleted
       zapT -= dt
       if (zapT <= 0) {
         zapT = rand(0.9, 1.3)
@@ -609,7 +719,7 @@ function siegeStage() {
       shieldPulse = Math.max(0, shieldPulse - dt * 2.5)
       dome.material.opacity = 0.06 + shieldPulse * 0.22 + Math.sin(t * 2.2) * 0.015
       ward.material.opacity = 0.24 + Math.sin(t * 2.6) * 0.1 + shieldPulse * 0.3
-      tOrb.material.color.set('#7df3ff').multiplyScalar(1.7 + (beamT > 0 ? 1.6 : 0) + Math.sin(t * 3) * 0.25)
+      tOrb.material.color.set('#ffb84d').multiplyScalar(1.7 + (beamT > 0 ? 1.6 : 0) + Math.sin(t * 3) * 0.25)
     },
   }
 }
@@ -643,10 +753,23 @@ class Channel {
     rim.position.z = 0.155
     g.add(rim)
 
-    const backTex = gradientTexture([[0, mix(def.accent, '#0a0e22', 0.72)], [0.55, '#0a0e22'], [1, '#060810']])
+    const backTex = gradientTexture([[0, mix(def.accent, '#171009', 0.78)], [0.55, '#171009'], [1, '#0c0806']])
     const backPlane = new THREE.Mesh(geos.back, new THREE.MeshBasicMaterial({ map: backTex }))
     backPlane.position.z = 0.025
     g.add(backPlane)
+
+    // hanging war banners in the top corners of the stone frame
+    const bMat = new THREE.MeshBasicMaterial({
+      map: bannerTexture(def.accent), transparent: true, side: THREE.DoubleSide,
+      depthWrite: false,
+    })
+    this.banners = []
+    for (const [dx, ph] of [[-1.18, rand(TAU)], [1.18, rand(TAU)]]) {
+      const b = new THREE.Mesh(geos.banner, bMat)
+      b.position.set(dx, 0.86, 0.14)
+      g.add(b)
+      this.banners.push({ mesh: b, ph })
+    }
 
     this.stage = { moba: mobaStage, hoops: hoopsStage, arena: arenaStage, kart: kartStage, brawl: brawlStage, siege: siegeStage }[def.game]()
     this.stage.group.scale.setScalar(0.78)
@@ -689,6 +812,12 @@ class Channel {
     const boost = 1.25 + 1.5 * hv + Math.sin(t * 2.4) * 0.12
     this.rimMat.color.copy(this.accentColor).multiplyScalar(boost)
 
+    // banners sway in the mountain wind
+    for (const b of this.banners) {
+      b.mesh.rotation.z = Math.sin(t * 1.3 + b.ph) * 0.07
+      b.mesh.rotation.x = Math.sin(t * 0.9 + b.ph * 2) * 0.05 - 0.04
+    }
+
     this.stage.update(dt)
   }
 }
@@ -702,7 +831,7 @@ function mix(a, b, k) {
 export function buildChannelWall(scene) {
   const geos = buildGeos()
   const mats = {
-    border: toonMaterial({ color: '#39426e', rim: '#aac0ff', rimStrength: 0.65 }),
+    border: toonMaterial({ color: '#453c32', rim: '#d9b088', rimStrength: 0.5 }),
     hit: new THREE.MeshBasicMaterial({ visible: false }),
   }
   const channels = CHANNEL_DEFS.map((def, i) => {

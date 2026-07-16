@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import { createMinion, createHero } from '../../art/characterFactory.js'
-import { glowMaterial, glowSpriteMaterial } from '../../art/materials.js'
-import { glowTexture } from '../../core/assets.js'
+import { glowMaterial, glowSpriteMaterial, toonMaterial } from '../../art/materials.js'
 import { rand, TAU, distXZ } from '../../core/utils.js'
 import { LANES, FIELD_R } from './siegeEnv.js'
 
@@ -9,15 +8,16 @@ export const WAVE_COUNT = 10
 export const BOSS_WAVE = 10
 
 /**
- * Molten raider archetypes (palettes distinct from arena's neon horde).
- * cdmg = damage per swing vs the citadel, dmg = vs player/decoy/turret.
+ * Horde raider archetypes — ember, bone, iron and blood-crimson warbands
+ * (palettes distinct from arena's horde).
+ * cdmg = damage per swing vs the bastion, dmg = vs player/decoy/turret.
  */
 export const RAIDER_TYPES = {
   grunt:    { color: '#ff6a26', glow: '#ff8a3c', scale: 1.0,  hp: 22, speed: 3.1,  dmg: 6,  cdmg: 6,  reach: 1.15, aggroP: 0.7 },
   sprinter: { color: '#b9b3ae', glow: '#e8ddd0', scale: 0.8,  hp: 12, speed: 5.7,  dmg: 4,  cdmg: 5,  reach: 1.0,  aggroP: 0.4 },
-  brute:    { color: '#3a2748', glow: '#a05aff', scale: 1.9,  hp: 78, speed: 1.75, dmg: 14, cdmg: 13, reach: 1.85, aggroP: 0.95, knock: 6 },
+  brute:    { color: '#3a2430', glow: '#c23b2e', scale: 1.9,  hp: 78, speed: 1.75, dmg: 14, cdmg: 13, reach: 1.85, aggroP: 0.95, knock: 6 },
   exploder: { color: '#ff3c14', glow: '#ffd166', scale: 1.05, hp: 16, speed: 4.6,  dmg: 16, cdmg: 22, reach: 1.5,  aggroP: 0.55 },
-  shieldbearer: { color: '#8f95b8', glow: '#9fd0ff', scale: 1.3, hp: 48, speed: 1.7, dmg: 8, cdmg: 9, reach: 1.35, aggroP: 0.35 },
+  shieldbearer: { color: '#6b6f78', glow: '#b8c8d8', scale: 1.3, hp: 48, speed: 1.7, dmg: 8, cdmg: 9, reach: 1.35, aggroP: 0.35 },
 }
 
 const MIXES = {
@@ -72,18 +72,32 @@ export class RaiderArmy {
       halo.position.y = 0.22
       e.minion.group.add(halo)
       if (type === 'shieldbearer') {
-        // shimmer barrier held out front — 50% blaster resist from the front arc
-        const shield = new THREE.Mesh(
-          new THREE.PlaneGeometry(1.15, 1.35),
-          new THREE.MeshBasicMaterial({
-            map: glowTexture(), color: new THREE.Color('#9fd0ff').multiplyScalar(1.5),
-            transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending,
-            depthWrite: false, side: THREE.DoubleSide,
+        // iron tower shield held out front — 50% resist from the front arc
+        const sh = new THREE.Group()
+        const plate = new THREE.Mesh(
+          new THREE.BoxGeometry(1.05, 1.3, 0.08),
+          toonMaterial({
+            color: '#4a4e57', rim: '#d4dae4', rimStrength: 0.5,
+            emissive: '#8fa5c0', emissiveIntensity: 0,
           }),
         )
-        shield.position.set(0, 0.55, 0.55)
-        e.minion.group.add(shield)
-        e.shield = shield
+        plate.position.y = 0.62
+        plate.castShadow = true
+        sh.add(plate)
+        const top = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.08), plate.material)
+        top.position.y = 1.36
+        sh.add(top)
+        // central boss + crimson warband sigil
+        const boss = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), plate.material)
+        boss.scale.z = 0.6
+        boss.position.set(0, 0.72, 0.07)
+        sh.add(boss)
+        const sigil = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.02), glowMaterial('#c23b2e', 1.5))
+        sigil.position.set(0, 0.34, 0.055)
+        sh.add(sigil)
+        sh.position.z = 0.5
+        e.minion.group.add(sh)
+        e.shield = plate
       }
       this.scene.add(e.minion.group)
     }
@@ -251,7 +265,7 @@ export class RaiderArmy {
         if (e.minion._flash <= 0) e.minion.bodyMat.emissive.setRGB(0.7 * pu, 0.16 * pu, 0.04 * pu)
       } else if (e.shield) {
         e.shieldFlash = Math.max(0, e.shieldFlash - dt * 4)
-        e.shield.material.opacity = 0.3 + 0.12 * Math.sin(e.minion.t * 7) + 0.55 * e.shieldFlash
+        e.shield.material.emissiveIntensity = 0.05 + 0.04 * Math.sin(e.minion.t * 7) + 1.3 * e.shieldFlash
       }
     }
 
@@ -281,8 +295,9 @@ export class RaiderArmy {
 }
 
 /**
- * MAGMA COLOSSUS — wave-10 boss. Marches the center between lanes,
- * telegraphed ground slams, magma mortars lobbed at turrets, enrage < 30%.
+ * SIEGE COLOSSUS — wave-10 boss. Marches the center between lanes,
+ * telegraphed ground slams, burning mortars lobbed at the ballistas,
+ * enrage < 30%.
  * hooks: { heroPos, anyTurretAlive(), slam(pos), mortarVolley(), hitCitadel(dmg) }
  */
 export class Colossus {
@@ -290,7 +305,7 @@ export class Colossus {
     this.scene = scene
     this.hooks = hooks
     this.hero = createHero(
-      { primary: '#2a161e', secondary: '#120a14', glow: '#ff5a1e', head: 'orb', hair: 'horns', cape: true },
+      { primary: '#33231d', secondary: '#120a0c', glow: '#ff5a26', head: 'orb', hair: 'horns', cape: true },
       { auraRing: true },
     )
     this.hero.group.scale.setScalar(2.8)

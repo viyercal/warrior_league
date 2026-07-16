@@ -1,34 +1,38 @@
 const NOTE = m => 440 * Math.pow(2, (m - 69) / 12)
 
-/** Per-theme music data: [bass root + chord tones] per bar. */
+/**
+ * Per-theme music data: [bass root + chord tones] per bar.
+ * IWL retheme: every theme sits in low minor/phrygian registers — ominous
+ * pads, brooding arps, war-drum weight. Same keys, same engine.
+ */
 const THEMES = {
-  hub: {
-    bpm: 84, pad: 'sine', bass: 'sine', arp: 'triangle', drums: false, arpDiv: 2,
-    prog: [[36, 60, 64, 67, 71], [33, 57, 64, 69, 72], [29, 53, 60, 65, 69], [31, 55, 62, 67, 71]],
+  hub: { // war camp at night — slow, smoldering
+    bpm: 72, pad: 'sine', bass: 'sine', arp: 'triangle', drums: false, arpDiv: 2,
+    prog: [[26, 50, 53, 57, 62], [22, 46, 53, 58, 62], [31, 55, 58, 62], [33, 57, 60, 64]],
   },
-  battle: {
-    bpm: 132, pad: 'sawtooth', bass: 'square', arp: 'sawtooth', drums: true, arpDiv: 4,
-    prog: [[28, 52, 55, 59], [24, 48, 55, 60], [26, 50, 53, 57], [23, 47, 50, 55]],
+  battle: { // war rift — E phrygian menace
+    bpm: 126, pad: 'sawtooth', bass: 'sawtooth', arp: 'triangle', drums: true, arpDiv: 2,
+    prog: [[28, 52, 55, 59], [24, 48, 51, 55], [29, 53, 57, 60], [23, 47, 51, 54]],
   },
-  court: {
-    bpm: 102, pad: 'triangle', bass: 'sine', arp: 'square', drums: true, arpDiv: 2, swing: 0.14,
-    prog: [[29, 53, 57, 60, 63], [29, 53, 57, 60, 63], [34, 50, 53, 58, 62], [31, 50, 55, 59, 62]],
+  court: { // blood court — grim swung G-minor groove
+    bpm: 96, pad: 'triangle', bass: 'sine', arp: 'triangle', drums: true, arpDiv: 2, swing: 0.14,
+    prog: [[31, 55, 58, 62], [24, 48, 51, 55], [27, 51, 55, 58], [26, 50, 54, 57]],
   },
-  arena: {
-    bpm: 142, pad: 'sawtooth', bass: 'sawtooth', arp: 'square', drums: true, arpDiv: 4,
-    prog: [[26, 50, 53, 57], [22, 46, 53, 58], [24, 48, 51, 55], [29, 48, 53, 56]],
+  arena: { // the pit — relentless D phrygian
+    bpm: 138, pad: 'sawtooth', bass: 'sawtooth', arp: 'sawtooth', drums: true, arpDiv: 4,
+    prog: [[26, 50, 53, 57], [27, 51, 55, 58], [26, 50, 53, 57], [24, 48, 51, 55]],
   },
-  race: {
-    bpm: 152, pad: 'triangle', bass: 'square', arp: 'square', drums: true, arpDiv: 4,
-    prog: [[36, 60, 64, 67], [41, 60, 65, 69], [43, 62, 67, 71], [38, 60, 65, 69]],
+  race: { // war chariots — galloping E minor
+    bpm: 148, pad: 'triangle', bass: 'sawtooth', arp: 'triangle', drums: true, arpDiv: 4,
+    prog: [[28, 52, 55, 59], [24, 48, 52, 55], [26, 50, 54, 57], [23, 47, 50, 54]],
   },
-  brawl: {
-    bpm: 138, pad: 'sawtooth', bass: 'square', arp: 'sawtooth', drums: true, arpDiv: 4,
-    prog: [[33, 57, 60, 64], [29, 53, 60, 65], [31, 55, 59, 62], [28, 52, 55, 59]],
+  brawl: { // mortal arena — heavy A minor with a cruel V
+    bpm: 132, pad: 'sawtooth', bass: 'sawtooth', arp: 'triangle', drums: true, arpDiv: 4,
+    prog: [[33, 57, 60, 64], [29, 53, 57, 60], [26, 50, 53, 57], [28, 52, 56, 59]],
   },
-  siege: {
-    bpm: 118, pad: 'sawtooth', bass: 'sine', arp: 'triangle', drums: true, arpDiv: 2,
-    prog: [[24, 48, 51, 55], [27, 51, 54, 58], [22, 46, 50, 53], [23, 47, 50, 54]],
+  siege: { // last bastion — C minor doom march
+    bpm: 108, pad: 'sawtooth', bass: 'sine', arp: 'triangle', drums: true, arpDiv: 2,
+    prog: [[24, 48, 51, 55], [32, 51, 56, 60], [22, 46, 53, 58], [31, 55, 59, 62]],
   },
 }
 
@@ -200,33 +204,38 @@ export class GameAudio {
       M({ f: NOTE(m), type: T.pad, t: t0, dur: spb * 4, vol: 0.035, attack: spb * 0.8, detune: -6 })
       M({ f: NOTE(m), type: T.pad, t: t0, dur: spb * 4, vol: 0.035, attack: spb * 0.8, detune: 6 })
     }
-    // Bass
+    // Bass — grounded pulse; fifth (not octave) lift keeps it a war chant
     if (T.drums) {
       for (let i = 0; i < 8; i++) {
-        const oct = i % 4 === 3 ? 12 : 0
-        M({ f: NOTE(bassRoot + oct), type: T.bass, t: t0 + i * spb * 0.5, dur: spb * 0.42, vol: 0.11, attack: 0.008 })
+        const lift = i % 4 === 3 ? 7 : 0
+        M({ f: NOTE(bassRoot + lift), type: T.bass, t: t0 + i * spb * 0.5, dur: spb * 0.42, vol: 0.11, attack: 0.008 })
       }
     } else {
       M({ f: NOTE(bassRoot), type: T.bass, t: t0, dur: spb * 2, vol: 0.14, attack: 0.02 })
       M({ f: NOTE(bassRoot + 7), type: T.bass, t: t0 + spb * 2, dur: spb * 2, vol: 0.11, attack: 0.02 })
     }
-    // Arp
+    // Arp — kept an octave lower than the old neon sparkle; brooding, not bright
     const div = T.arpDiv || 2
     const steps = 4 * div
     for (let i = 0; i < steps; i++) {
       const m = chord[i % chord.length] + 12 * (i % 8 >= 4 ? 1 : 0)
       const swing = T.swing && i % 2 === 1 ? T.swing * (spb / div) : 0
-      M({ f: NOTE(m + 12), type: T.arp, t: t0 + i * (spb / div) + swing, dur: 0.12, vol: theme_arp_vol(T), attack: 0.004 })
+      M({ f: NOTE(m), type: T.arp, t: t0 + i * (spb / div) + swing, dur: 0.14, vol: theme_arp_vol(T), attack: 0.006 })
     }
-    // Drums
+    // Drums — taiko-weight war drums: deep boom, tom gallop, dull skin snare
     if (T.drums) {
       for (let b = 0; b < 4; b++) {
-        M({ f: 140, f2: 42, type: 'sine', t: t0 + b * spb, dur: 0.14, vol: 0.4, attack: 0.002 })
-        if (b === 1 || b === 3) MN({ t: t0 + b * spb, dur: 0.14, filter: 1800, type: 'bandpass', Q: 0.7, vol: 0.16 })
+        M({ f: 105, f2: 30, type: 'sine', t: t0 + b * spb, dur: 0.2, vol: 0.5, attack: 0.002 })
+        if (b === 1 || b === 3) {
+          MN({ t: t0 + b * spb, dur: 0.16, filter: 900, type: 'bandpass', Q: 0.8, vol: 0.2 })
+          M({ f: 72, f2: 40, type: 'sine', t: t0 + b * spb, dur: 0.16, vol: 0.22, attack: 0.002 })
+        }
+        // low tom double on the back half of beats 2 and 4 — marching gallop
+        if (b === 1 || b === 3) M({ f: 88, f2: 46, type: 'sine', t: t0 + (b + 0.5) * spb, dur: 0.13, vol: 0.26, attack: 0.002 })
       }
       for (let i = 0; i < 8; i++) {
         const swing = T.swing && i % 2 === 1 ? T.swing * (spb / 2) : 0
-        MN({ t: t0 + i * spb * 0.5 + swing, dur: 0.04, filter: 8000, type: 'highpass', vol: i % 2 ? 0.05 : 0.08 })
+        MN({ t: t0 + i * spb * 0.5 + swing, dur: 0.035, filter: 6500, type: 'highpass', vol: i % 2 ? 0.03 : 0.05 })
       }
     }
   }

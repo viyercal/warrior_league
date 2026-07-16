@@ -1,15 +1,15 @@
 import * as THREE from 'three'
 import { skyDome, starField, cloudLayer, fireflies } from '../../art/environment.js'
 import { canvasTexture, glowTexture, cloudTexture } from '../../core/assets.js'
-import { glowMaterial, energyMaterial, toonMaterial } from '../../art/materials.js'
+import { glowMaterial, glowSpriteMaterial, energyMaterial, toonMaterial } from '../../art/materials.js'
 import { rand, TAU } from '../../core/utils.js'
 
-/** SIEGE PROTOCOL battlefield: night volcanic assault. */
+/** LAST BASTION battlefield: torchlit night before the keep gate. */
 export const FIELD_R = 32
 export const GROUND_R = 46
 export const CITADEL_POS = { x: 0, z: 21 }
 
-/** Lane waypoints [x,z] from the rim portals down to the citadel gate. */
+/** Lane waypoints [x,z] from the rim war-gates down to the bastion gate. */
 export const LANES = {
   west: [[-20, -26], [-16.5, -14], [-11, -3], [-5.5, 7], [-1.4, 12.4]],
   east: [[20, -26], [16.5, -14], [11, -3], [5.5, 7], [1.4, 12.4]],
@@ -17,7 +17,7 @@ export const LANES = {
 }
 export const PAD_POSITIONS = [[-14, -13], [14, -13], [-8, -1], [8, -1], [-4.6, 8.6], [4.6, 8.6]]
 export const PORTAL_POS = [{ x: -20, z: -26 }, { x: 20, z: -26 }]
-const LAVA_POOLS = [[-25, -5, 2.3], [24, -9, 2.0], [13, -23, 1.8], [-26, 13, 1.9]]
+const FIRE_PITS = [[-25, -5, 2.3], [24, -9, 2.0], [13, -23, 1.8], [-26, 13, 1.9]]
 
 const W2C = (x, w) => ((x / GROUND_R) + 1) * 0.5 * w
 
@@ -56,22 +56,22 @@ function strokeLane(ctx, w, lane, style, lw, alpha, blur = 0, blurColor = null) 
   ctx.restore()
 }
 
-/** Dark basalt + emissive lava cracks + trampled lane paths. */
+/** War-trodden earth + dirt roads + flagstone plaza + burning wreck pits. */
 function drawGround(ctx, w, h) {
-  ctx.fillStyle = '#0c0709'
+  ctx.fillStyle = '#100b07'
   ctx.fillRect(0, 0, w, h)
 
-  // basalt slab mottling — cool blacks with warm ash patches
+  // churned-mud mottling — cold charcoal with warm umber patches
   for (let i = 0; i < 560; i++) {
     const x = rand(w), y = rand(h), s = rand(14, 90)
     ctx.globalAlpha = rand(0.05, 0.13)
-    ctx.fillStyle = Math.random() < 0.5 ? '#170d11' : '#040203'
+    ctx.fillStyle = Math.random() < 0.5 ? '#241709' : '#090604'
     ctx.fillRect(x, y, s, s * rand(0.4, 1))
   }
   for (let i = 0; i < 130; i++) {
     const x = rand(w), y = rand(h), r = rand(20, 80)
     const wg = ctx.createRadialGradient(x, y, 0, x, y, r)
-    wg.addColorStop(0, 'rgba(64,26,14,0.16)')
+    wg.addColorStop(0, 'rgba(74,53,34,0.15)')
     wg.addColorStop(1, 'rgba(0,0,0,0)')
     ctx.globalAlpha = 1
     ctx.fillStyle = wg
@@ -79,56 +79,68 @@ function drawGround(ctx, w, h) {
   }
   ctx.globalAlpha = 1
 
-  // trampled lane paths: scorched earth with a faint molten under-glow rim
+  // dirt roads: packed earth with a faint torch under-glow along the verges
   for (const lane of [LANES.west, LANES.east]) {
-    strokeLane(ctx, w, lane, '#ff5a1e', 66, 0.08, 30)
-    strokeLane(ctx, w, lane, '#26120c', 56, 0.9)
-    strokeLane(ctx, w, lane, '#341c12', 38, 0.8)
-    strokeLane(ctx, w, lane, '#452817', 14, 0.5)
+    strokeLane(ctx, w, lane, '#ff8c3b', 66, 0.04, 22)
+    strokeLane(ctx, w, lane, '#1d140c', 56, 0.9)
+    strokeLane(ctx, w, lane, '#2b1f12', 40, 0.85)
+    strokeLane(ctx, w, lane, '#382917', 22, 0.65)
+    strokeLane(ctx, w, lane, '#463420', 8, 0.38)
   }
-  strokeLane(ctx, w, LANES.center, '#1d0e0e', 40, 0.55)
+  strokeLane(ctx, w, LANES.center, '#1a110b', 40, 0.55)
 
-  // citadel plaza
+  // bastion plaza: worn flagstones ringed by a cold warding inscription
   const cx = W2C(CITADEL_POS.x, w), cz = W2C(CITADEL_POS.z, w)
   let g = ctx.createRadialGradient(cx, cz, 0, cx, cz, w * 0.1)
-  g.addColorStop(0, 'rgba(42,42,58,0.8)')
-  g.addColorStop(0.72, 'rgba(28,28,40,0.6)')
-  g.addColorStop(1, 'rgba(16,10,16,0)')
+  g.addColorStop(0, 'rgba(46,42,35,0.85)')
+  g.addColorStop(0.72, 'rgba(32,28,24,0.6)')
+  g.addColorStop(1, 'rgba(16,11,8,0)')
   ctx.fillStyle = g
   ctx.beginPath(); ctx.arc(cx, cz, w * 0.1, 0, TAU); ctx.fill()
+  // flagstone joints
   ctx.save()
-  ctx.strokeStyle = '#54e0ff'; ctx.globalAlpha = 0.26; ctx.lineWidth = 4
-  ctx.shadowColor = '#54e0ff'; ctx.shadowBlur = 12
+  ctx.strokeStyle = '#14100c'; ctx.globalAlpha = 0.5; ctx.lineWidth = 3
+  for (let i = 0; i < 14; i++) {
+    const a = (i / 14) * TAU
+    ctx.beginPath()
+    ctx.moveTo(cx + Math.cos(a) * w * 0.02, cz + Math.sin(a) * w * 0.02)
+    ctx.lineTo(cx + Math.cos(a) * w * 0.095, cz + Math.sin(a) * w * 0.095)
+    ctx.stroke()
+  }
+  ctx.restore()
+  ctx.save()
+  ctx.strokeStyle = '#cfe4ff'; ctx.globalAlpha = 0.2; ctx.lineWidth = 4
+  ctx.shadowColor = '#cfe4ff'; ctx.shadowBlur = 10
   ctx.beginPath(); ctx.arc(cx, cz, w * 0.088, 0, TAU); ctx.stroke()
-  ctx.setLineDash([26, 18]); ctx.globalAlpha = 0.15
+  ctx.setLineDash([26, 18]); ctx.globalAlpha = 0.12
   ctx.beginPath(); ctx.arc(cx, cz, w * 0.07, 0, TAU); ctx.stroke()
   ctx.restore()
 
-  // portal scorch rings
+  // war-camp gates: trampled mustering grounds lit by the camp fires
   for (const p of PORTAL_POS) {
     const px = W2C(p.x, w), pz = W2C(p.z, w)
     const sg = ctx.createRadialGradient(px, pz, 0, px, pz, w * 0.05)
-    sg.addColorStop(0, 'rgba(255,90,30,0.5)')
-    sg.addColorStop(0.6, 'rgba(60,16,8,0.55)')
+    sg.addColorStop(0, 'rgba(255,110,50,0.45)')
+    sg.addColorStop(0.6, 'rgba(64,26,12,0.55)')
     sg.addColorStop(1, 'rgba(0,0,0,0)')
     ctx.fillStyle = sg
     ctx.beginPath(); ctx.arc(px, pz, w * 0.05, 0, TAU); ctx.fill()
   }
 
-  // lava pools: molten cores
-  for (const [x, z, r] of LAVA_POOLS) {
+  // burning wreck pits: bonfire cores
+  for (const [x, z, r] of FIRE_PITS) {
     const px = W2C(x, w), pz = W2C(z, w), pr = (r / GROUND_R) * 0.5 * w
     const pg = ctx.createRadialGradient(px, pz, 0, px, pz, pr * 1.7)
-    pg.addColorStop(0, '#f09040')
-    pg.addColorStop(0.32, '#b23c0a')
-    pg.addColorStop(0.62, '#5c1002')
-    pg.addColorStop(1, 'rgba(24,5,2,0)')
+    pg.addColorStop(0, '#f0a050')
+    pg.addColorStop(0.32, '#b2440e')
+    pg.addColorStop(0.62, '#521804')
+    pg.addColorStop(1, 'rgba(20,6,2,0)')
     ctx.fillStyle = pg
     ctx.beginPath(); ctx.arc(px, pz, pr * 1.7, 0, TAU); ctx.fill()
   }
 
-  // emissive lava crack network (kept off lanes near the citadel)
-  for (let i = 0; i < 60; i++) {
+  // dry fissures + scattered dying embers (dark cracks, sparse warm specks)
+  for (let i = 0; i < 46; i++) {
     let x = rand(-GROUND_R * 0.97, GROUND_R * 0.97)
     let z = rand(-GROUND_R * 0.97, GROUND_R * 0.97)
     if (Math.hypot(x - CITADEL_POS.x, z - CITADEL_POS.z) < 11) continue
@@ -136,31 +148,39 @@ function drawGround(ctx, w, h) {
     let a = rand(TAU)
     ctx.save()
     ctx.lineCap = 'round'
-    ctx.shadowColor = '#ff5a1e'
-    ctx.shadowBlur = 12
-    for (const [style, lw, alpha] of [['#d83408', 4.2, 0.8], ['#ffb765', 1.4, 0.9]]) {
-      let px = x, pz = z, pa = a
-      ctx.strokeStyle = style
-      ctx.lineWidth = lw
-      ctx.globalAlpha = alpha
-      ctx.beginPath()
-      ctx.moveTo(W2C(px, w), W2C(pz, w))
-      for (let s = 0, n = 3 + Math.floor(rand(5)); s < n; s++) {
-        pa += rand(-0.9, 0.9)
-        px += Math.cos(pa) * rand(1.2, 3.2)
-        pz += Math.sin(pa) * rand(1.2, 3.2)
-        ctx.lineTo(W2C(px, w), W2C(pz, w))
-      }
-      ctx.stroke()
+    ctx.strokeStyle = '#0a0705'
+    ctx.lineWidth = 3.4
+    ctx.globalAlpha = 0.7
+    ctx.beginPath()
+    ctx.moveTo(W2C(x, w), W2C(z, w))
+    for (let s = 0, n = 3 + Math.floor(rand(5)); s < n; s++) {
+      a += rand(-0.9, 0.9)
+      x += Math.cos(a) * rand(1.2, 3.2)
+      z += Math.sin(a) * rand(1.2, 3.2)
+      ctx.lineTo(W2C(x, w), W2C(z, w))
     }
+    ctx.stroke()
     ctx.restore()
   }
+  ctx.save()
+  ctx.shadowColor = '#ff8c3b'
+  ctx.shadowBlur = 8
+  for (const [x, z, r] of FIRE_PITS) {
+    for (let i = 0; i < 14; i++) {
+      const a = rand(TAU), d = rand(r * 0.8, r * 3.2)
+      const px = W2C(x + Math.cos(a) * d, w), pz = W2C(z + Math.sin(a) * d, w)
+      ctx.globalAlpha = rand(0.25, 0.6)
+      ctx.fillStyle = Math.random() < 0.5 ? '#ff8c3b' : '#b2440e'
+      ctx.beginPath(); ctx.arc(px, pz, rand(1.5, 3.5), 0, TAU); ctx.fill()
+    }
+  }
+  ctx.restore()
 }
 
-/** Bare volcanic snag: leaning trunk + jagged branch spikes. */
+/** Bare battlefield snag: leaning charred trunk + jagged branch spikes. */
 function deadTree(scale = 1) {
   const g = new THREE.Group()
-  const mat = toonMaterial({ color: '#241318', rim: '#ff7a4a', rimStrength: 0.35 })
+  const mat = toonMaterial({ color: '#241712', rim: '#c98a4a', rimStrength: 0.3 })
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.2, 2.1, 6), mat)
   trunk.position.y = 1.05
   trunk.castShadow = true
@@ -179,8 +199,8 @@ function deadTree(scale = 1) {
   return g
 }
 
-/** Faceted obsidian shard rock (flat normals baked, toon rim safe). */
-function obsidianRock(scale, tall = false) {
+/** Faceted granite crag (flat normals baked, toon rim safe). */
+function cragRock(scale, tall = false) {
   const geo = new THREE.IcosahedronGeometry(0.55, 0)
   const p = geo.attributes.position
   const seed = rand(100)
@@ -190,14 +210,14 @@ function obsidianRock(scale, tall = false) {
     p.setXYZ(i, x * k, y * k * (tall ? 1.9 : 0.85), z * k)
   }
   geo.computeVertexNormals()
-  const m = new THREE.Mesh(geo, toonMaterial({ color: '#1d1122', rim: '#ff6a3c', rimStrength: 0.5 }))
+  const m = new THREE.Mesh(geo, toonMaterial({ color: '#2a241d', rim: '#c9924f', rimStrength: 0.45 }))
   m.scale.setScalar(scale)
   m.rotation.y = rand(TAU)
   m.castShadow = true
   return m
 }
 
-/** Low drifting ash-smoke wisps — keep the basalt floor alive in wide shots. */
+/** Low drifting battle-smoke wisps — keep the mud floor alive in wide shots. */
 function groundHaze() {
   const group = new THREE.Group()
   const tex = cloudTexture()
@@ -205,7 +225,7 @@ function groundHaze() {
   for (let i = 0; i < 9; i++) {
     const warm = Math.random() < 0.4
     const s = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: tex, color: warm ? '#4a1d10' : '#150c12', transparent: true,
+      map: tex, color: warm ? '#4a2410' : '#171017', transparent: true,
       opacity: rand(0.09, 0.17), depthWrite: false, rotation: rand(TAU),
     }))
     s.scale.set(rand(14, 26), rand(7, 12), 1)
@@ -226,49 +246,95 @@ function groundHaze() {
   return group
 }
 
-function volcano(x, z, s) {
+/** Distant burning siege camp: dark ridge, war tents, a great bonfire glow. */
+function warCamp(x, z, s) {
   const g = new THREE.Group()
-  const cone = new THREE.Mesh(
-    new THREE.ConeGeometry(26, 34, 9),
-    toonMaterial({ color: '#170c12', rim: '#4a1a1a', rimStrength: 0.3, flatShading: true }),
-  )
-  cone.position.y = 15
-  g.add(cone)
+  const ridgeMat = toonMaterial({ color: '#150d10', rim: '#4a1f14', rimStrength: 0.3 })
+  const ridge = new THREE.Mesh(new THREE.ConeGeometry(26, 16, 8), ridgeMat)
+  ridge.position.y = 5
+  g.add(ridge)
+  const tentMat = toonMaterial({ color: '#20130c', rim: '#ff7a3a', rimStrength: 0.45 })
+  for (const [tx, tz, th] of [[-9, 6, 6.5], [0, 10, 8], [9, 5, 5.5], [-3, 14, 5]]) {
+    const tent = new THREE.Mesh(new THREE.ConeGeometry(th * 0.62, th, 5), tentMat)
+    tent.position.set(tx, th * 0.4, tz)
+    g.add(tent)
+  }
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: glowTexture(), color: '#ff4a14', transparent: true, opacity: 0.85,
+    map: glowTexture(), color: '#ff5a26', transparent: true, opacity: 0.85,
     blending: THREE.AdditiveBlending, depthWrite: false,
   }))
-  glow.scale.set(26, 15, 1)
-  glow.position.y = 33
+  glow.scale.set(30, 16, 1)
+  glow.position.y = 10
   g.add(glow)
+  const smoke = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: cloudTexture(), color: '#2a1410', transparent: true, opacity: 0.55, depthWrite: false,
+  }))
+  smoke.scale.set(36, 26, 1)
+  smoke.position.y = 26
+  g.add(smoke)
   g.position.set(x, 0, z)
   g.scale.setScalar(s)
   return g
 }
 
+/** Torch positions marching along a lane polyline, alternating verges. */
+function laneTorchPoints(lane, spacing = 6, offset = 2.1) {
+  const pts = []
+  let acc = spacing * 0.5, side = 1
+  for (let i = 0; i < lane.length - 1; i++) {
+    const [ax, az] = lane[i], [bx, bz] = lane[i + 1]
+    const len = Math.hypot(bx - ax, bz - az)
+    const nx = -(bz - az) / len, nz = (bx - ax) / len
+    let d = acc
+    while (d < len) {
+      const t = d / len
+      pts.push({ x: ax + (bx - ax) * t + nx * offset * side, z: az + (bz - az) * t + nz * offset * side })
+      side = -side
+      d += spacing
+    }
+    acc = d - len
+  }
+  return pts
+}
+
+/** Crossed sharpened-stake barricade. */
+function barricade(woodMat) {
+  const g = new THREE.Group()
+  const geo = new THREE.CylinderGeometry(0.05, 0.11, 2.2, 5)
+  for (let i = 0; i < 4; i++) {
+    const stake = new THREE.Mesh(geo, woodMat)
+    stake.position.set(rand(-0.5, 0.5), 0.7, rand(-0.3, 0.3))
+    stake.rotation.set(rand(-0.5, 0.5) + (i % 2 ? 0.8 : -0.8), rand(TAU), rand(-0.35, 0.35))
+    stake.castShadow = true
+    g.add(stake)
+  }
+  g.rotation.y = rand(TAU)
+  return g
+}
+
 /**
- * Builds the volcanic night battlefield. Returns
+ * Builds the torchlit night battlefield before the bastion. Returns
  * { tickables, portals: [{x,z,flash,archMat,baseColor,portalMat,group}] }.
  */
 export function buildSiegeWorld(scene) {
   const tickables = []
 
-  // ---------- sky: near-black ember night ----------
-  scene.fog = new THREE.Fog('#241014', 52, 210)
+  // ---------- sky: deep umber night over burning camps ----------
+  scene.fog = new THREE.Fog('#241418', 52, 210)
   scene.add(skyDome({
-    top: '#050308', mid: '#251016', bottom: '#4a150c',
-    sunDir: new THREE.Vector3(-0.3, 0.14, -0.9), sunColor: '#ff5a2e', sunSize: 26,
+    top: '#120b1c', mid: '#2a1622', bottom: '#3a2030',
+    sunDir: new THREE.Vector3(-0.3, 0.14, -0.9), sunColor: '#ff5a26', sunSize: 26,
   }))
   scene.add(starField({ count: 420, size: 2.4, color: '#ffc9a0' }))
   scene.add(starField({ count: 260, size: 1.8, color: '#d9e4ff' }))
 
-  const smokeLow = cloudLayer({ count: 12, radius: 210, height: [24, 66], color: '#6a1d14', opacity: 0.52, scale: [70, 140] })
-  const smokeHigh = cloudLayer({ count: 9, radius: 190, height: [70, 120], color: '#2a1216', opacity: 0.6, scale: [90, 170] })
+  const smokeLow = cloudLayer({ count: 12, radius: 210, height: [24, 66], color: '#5c2214', opacity: 0.52, scale: [70, 140] })
+  const smokeHigh = cloudLayer({ count: 9, radius: 190, height: [70, 120], color: '#241318', opacity: 0.6, scale: [90, 170] })
   scene.add(smokeLow, smokeHigh)
   tickables.push(smokeLow, smokeHigh)
 
-  // distant erupting peaks
-  scene.add(volcano(-70, -128, 1.5), volcano(38, -140, 2.1), volcano(110, -100, 1.2), volcano(-120, -60, 1))
+  // burning siege camps on the horizon
+  scene.add(warCamp(-70, -128, 1.5), warCamp(38, -140, 2.1), warCamp(110, -100, 1.2), warCamp(-120, -60, 1))
 
   // ---------- ground ----------
   const groundTex = canvasTexture(2048, 2048, drawGround)
@@ -283,8 +349,21 @@ export function buildSiegeWorld(scene) {
   ground.receiveShadow = true
   scene.add(ground)
 
-  // heat shimmer sprites over the lava pools
-  for (const [x, z, r] of LAVA_POOLS) {
+  // shared timber/iron materials for props
+  const woodMat = toonMaterial({ color: '#4a352a', rim: '#c9a578', rimStrength: 0.3 })
+  const woodDark = toonMaterial({ color: '#2e211a', rim: '#8a6a45', rimStrength: 0.25 })
+  const ironMat = toonMaterial({ color: '#494d55', rim: '#b9b2a2', rimStrength: 0.3 })
+
+  // burning wreck pits: charred beams + fire glow
+  for (const [x, z, r] of FIRE_PITS) {
+    for (let i = 0; i < 3; i++) {
+      const log = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, r * 1.1, 5), woodDark)
+      const a = rand(TAU)
+      log.position.set(x + Math.cos(a) * r * 0.3, 0.35, z + Math.sin(a) * r * 0.3)
+      log.rotation.set(rand(0.9, 1.4), rand(TAU), 0)
+      log.castShadow = true
+      scene.add(log)
+    }
     const s = new THREE.Sprite(new THREE.SpriteMaterial({
       map: glowTexture(), color: '#ff6a26', transparent: true, opacity: 0.4,
       blending: THREE.AdditiveBlending, depthWrite: false,
@@ -300,6 +379,48 @@ export function buildSiegeWorld(scene) {
     scene.add(l)
   }
 
+  // ---------- torch-lined lanes ----------
+  const poleGeo = new THREE.CylinderGeometry(0.05, 0.08, 2.0, 6)
+  const collarGeo = new THREE.TorusGeometry(0.075, 0.02, 5, 10)
+  const flameGeo = new THREE.ConeGeometry(0.11, 0.34, 6)
+  const flameMat = glowMaterial('#ffb84d', 2.2)
+  const torchFlames = []
+  const torches = new THREE.Group()
+  for (const lane of [LANES.west, LANES.east]) {
+    for (const { x, z } of laneTorchPoints(lane)) {
+      if (PAD_POSITIONS.some(([px, pz]) => Math.hypot(x - px, z - pz) < 2.8)) continue
+      if (Math.hypot(x - CITADEL_POS.x, z - CITADEL_POS.z) < 10) continue
+      const g = new THREE.Group()
+      const pole = new THREE.Mesh(poleGeo, woodMat)
+      pole.position.y = 1.0
+      pole.castShadow = true
+      const collar = new THREE.Mesh(collarGeo, ironMat)
+      collar.rotation.x = Math.PI / 2
+      collar.position.y = 1.95
+      const flame = new THREE.Mesh(flameGeo, flameMat)
+      flame.position.y = 2.2
+      const halo = new THREE.Sprite(glowSpriteMaterial('#ff9a3c', 0.5))
+      halo.scale.setScalar(1.7)
+      halo.position.y = 2.25
+      g.add(pole, collar, flame, halo)
+      g.position.set(x, 0, z)
+      g.rotation.y = rand(TAU)
+      torches.add(g)
+      torchFlames.push({ flame, halo, phase: rand(TAU) })
+    }
+  }
+  let torchT = rand(10)
+  torches.tick = dt => {
+    torchT += dt
+    for (const tf of torchFlames) {
+      const k = 0.75 + 0.25 * Math.sin(torchT * 7 + tf.phase) * Math.sin(torchT * 3.1 + tf.phase * 2)
+      tf.halo.material.opacity = 0.32 + 0.22 * k
+      tf.flame.scale.y = 0.85 + 0.3 * k
+    }
+  }
+  scene.add(torches)
+  tickables.push(torches)
+
   // ---------- scattered props (off-lane) ----------
   for (let i = 0; i < 26; i++) {
     const a = rand(TAU), r = rand(8, FIELD_R - 1)
@@ -307,9 +428,10 @@ export function buildSiegeWorld(scene) {
     if (laneDistance(x, z) < 3.4) continue
     if (Math.hypot(x - CITADEL_POS.x, z - CITADEL_POS.z) < 10.5) continue
     if (PAD_POSITIONS.some(([px, pz]) => Math.hypot(x - px, z - pz) < 3)) continue
-    const prop = Math.random() < 0.62
-      ? obsidianRock(rand(0.7, 1.7), Math.random() < 0.3)
-      : deadTree(rand(0.8, 1.3))
+    const roll = Math.random()
+    const prop = roll < 0.55 ? cragRock(rand(0.7, 1.7), Math.random() < 0.3)
+      : roll < 0.82 ? deadTree(rand(0.8, 1.3))
+      : barricade(woodDark)
     prop.position.set(x, prop.type === 'Mesh' ? 0.2 : 0, z)
     scene.add(prop)
   }
@@ -317,46 +439,75 @@ export function buildSiegeWorld(scene) {
   for (let i = 0; i < 30; i++) {
     const a = (i / 30) * TAU + rand(0.12)
     const r = rand(FIELD_R + 3, GROUND_R - 3)
-    const rock = obsidianRock(rand(2.2, 4.6), i % 3 === 0)
+    const rock = cragRock(rand(2.2, 4.6), i % 3 === 0)
     rock.position.set(Math.cos(a) * r, rand(0.2, 0.7), Math.sin(a) * r)
     scene.add(rock)
   }
 
-  // drifting ash haze
+  // drifting battle haze
   const haze = groundHaze()
   scene.add(haze)
   tickables.push(haze)
 
-  // ember fireflies
+  // drifting embers
   const embers = fireflies({ count: 70, area: [66, 66], height: [0.4, 7], color: '#ff9a3c', size: 0.5 })
   const sparks = fireflies({ count: 26, area: [18, 18], height: [1, 9], color: '#ffd27a', size: 0.7 })
   sparks.position.set(-24, 0, -4)
   scene.add(embers, sparks)
   tickables.push(embers, sparks)
 
-  // ---------- rim portals ----------
+  // ---------- rim war-gates: timber arches breached with fire ----------
   const portals = []
-  const pillarGeo = new THREE.BoxGeometry(0.7, 4.4, 0.7)
-  const pillarMat = toonMaterial({ color: '#1c0f22', rim: '#ff7a4a', rimStrength: 0.55 })
-  const archGeo = new THREE.TorusGeometry(2.1, 0.2, 10, 26, Math.PI)
+  const postGeo = new THREE.BoxGeometry(0.7, 4.4, 0.7)
+  const postMat = toonMaterial({ color: '#2e1d14', rim: '#ff7a4a', rimStrength: 0.5 })
+  const beamGeo = new THREE.BoxGeometry(5.4, 0.55, 0.8)
+  const stakeGeo = new THREE.CylinderGeometry(0.06, 0.14, 2.6, 5)
+  const bannerGeo = new THREE.PlaneGeometry(1.15, 1.7)
+  const bannerMat = toonMaterial({
+    color: '#6e1a1e', rim: '#ff8c5c', rimStrength: 0.4, side: THREE.DoubleSide,
+    emissive: '#4a1012', emissiveIntensity: 0.8,
+  })
   const portalGeo = new THREE.CircleGeometry(1.8, 26)
   for (const { x, z } of PORTAL_POS) {
     const g = new THREE.Group()
     g.position.set(x, 0, z)
     g.lookAt(x * 0.4, 0, 0)
     for (const s of [-1, 1]) {
-      const p = new THREE.Mesh(pillarGeo, pillarMat)
+      const p = new THREE.Mesh(postGeo, postMat)
       p.position.set(2.1 * s, 2.2, 0)
       p.castShadow = true
       g.add(p)
-      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.3, 1.2, 5), pillarMat)
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.3, 1.2, 5), postMat)
       spike.position.set(2.1 * s, 4.9, 0)
       g.add(spike)
+      // palisade wing of sharpened stakes
+      for (let i = 0; i < 3; i++) {
+        const st = new THREE.Mesh(stakeGeo, postMat)
+        st.position.set((2.9 + i * 0.75) * s, 1.0, rand(-0.3, 0.3))
+        st.rotation.set(rand(-0.2, 0.2), 0, -0.5 * s + rand(-0.15, 0.15))
+        st.castShadow = true
+        g.add(st)
+      }
     }
+    const beam = new THREE.Mesh(beamGeo, postMat)
+    beam.position.y = 4.35
+    beam.castShadow = true
+    g.add(beam)
+    // ember-rune trim on the crossbeam — flashes when a raider comes through
     const archMat = glowMaterial('#ff5a1e', 1.6)
-    const arch = new THREE.Mesh(archGeo, archMat)
-    arch.position.y = 4.2
-    g.add(arch)
+    const trim = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.12, 0.14), archMat)
+    trim.position.set(0, 4.1, 0.42)
+    g.add(trim)
+    for (const s of [-1, 1]) {
+      const skull = new THREE.Mesh(new THREE.OctahedronGeometry(0.16, 0), archMat)
+      skull.position.set(2.1 * s, 4.72, 0.3)
+      g.add(skull)
+    }
+    // ragged war banner hung from the beam
+    const banner = new THREE.Mesh(bannerGeo, bannerMat)
+    banner.position.set(0, 3.15, -0.18)
+    g.add(banner)
+    // the breach itself: a standing wall of fire the horde marches out of
     const portalMat = energyMaterial({ color1: '#3a0d08', color2: '#ff6a2e', speed: 1.7, intensity: 1.15 })
     portalMat.side = THREE.DoubleSide
     const disc = new THREE.Mesh(portalGeo, portalMat)

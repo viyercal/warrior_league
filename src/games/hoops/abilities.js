@@ -54,7 +54,7 @@ export class Abilities {
 
   /* ------------------------- archetypes ------------------------- */
 
-  _dash(s) { // Blink: warp past the defender, ball comes along
+  _dash(s) { // Shadow Step: warp past the defender, ball comes along
     const { game, vfx, audio } = this.env
     const p = game.player
     const P = p.hero.group.position
@@ -72,7 +72,7 @@ export class Abilities {
     this.env.helpers.toast('ANKLES: BROKEN')
   }
 
-  _projectile(s) { // Starfire: ignite next shot, +40% accuracy
+  _projectile(s) { // Flaming Spear: ignite next shot, +40% accuracy
     const { game, vfx } = this.env
     game.eff.starfire = true
     const P = game.player.hero.group.position
@@ -80,14 +80,14 @@ export class Abilities {
     this.env.helpers.toast('NEXT SHOT IGNITED  +40% ACC')
   }
 
-  _slowfield(s) { // Frost Ring: ice patch under the defender
+  _slowfield(s) { // Grave Chill: bone-frost patch under the defender
     const { game, vfx, scene, audio } = this.env
     const aiP = game.ai.hero.group.position
     this._clearIce()
     const mesh = new THREE.Mesh(
       new THREE.CircleGeometry(2.3, 28),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#9fd8ff').multiplyScalar(1.3), transparent: true, opacity: 0.3,
+        color: new THREE.Color('#b8c4c8').multiplyScalar(1.25), transparent: true, opacity: 0.3,
         blending: THREE.AdditiveBlending, depthWrite: false,
       }),
     )
@@ -95,12 +95,12 @@ export class Abilities {
     mesh.position.set(aiP.x, 0.05, aiP.z)
     scene.add(mesh)
     game.eff.ice = { pos: v3(aiP.x, 0, aiP.z), t: s.params.duration ?? 3.5, mesh }
-    vfx.ring(mesh.position, { color: '#9fd8ff', radius: 2.6, life: 0.5 })
+    vfx.ring(mesh.position, { color: '#b8c4c8', radius: 2.6, life: 0.5 })
     audio.play('zap', { vol: 0.4 })
-    this.env.helpers.toast('DEFENDER ICED')
+    this.env.helpers.toast('DEFENDER GRAVE-CHILLED')
   }
 
-  _nova(s) { // Seismic Slam: knock defender back; near rim -> dunk armed
+  _nova(s) { // Earthbreaker: knock defender back; near rim -> dunk armed
     const { game, vfx, audio, engine } = this.env
     const P = game.player.hero.group.position
     vfx.shockwave(P, { color: s.color, radius: s.params.radius ?? 5 })
@@ -119,14 +119,14 @@ export class Abilities {
     }
   }
 
-  _buff(s) { // Overdrive: turbo + stamina freeze
+  _buff(s) { // Bloodrush: turbo + stamina freeze
     const { game, vfx } = this.env
     game.eff.turboT = s.params.duration ?? 4
     vfx.ring(game.player.hero.group.position, { color: s.color, radius: 2.2, life: 0.4 })
-    this.env.helpers.toast('TURBO!')
+    this.env.helpers.toast('BLOODRUSH!')
   }
 
-  _shield(s) { // Aegis: unstealable handle
+  _shield(s) { // Iron Bulwark: unstealable handle
     const { game, audio, scene } = this.env
     game.eff.aegisT = s.params.duration ?? 5
     audio.play('shield')
@@ -134,7 +134,7 @@ export class Abilities {
       this._bubble = new THREE.Mesh(
         new THREE.SphereGeometry(1.05, 24, 16),
         new THREE.MeshBasicMaterial({
-          color: new THREE.Color('#8ea9ff').multiplyScalar(1.5), transparent: true, opacity: 0.16,
+          color: new THREE.Color('#9fa8b4').multiplyScalar(1.4), transparent: true, opacity: 0.16,
           blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
         }),
       )
@@ -143,7 +143,7 @@ export class Abilities {
     this._bubble.visible = true
   }
 
-  _heal(s) { // Vital Surge: full stamina + green swirl
+  _heal(s) { // Warrior's Resolve: full stamina + golden swirl
     const { game, vfx, audio } = this.env
     game.player.stamina = 100
     audio.play('heal')
@@ -153,7 +153,7 @@ export class Abilities {
     this.env.helpers.toast('SECOND WIND')
   }
 
-  _summon(s) { // Mirror Decoy: holo screener the AI has to path around
+  _summon(s) { // Phantom Twin: spectral screener the AI has to path around
     const { game, scene, audio } = this.env
     this._clearDecoy()
     const P = game.player.hero.group.position
@@ -172,24 +172,24 @@ export class Abilities {
     game.eff.decoy = { pos: hero.group.position, t: s.params.duration ?? 6, hero }
     game.ai.confuseT = 0.8
     audio.play('spawn')
-    this.env.helpers.toast('HOLO SCREEN SET')
+    this.env.helpers.toast('PHANTOM SCREEN SET')
   }
 
-  _pull(s) { // Gravity Well: rebounds curve to you
+  _pull(s) { // Chained Harrow: rebounds curve to you
     const { game, vfx } = this.env
     game.eff.pullT = 10
     vfx.ring(game.player.hero.group.position, { color: s.color, radius: 3, life: 0.6 })
-    this.env.helpers.toast('GRAVITY REBOUNDS — 10s')
+    this.env.helpers.toast('CHAINS DRAG REBOUNDS TO YOU — 10s')
     void s
   }
 
-  _giant(s) { // Titan: grow; next drive is an unstoppable dunk inside the arc
+  _giant(s) { // Colossus Form: grow; next drive is an unstoppable dunk inside the arc
     const { game } = this.env
     game.eff.titanT = s.params.duration ?? 5
-    this.env.helpers.toast('TITAN FORM — DUNK FROM ANYWHERE INSIDE')
+    this.env.helpers.toast('COLOSSUS FORM — DUNK FROM ANYWHERE INSIDE')
   }
 
-  _ghost(s) { // Phase Cloak: walk through the defender, uncontestable
+  _ghost(s) { // Wraith Walk: walk through the defender, uncontestable
     const { game, audio } = this.env
     game.eff.ghostT = s.params.duration ?? 3
     audio.play('zap', { vol: 0.3 })
@@ -203,7 +203,7 @@ export class Abilities {
     for (const { m } of this._heroMats) { m.transparent = true; m.opacity = 0.35 }
   }
 
-  _meteor(s) { // Comet Crash: comet slams the rim; holding = thunder-dunk
+  _meteor(s) { // Skyfall Hammer: burning hammer slams the ring; holding = thunder-dunk
     const { game, vfx, audio } = this.env
     const P = game.player.hero.group.position
     const value = game.ball.holder === 'player' && isThree(P) ? 3 : 2
@@ -215,7 +215,7 @@ export class Abilities {
     })
     game.eff.comet = { handle, value }
     audio.play('cast', { vol: 0.5 })
-    this.env.helpers.toast('COMET INBOUND...')
+    this.env.helpers.toast('SKYFALL INBOUND...')
   }
 
   /* ------------------------- per-frame ------------------------- */
@@ -267,8 +267,8 @@ export class Abilities {
       if (!handle.alive || handle.pos.y <= COURT.RIM.y + 0.25) {
         handle.kill()
         eff.comet = null
-        vfx.impact(COURT.RIM, { color: '#ff9de2', size: 2.4 })
-        vfx.shockwave(COURT.RIM_FLOOR, { color: '#ff9de2', radius: 5 })
+        vfx.impact(COURT.RIM, { color: '#ff8c3b', size: 2.4 })
+        vfx.shockwave(COURT.RIM_FLOOR, { color: '#ff8c3b', radius: 5 })
         audio.play('explode')
         engine.shake(0.7, 0.55)
         if (game.ball.holder === 'player' && game.phase === 'live') helpers.cometSlam(value)

@@ -1,4 +1,4 @@
-/** RIFT LEGENDS — map layout & combat tuning. West = BLUE (player), East = RED (enemy). */
+/** WAR RIFT — map layout & combat tuning. West = BLUE (player), East = RED (enemy). */
 
 export const NEXUS_X = 48
 export const SPAWN_X = 42.5          // hero / minion spawn point on the base platform edge
@@ -8,9 +8,10 @@ export const LANE_HALF = 5.5
 export const BOUNDS = { x: 52, z: 21.5 }
 export const RIVER_ANGLE = 0.55      // yaw of the river band crossing mid
 
+// warband tints: blue = cold blue-white flame, red = ember + blood crimson (firelight, not neon)
 export const TEAMS = {
-  blue: { sign: -1, color: '#54e0ff', dark: '#0b3f66', minion: '#3f9fff', caster: '#9a6bff' },
-  red:  { sign: 1,  color: '#ff5a3c', dark: '#571109', minion: '#ff6141', caster: '#ff3fc4' },
+  blue: { sign: -1, color: '#8fb8d8', dark: '#22384a', minion: '#527ca6', caster: '#8fb8cf' },
+  red:  { sign: 1,  color: '#ff6a35', dark: '#4a1108', minion: '#b03028', caster: '#ff5a26' },
 }
 
 export const HERO = {

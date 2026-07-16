@@ -1,15 +1,17 @@
 import { SKILLS, KEY_LABELS } from './skills.js'
 
 export const GAME_TITLES = {
-  moba: 'RIFT LEGENDS', hoops: 'SLAM CITY 2K', arena: 'NOVA ARENA',
-  kart: 'TURBO KART GP', brawl: 'BRAWL STADIUM', siege: 'SIEGE PROTOCOL',
+  moba: 'WAR RIFT', hoops: 'BLOOD COURT', arena: 'THE PIT',
+  kart: 'WAR CHARIOTS', brawl: 'MORTAL ARENA', siege: 'LAST BASTION',
 }
 const GAME_ORDER = ['moba', 'hoops', 'arena', 'kart', 'brawl', 'siege']
-const GAME_SHORT = { moba: 'RIFT', hoops: 'SLAM', arena: 'NOVA', kart: 'KART', brawl: 'BRAWL', siege: 'SIEGE' }
+const GAME_SHORT = { moba: 'RIFT', hoops: 'COURT', arena: 'PIT', kart: 'CHARIOT', brawl: 'ARENA', siege: 'SIEGE' }
 
-const PRIMARY = ['#3fa7ff', '#ff5c6e', '#ff9f43', '#ffd166', '#7dff8a', '#2ee6c8', '#b47dff', '#f4f7ff']
-const GLOWS = ['#7df9ff', '#66ffc2', '#aaff66', '#ffd166', '#ff8a5c', '#ff9de2', '#c58fff', '#ffffff']
-const SECONDARY = ['#232a4d', '#141a2e', '#3d2352', '#16324a', '#40242c', '#263430']
+// war paint: bronze, blood, iron, bone, witchfire, olive, nightshade, leather
+const PRIMARY = ['#b0793a', '#c23b2e', '#6b6f78', '#e8dcc4', '#7dff8a', '#8fae4a', '#75559e', '#4a352a']
+// rune-glow: torch gold, forge fire, crimson, moon steel, ember, venom, wraith bone, bone white
+const GLOWS = ['#ffb84d', '#ff5a26', '#c23b2e', '#9fb8c8', '#ff8a5c', '#9fce4a', '#d8d2c2', '#e8dcc4']
+const SECONDARY = ['#3a2a20', '#2a2621', '#3a3e46', '#4a1a1c', '#2c2233', '#5c3d1a']
 
 const SEGMENTS = [
   { key: 'head', label: 'HEAD', opts: [['visor', 'VISOR'], ['orb', 'ORB'], ['classic', 'CLASSIC']] },
@@ -19,8 +21,8 @@ const SEGMENTS = [
 ]
 
 /**
- * The right-side HERO FORGE panel: name, appearance swatches/segments,
- * Q-W-E-R equip slots + 12-skill grid with rich tooltips, footer nav.
+ * The right-side WAR FORGE panel: war name, appearance swatches/segments,
+ * Q-W-E-R equip slots + 12-art grid with rich tooltips, footer nav.
  * Every mutation hits ctx.profile + ctx.saveProfile() immediately.
  */
 export function buildLoadoutPanel(hud, ctx, hooks = {}) {
@@ -33,10 +35,10 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
 
   // ---------- header ----------
   const head = hud.el('div', 'loadout-head', '', root)
-  hud.el('div', 'loadout-kicker', game ? 'PRE-GAME PREP' : 'FORGE YOUR LEGEND', head)
-  hud.el('div', 'loadout-title', 'HERO FORGE', head)
+  hud.el('div', 'loadout-kicker', game ? 'PREPARE FOR BATTLE' : 'FORGE YOUR LEGEND', head)
+  hud.el('div', 'loadout-title', 'WAR FORGE', head)
   const nameRow = hud.el('div', 'loadout-namerow', '', head)
-  hud.el('div', 'loadout-namelabel', 'CALLSIGN', nameRow)
+  hud.el('div', 'loadout-namelabel', 'WAR NAME', nameRow)
   const nameInput = hud.el('input', 'loadout-name', '', nameRow)
   nameInput.maxLength = 12
   nameInput.spellcheck = false
@@ -47,7 +49,7 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
     saveProfile()
   })
   nameInput.addEventListener('focus', () => nameInput.select())
-  if (game) hud.el('div', `loadout-next loadout-g-${game}`, `NEXT STOP &nbsp;·&nbsp; ${GAME_TITLES[game]}`, head)
+  if (game) hud.el('div', `loadout-next loadout-g-${game}`, `NEXT BATTLE &nbsp;·&nbsp; ${GAME_TITLES[game]}`, head)
 
   const scroll = hud.el('div', 'loadout-scroll', '', root)
   const section = title => {
@@ -57,7 +59,7 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
   }
 
   // ---------- appearance ----------
-  const secA = section('APPEARANCE')
+  const secA = section('WAR PAINT & ARMOR')
   const swatchRow = (label, colors, key) => {
     const row = hud.el('div', 'loadout-row', '', secA)
     hud.el('div', 'loadout-label', label, row)
@@ -99,8 +101,8 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
   }
 
   // ---------- skillset ----------
-  const secS = section('SKILLSET')
-  hud.el('div', 'loadout-hintline', 'PICK A SLOT, THEN CLICK SKILLS — EQUIPPED ONES SWAP', secS)
+  const secS = section('BATTLE ARTS')
+  hud.el('div', 'loadout-hintline', 'PICK A SLOT, THEN CLAIM AN ART — EQUIPPED ONES SWAP', secS)
   let active = 0
   const slotsWrap = hud.el('div', 'loadout-slots', '', secS)
   const slotEls = KEY_LABELS.map((k, i) => {
@@ -117,7 +119,7 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
       const { s, ic, nm } = slotEls[i]
       ic.textContent = sk ? sk.icon : '·'
       nm.textContent = sk ? sk.name : 'EMPTY'
-      s.style.setProperty('--sw', sk ? sk.color : '#44507a')
+      s.style.setProperty('--sw', sk ? sk.color : '#6b5a44')
       s.classList.toggle('active', i === active)
     })
   })
@@ -201,7 +203,7 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
   const back = hud.el('button', 'ghost loadout-back', 'BACK', foot)
   back.onclick = () => { audio.play('back'); goTo('hub') }
   const go = hud.el('button', `loadout-go${game ? ` loadout-g-${game}` : ''}`,
-    game ? `ENTER ${GAME_TITLES[game]} ▶` : 'SAVE & RETURN', foot)
+    game ? `ENTER ${GAME_TITLES[game]} ▶` : 'SEAL & RETURN', foot)
   go.onclick = () => {
     saveProfile()
     audio.play(game ? 'go' : 'coin')
@@ -210,8 +212,8 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
 
   // ---------- stage overlay: dance toggle + drag hint ----------
   const stage = hud.el('div', 'loadout-stagebar ui-interactive')
-  hud.el('div', 'loadout-draghint', '⟲ DRAG TO SPIN', stage)
-  const dance = hud.el('button', 'ghost loadout-dance', '♪ DANCE <span>P</span>', stage)
+  hud.el('div', 'loadout-draghint', '⟲ DRAG TO TURN', stage)
+  const dance = hud.el('button', 'ghost loadout-dance', '♪ WAR DANCE <span>P</span>', stage)
   dance.onclick = () => hooks.onDance?.()
 
   sync()

@@ -1,6 +1,8 @@
 import * as THREE from 'three'
-import { toonMaterial, glowMaterial, glowSpriteMaterial } from './materials.js'
-import { glowTexture } from '../core/assets.js'
+import {
+  pbrMaterial, bronzeMaterial, ironMaterial, leatherMaterial, boneMaterial,
+  clothMaterial, woodMaterial, emberGlowMaterial, contactShadow,
+} from './materials.js'
 import { clamp, damp, lerp, rand, TAU, angleLerp } from '../core/utils.js'
 
 const darken = (hex, f) => '#' + new THREE.Color(hex).multiplyScalar(f).getHexString()
@@ -32,19 +34,22 @@ export class Hero {
       primary: '#b0793a', secondary: '#3a2a20', glow: '#ff8c3b',
       head: 'visor', hair: 'spikes', cape: true, ...appearance,
     }
+    // PBR realism kit — worn bronze plate (tinted by profile primary), scratched
+    // iron, grained leather, ragged cloth. Rim light gone; env map does the work.
+    // material.color === exact profile hex (identity probe + game tint contract).
     const M = this.mats = {
-      bronze: toonMaterial({ color: a.primary, rim: '#ffdca8', rimStrength: 0.4 }),
-      bronzeDark: toonMaterial({ color: darken(a.primary, 0.55), rim: '#e8c088', rimStrength: 0.28 }),
-      iron: toonMaterial({ color: '#53565d', rim: '#d8c9a8', rimStrength: 0.26 }),
-      ironDark: toonMaterial({ color: '#383b42', rim: '#a9a294', rimStrength: 0.2 }),
-      leather: toonMaterial({ color: a.secondary, rim: '#c9a578', rimStrength: 0.32 }),
-      leatherDark: toonMaterial({ color: darken(a.secondary, 0.6), rimStrength: 0.22 }),
-      cloth: toonMaterial({ color: darken(blend(a.secondary, '#551a18', 0.55), 0.6), rim: '#8a5a30', rimStrength: 0.1, side: THREE.DoubleSide }),
-      bone: toonMaterial({ color: '#e8dcc4', rim: '#fff2d8', rimStrength: 0.4 }),
-      paint: toonMaterial({ color: '#701a1e', rimStrength: 0.1 }),
-      hair: toonMaterial({ color: '#2c211a', rim: '#8a6a45', rimStrength: 0.35 }),
-      glow: glowMaterial(a.glow, 2.2),
-      skin: toonMaterial({ color: '#d9a679', rim: '#ffd9b0', rimStrength: 0.3 }),
+      bronze: bronzeMaterial(a.primary),
+      bronzeDark: bronzeMaterial(darken(a.primary, 0.55)),
+      iron: ironMaterial('#53565d'),
+      ironDark: ironMaterial('#383b42'),
+      leather: leatherMaterial(a.secondary),
+      leatherDark: leatherMaterial(darken(a.secondary, 0.6)),
+      cloth: clothMaterial(darken(blend(a.secondary, '#551a18', 0.55), 0.6)),
+      bone: boneMaterial(),
+      paint: pbrMaterial({ color: '#701a1e', roughness: 0.9, envMapIntensity: 0.3 }),
+      hair: pbrMaterial({ color: '#2c211a', roughness: 0.7, envMapIntensity: 0.3 }),
+      glow: emberGlowMaterial(1.35, a.glow), // ember accent, not LED
+      skin: pbrMaterial({ color: '#d9a679', roughness: 0.75, envMapIntensity: 0.35 }),
     }
     // Back-compat aliases — games poke mats.primary / mats.secondary (e.g. hit flashes)
     M.primary = M.bronze
@@ -243,6 +248,10 @@ export class Hero {
     this.ring.visible = auraRing
     this.group.add(this.ring)
 
+    // --- soft contact-shadow blob (grounding; scales with the group, e.g. giant form) ---
+    this.shadowBlob = contactShadow(0.6, 0.48)
+    this.group.add(this.shadowBlob)
+
     // anim state
     this.t = rand(10)
     this.phase = 0
@@ -380,25 +389,22 @@ export class Minion {
   constructor({ color = '#c9b795', evil = false, scale = 1 } = {}) {
     this.group = new THREE.Group()
     const bodyColor = evil ? blend(color, '#cfc0a0', 0.35) : color
-    this.bodyMat = toonMaterial({
-      color: bodyColor, rim: evil ? '#ff8a70' : '#ffe1b0', rimStrength: 0.45,
-      emissive: '#000000',
-    })
+    this.bodyMat = leatherMaterial(bodyColor)
     const g = this.group
-    const ironMat = toonMaterial({ color: '#4a4d55', rim: '#b9b2a2', rimStrength: 0.35 })
+    const ironMat = ironMaterial('#4a4d55')
     this.body = mesh(g, new THREE.SphereGeometry(0.34, 16, 12), this.bodyMat, [0, 0.4, 0], { scale: [1, 0.85, 0.95] })
 
     if (evil) {
       // crude iron helm with a nose guard
       mesh(g, new THREE.SphereGeometry(0.3, 14, 10), ironMat, [0, 0.6, -0.01], { scale: [1.02, 0.55, 0.98] })
       mesh(g, new THREE.BoxGeometry(0.05, 0.15, 0.04), ironMat, [0, 0.5, 0.3])
-      // red rune eyes
+      // red rune-ember eyes
       for (const s of [-1, 1]) {
-        mesh(g, new THREE.SphereGeometry(0.055, 8, 6), glowMaterial('#ff3524', 2.6), [0.12 * s, 0.47, 0.26], { scale: [1.1, 0.7, 0.7], shadow: false })
+        mesh(g, new THREE.SphereGeometry(0.055, 8, 6), emberGlowMaterial(2.0, '#ff3524'), [0.12 * s, 0.47, 0.26], { scale: [1.1, 0.7, 0.7], shadow: false })
       }
       // bone tusks + iron shoulder spikes
       for (const s of [-1, 1]) {
-        mesh(g, new THREE.ConeGeometry(0.028, 0.09, 6), toonMaterial({ color: '#e8dcc4', rimStrength: 0.3 }), [0.1 * s, 0.29, 0.28], { rot: [0.25, 0, 0] })
+        mesh(g, new THREE.ConeGeometry(0.028, 0.09, 6), boneMaterial(), [0.1 * s, 0.29, 0.28], { rot: [0.25, 0, 0] })
         mesh(g, new THREE.ConeGeometry(0.06, 0.16, 6), ironMat, [0.27 * s, 0.5, 0.02], { rot: [0, 0, -1.15 * s] })
       }
     } else {
@@ -407,15 +413,18 @@ export class Minion {
         mesh(g, new THREE.SphereGeometry(0.075, 10, 8), new THREE.MeshBasicMaterial({ color: '#f5ead2' }), [0.13 * s, 0.48, 0.26], { shadow: false })
         mesh(g, new THREE.SphereGeometry(0.035, 8, 6), new THREE.MeshBasicMaterial({ color: '#241a12' }), [0.13 * s, 0.48, 0.325], { shadow: false })
       }
-      mesh(g, new THREE.SphereGeometry(0.28, 14, 10), toonMaterial({ color: '#8a5f2e', rim: '#ffd9a0', rimStrength: 0.4 }), [0, 0.62, -0.01], { scale: [1.05, 0.5, 1.0] })
-      mesh(g, new THREE.SphereGeometry(0.045, 8, 6), glowMaterial(color, 1.8), [0, 0.75, 0], { shadow: false })
-      const shield = mesh(g, new THREE.CylinderGeometry(0.16, 0.16, 0.035, 14), toonMaterial({ color: '#4a352a', rim: '#c9a578', rimStrength: 0.35 }), [-0.34, 0.42, 0.04], { rot: [0, 0, Math.PI / 2] })
-      mesh(shield, new THREE.SphereGeometry(0.05, 8, 6), toonMaterial({ color: '#8a5f2e', rimStrength: 0.3 }), [0, 0.03, 0], { shadow: false })
+      mesh(g, new THREE.SphereGeometry(0.28, 14, 10), bronzeMaterial('#8a5f2e'), [0, 0.62, -0.01], { scale: [1.05, 0.5, 1.0] })
+      mesh(g, new THREE.SphereGeometry(0.045, 8, 6), emberGlowMaterial(1.4, color), [0, 0.75, 0], { shadow: false })
+      const shield = mesh(g, new THREE.CylinderGeometry(0.16, 0.16, 0.035, 14), woodMaterial('#8a7a60'), [-0.34, 0.42, 0.04], { rot: [0, 0, Math.PI / 2] })
+      mesh(shield, new THREE.SphereGeometry(0.05, 8, 6), bronzeMaterial('#8a5f2e'), [0, 0.03, 0], { shadow: false })
     }
     this.feet = []
     for (const s of [-1, 1]) {
       this.feet.push(mesh(g, new THREE.SphereGeometry(0.1, 8, 6), this.bodyMat, [0.13 * s, 0.08, 0.04], { scale: [1, 0.65, 1.3] }))
     }
+    // contact-shadow blob (scales with the group)
+    this.shadowBlob = contactShadow(0.4, 0.4)
+    g.add(this.shadowBlob)
     g.scale.setScalar(scale)
     this.t = rand(10)
     this.moving = false

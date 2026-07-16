@@ -4,6 +4,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
+import { SAOPass } from 'three/addons/postprocessing/SAOPass.js'
 
 const GradeShader = {
   uniforms: {
@@ -12,6 +13,7 @@ const GradeShader = {
     uVignette: { value: 0.5 },
     uGrain: { value: 0.028 },
     uSat: { value: 1.07 },
+    uExposure: { value: 1 },
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -21,11 +23,12 @@ const GradeShader = {
     }`,
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse;
-    uniform float uTime, uVignette, uGrain, uSat;
+    uniform float uTime, uVignette, uGrain, uSat, uExposure;
     varying vec2 vUv;
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     void main() {
       vec4 c = texture2D(tDiffuse, vUv);
+      c.rgb *= uExposure; // pre-tonemap (OutputPass tonemaps last)
       float d = distance(vUv, vec2(0.5));
       c.rgb *= 1.0 - uVignette * smoothstep(0.38, 0.92, d);
       float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
@@ -36,13 +39,16 @@ const GradeShader = {
 }
 
 /**
- * Cinematic post chain: MSAA render -> bloom -> color grade -> tonemapped output.
- * opts: { bloom, bloomThreshold, bloomRadius, vignette, grain, saturation }
+ * Cinematic post chain: MSAA render [-> SAO] -> bloom -> color grade -> tonemapped output.
+ * opts: { bloom, bloomThreshold, bloomRadius, vignette, grain, saturation,
+ *         ssao (default false), ssaoIntensity, exposure (pre-tonemap, default 1) }
+ * Defaults are byte-identical to the pre-realism chain when opts are absent.
  */
 export function buildComposer(renderer, scene, camera, opts = {}) {
   const {
     bloom = 0.7, bloomThreshold = 0.82, bloomRadius = 0.5,
     vignette = 0.5, grain = 0.028, saturation = 1.07,
+    ssao = false, ssaoIntensity = 0.05, exposure = 1,
   } = opts
   const size = renderer.getSize(new THREE.Vector2())
   const pr = renderer.getPixelRatio()
@@ -56,6 +62,24 @@ export function buildComposer(renderer, scene, camera, opts = {}) {
 
   composer.addPass(new RenderPass(scene, camera))
 
+  if (ssao) {
+    // Cheap SAO: small kernel + light blur, multiplied onto the beauty pass
+    const sao = new SAOPass(scene, camera, new THREE.Vector2(size.x, size.y))
+    Object.assign(sao.params, {
+      saoBias: 0.5,
+      saoIntensity: ssaoIntensity,
+      saoScale: 10,
+      saoKernelRadius: 16,
+      saoMinResolution: 0,
+      saoBlur: true,
+      saoBlurRadius: 6,
+      saoBlurStdDev: 3,
+      saoBlurDepthCutoff: 0.01,
+    })
+    composer.addPass(sao)
+    composer.saoPass = sao
+  }
+
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), bloom, bloomRadius, bloomThreshold)
   composer.addPass(bloomPass)
 
@@ -63,6 +87,7 @@ export function buildComposer(renderer, scene, camera, opts = {}) {
   grade.uniforms.uVignette.value = vignette
   grade.uniforms.uGrain.value = grain
   grade.uniforms.uSat.value = saturation
+  grade.uniforms.uExposure.value = exposure
   composer.addPass(grade)
 
   composer.addPass(new OutputPass())

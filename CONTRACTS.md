@@ -79,7 +79,8 @@ export default class MyScene {
   update(dt, t) { /* dt clamped ≤ 0.05s; t = elapsed seconds */ }
   resize(w, h) { /* optional; perspective camera aspect is auto-updated */ }
   dispose() { /* stop timers/emitters; scene GPU teardown is automatic */ }
-  // optional: postOpts = { bloom, bloomThreshold, bloomRadius, vignette, grain, saturation }
+  // optional: postOpts = { bloom, bloomThreshold, bloomRadius, vignette, grain, saturation,
+  //                        ssao, ssaoIntensity, exposure } (see "Realism kit")
   // optional: debug = { win: () => {}, lose: () => {} } — force end states for QA
 }
 ```
@@ -146,6 +147,76 @@ lightning(a,b,opts), projectile({from, dir|to, speed, color, size, life, gravity
 then calls handle.kill() + vfx.impact), trail(object3d, opts) → {stop()},
 text(pos, str, {color,size}) — damage numbers/announcements, impact(pos,opts),
 shockwave(pos,{color,radius}).
+
+## Realism kit (REALISM PASS — read before styling any game scene)
+
+Game scenes must read as REALISTIC-STYLIZED (God of War / Elden Ring screenshot
+energy at low-poly scale), not toon-arcade. The warrior THEME is unchanged —
+only rendering fidelity. Direction essentials for every game scene:
+
+- **Materials**: MeshStandardMaterial/Physical everywhere. Desaturated natural
+  albedos, per-material roughness/metalness (worn iron ≈ rough 0.55 / metal 0.9;
+  leather 0.9; stone 0.95; polished bronze 0.35 / metal 1.0). Use the presets
+  below — they share cached texture sets. `scene.environment = engine.envMap`.
+  NO toon ramps, NO rim light (≤0.08 if you must), NO `glowMaterial` neon —
+  the only emissives are real fire/embers via `fireMaterial`/`emberGlowMaterial`.
+- **Lighting**: ONE physically plausible key (sun/moon/torch glow), warm-vs-cool
+  balance, torch point lights with `decay = 2`, hemisphere fill at LOW intensity,
+  PCFSoft shadows with tuned bias, mapSize ≤ 2048. Let blacks be black.
+- **Grounding**: `contactShadow()` blobs under characters/props (Hero/Minion
+  already ship one), darkened vertex/texture gradients at object bases,
+  `dirtOverlay(..., { edge })` corner darkening in ground textures.
+- **Imperfection**: nothing perfectly clean — dirt overlays, edge wear, plank
+  gaps, cracked stone, scratches. Bevel silhouette edges that matter; jitter
+  organic shapes; instance cheap ground clutter (pebbles, splinters, shards).
+- **Atmosphere/post**: per-scene fog + aerial desaturation with distance;
+  RAISE `bloomThreshold` (≈0.9+) so only true fire/embers bloom; pull
+  `saturation` toward 1.0; realistic sky gradients, horizon haze, dim stars.
+- **Perf budget is law**: 60fps on an integrated-GPU Mac at the busiest scene
+  (siege, 45 raiders). Share materials/geometries, instanced clutter, no
+  per-frame allocations, one shadow-casting light.
+
+`src/core/assets.js` additions (all tileable, RepeatWrapping):
+- `noiseTexture({size, octaves, scale, scaleY, seed, lo, hi, srgb})` — multi-octave
+  value noise; `fbmNoise(u, v, opts)` / `noiseField(size, opts)` for raw fields.
+- `normalMapFromHeight(src, {strength, size})` — tangent-space normal map from a
+  Float32Array field, a canvas, or a draw fn.
+- `roughnessTexture({size, base, variation, octaves, scale, seed})` — linear map;
+  effective roughness = material.roughness × map sample.
+- `dirtOverlay(baseTex, {amount, edge, speckle, color, seed})` — composites grime,
+  edge/corner AO and flecks onto an existing canvas texture (mutates + returns).
+- Texture SETS, each `{ map, normalMap, roughnessMap }` at 512px:
+  `crackedStoneTexture()`, `woodPlankTexture()`, `packedEarthTexture()`,
+  `wornMetalTexture()` (NEUTRAL bright-grey albedo — tint via material.color),
+  `fabricGrainTexture()` (fine neutral grain for leather/cloth/bone).
+
+`src/art/materials.js` additions (existing toon/glow exports untouched — they
+remain for hub/loadout only):
+- `pbrMaterial({color, roughness, metalness, maps, normalScale, envMapIntensity,
+  emissive, emissiveIntensity, transparent, opacity, side, flatShading})`
+- Presets (optional albedo tint arg; texture sets cached + shared): `stoneMaterial()`,
+  `ironMaterial()`, `bronzeMaterial()`, `leatherMaterial()`, `woodMaterial()`,
+  `earthMaterial()`, `boneMaterial()`, `clothMaterial(color)` (DoubleSide).
+- `fireMaterial({intensity, speed, edgeColor, midColor, coreColor})` — animated
+  blackbody flame (auto-ticked); apply to cones/planes with v=0 at flame base.
+- `emberGlowMaterial(intensity = 1.5, color = '#ff8c3b')` — THE emissive accent
+  (rune slits, eyes, embers). Keep intensity ≤ ~2 so it reads as ember, not LED.
+- `contactShadow(radius, opacity)` — soft dark blob mesh, pre-rotated flat at
+  y = 0.02; add to a character/prop group to ground it.
+
+`src/core/post.js` — `buildComposer` extra opts (defaults = old behavior):
+- `ssao: false` — inserts a cheap SAOPass (kernel 16, blurred) between render and
+  bloom; `ssaoIntensity` (default 0.05). BENCHMARK YOUR SCENE before shipping it.
+- `exposure: 1` — pre-tonemap exposure multiplier in the grade pass.
+
+`src/core/engine.js` — `engine.setExposure(v)` sets renderer.toneMappingExposure
+(applies live through the composer's OutputPass).
+
+`src/art/characterFactory.js` — Hero/Minion now render with the PBR kit (worn
+bronze/iron, grained leather, ragged cloth, ember accents, built-in contact
+shadow blob `.shadowBlob`). API, rig, proportions, animations, appearance ids and
+`mats.*` keys (incl. `mats.primary`/`mats.secondary` aliases) are UNCHANGED —
+profile colors still tint `mats.bronze`/`mats.leather` albedo exactly.
 
 `src/meta/skills.js` — SKILLS (12 defs), getSkill(id), KEY_LABELS, KEY_CODES,
 WASD_KEY_LABELS, wasdKeyIndex(code).

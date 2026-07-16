@@ -33,6 +33,9 @@ export class Engine {
   /** Cached PMREM room environment for PBR materials. */
   get envMap() { return makeEnvMap(this.renderer) }
 
+  /** Global tone-mapping exposure (OutputPass reads it live each frame). */
+  setExposure(v) { this.renderer.toneMappingExposure = v }
+
   setScene(scene, camera, postOpts = {}) {
     this.scene = scene
     this.camera = camera

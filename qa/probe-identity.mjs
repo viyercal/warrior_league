@@ -43,9 +43,12 @@ check('identity set in loadout', stored.primary === PRIMARY && stored.glow === G
 await page.screenshot({ path: 'qa/screens/flow-identity-loadout.png' })
 
 // ---------- 2. verify the same hero in each game ----------
+// player-hero lookup per scene shape:
+//   moba/arena/siege: s.hero — hoops: s.game.player.hero
+//   brawl: s.player.hero — kart: s.player.visual.hero (seated in the kart)
 const heroColors = () => page.evaluate(() => {
   const s = window.__scene
-  const g = (s.hero || s.game?.player?.hero)?.group
+  const g = (s.hero || s.game?.player?.hero || s.player?.hero || s.player?.visual?.hero)?.group
   if (!g) return null
   const set = new Set()
   g.traverse(o => {
@@ -57,14 +60,14 @@ const heroColors = () => page.evaluate(() => {
 
 const heroScreenPos = () => page.evaluate(() => {
   const s = window.__scene
-  const g = (s.hero || s.game?.player?.hero)?.group
-  const v = g.position.clone()
+  const g = (s.hero || s.game?.player?.hero || s.player?.hero || s.player?.visual?.hero)?.group
+  const v = g.getWorldPosition(g.position.clone()) // nested groups (kart seat, fighter root)
   v.y += 1
   v.project(s.camera)
   return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }
 })
 
-for (const game of ['moba', 'hoops', 'arena']) {
+for (const game of ['moba', 'hoops', 'arena', 'kart', 'brawl', 'siege']) {
   await page.evaluate(n => window.__ipl.sm.goTo(n), game)
   await sceneIs(game)
   await page.waitForTimeout(3000)
@@ -75,6 +78,7 @@ for (const game of ['moba', 'hoops', 'arena']) {
   // pull the camera in (runtime QA-only state) for a readable close-up crop
   if (game === 'moba') await page.evaluate(() => { window.__scene.zoomT = 16 })
   if (game === 'arena') await page.evaluate(() => Object.assign(window.__scene.camOffset, { y: 11, z: 6 }))
+  if (game === 'siege') await page.evaluate(() => Object.assign(window.__scene.camOffset, { y: 8, z: 6 }))
   await page.waitForTimeout(1400)
   const hp = await heroScreenPos()
   const clip = {

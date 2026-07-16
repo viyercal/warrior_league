@@ -6,7 +6,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 810 } })
 const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
-await page.goto('http://localhost:5187/?scene=brawl&mute=1', { waitUntil: 'load' })
+await page.goto(`http://localhost:${process.env.IPL_PORT || '5187'}/?scene=brawl&mute=1`, { waitUntil: 'load' })
 await page.waitForFunction(() => window.__scene?.phase === 'fight', null, { timeout: 15000 })
 
 // stir the pot: skills + movement while AIs brawl

@@ -103,6 +103,10 @@
   text-shadow: 0 0 18px rgba(255, 209, 102, 0.5);
   margin-bottom: 12px;
 }
+.brawl-results-title.lose {
+  color: #ff5c6e;
+  text-shadow: 0 0 18px rgba(255, 92, 110, 0.5);
+}
 .brawl-results-table { margin-bottom: 14px; }
 .brawl-results-row {
   --fc: #7df9ff;

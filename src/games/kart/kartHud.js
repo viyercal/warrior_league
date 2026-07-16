@@ -19,6 +19,7 @@ export function buildKartHud(hud, { skillDefs, minimapPts }) {
 
   const posEl = hud.el('div', 'kart-pos', '<b>6</b><span>/6</span>')
   const posNum = posEl.querySelector('b')
+  const posTotal = posEl.querySelector('span')
   const topEl = hud.el('div', 'kart-top', '<div class="kart-lap">LAP 1/3</div><div class="kart-clock">0:00.0</div>')
   const lapEl = topEl.querySelector('.kart-lap')
   const clockEl = topEl.querySelector('.kart-clock')
@@ -75,16 +76,25 @@ export function buildKartHud(hud, { skillDefs, minimapPts }) {
   bctx.fillRect(sx - 3, sy - 3, 6, 6)
 
   let lastPos = 6
+  let shownPos = -1
+  let shownSpeed = -1
   return {
     ability,
     setPos(p, total) {
+      if (p === shownPos) return
+      shownPos = p
       posNum.textContent = String(p)
-      posEl.querySelector('span').textContent = `/${total}`
+      posTotal.textContent = `/${total}`
       posEl.classList.toggle('kart-pos-lead', p === 1)
     },
     setLap(l, total) { lapEl.textContent = `LAP ${clamp(l, 1, total)}/${total}` },
     setClock(sec) { clockEl.textContent = fmtTime(Math.max(0, sec)) },
-    setSpeed(v) { speedEl.innerHTML = `${Math.round(Math.abs(v) * 4.4)}<i>km/h</i>` },
+    setSpeed(v) {
+      const s = Math.round(Math.abs(v) * 4.4)
+      if (s === shownSpeed) return
+      shownSpeed = s
+      speedEl.innerHTML = `${s}<i>km/h</i>`
+    },
     setBoost(frac) { boostFill.style.width = `${clamp(frac, 0, 1) * 100}%` },
     setDamage(frac) {
       dmgFill.style.width = `${clamp(frac, 0, 1) * 100}%`

@@ -13,7 +13,7 @@ const check = (name, ok, detail) => {
   console.log(results[results.length - 1])
 }
 const boot = async () => {
-  await page.goto('http://localhost:5187/?scene=brawl&mute=1', { waitUntil: 'load' })
+  await page.goto(`http://localhost:${process.env.IPL_PORT || '5187'}/?scene=brawl&mute=1`, { waitUntil: 'load' })
   await page.waitForFunction(() => window.__scene?.phase === 'fight', null, { timeout: 15000 })
 }
 

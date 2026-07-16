@@ -38,8 +38,11 @@ export class BrawlAI {
     // ---------- recovery: get back to the island at all costs ----------
     if (Math.abs(pos.x) > MAIN.halfW - 0.3 || pos.y < -1) {
       it.move = pos.x > 0 ? -1 : 1
-      if (f.vel.y < 1.5 && pos.y < 2.5 && (f.grounded || f.airJumps > 0)) it.jump = true
-      if (pos.y < -7 && f.airJumps > 0) it.jump = true
+      // burn the air jump LOW while holding toward stage — the jump's momentum
+      // redirect kills outward launch velocity, then air-drift does the rest
+      const canAct = f.hitstun <= 0 && !f.grounded && f.airJumps > 0
+      if (canAct && f.vel.y < 0 && pos.y < 0.8) it.jump = true
+      if (canAct && pos.y < -7) it.jump = true
       return it
     }
 

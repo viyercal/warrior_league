@@ -64,6 +64,10 @@ export default class SiegeScene {
     if (profile.appearance.trail !== 'none') {
       this.heroTrail = this.vfx.trail(this.hero.hips, { color: profile.appearance.glow, size: 0.38, rate: 14, life: 0.5 })
     }
+    // personal glow pool — keeps the hero readable against the night basalt
+    this.heroLight = new THREE.PointLight(profile.appearance.glow || '#7df9ff', 7, 8, 2)
+    this.heroLight.position.y = 2.3
+    this.hero.group.add(this.heroLight)
     this.hp = 100
     this.deadT = 0
     this.iFrames = 0

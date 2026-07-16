@@ -30,7 +30,12 @@ await page.waitForTimeout(2500)
 await page.screenshot({ path: 'qa/screens/flow-hub.png' })
 
 // ---------- 2. each playable channel -> loadout -> game -> Escape -> hub ----------
-const GAMES = [['moba', 0], ['hoops', 1], ['arena', 2]]
+// Hub wall order (CHANNEL_DEFS): 0=moba 1=hoops 2=arena 3=siege 4=kart 5=brawl
+const GAMES = [['moba', 0], ['hoops', 1], ['arena', 2], ['siege', 3], ['kart', 4], ['brawl', 5]]
+const GAME_TITLES = {
+  moba: 'RIFT LEGENDS', hoops: 'SLAM CITY 2K', arena: 'NOVA ARENA',
+  kart: 'TURBO KART GP', brawl: 'BRAWL STADIUM', siege: 'SIEGE PROTOCOL',
+}
 for (const [game, idx] of GAMES) {
   const pos = await page.evaluate(i => window.__scene.debug.screenPos(i), idx)
   await page.mouse.move(pos.x, pos.y, { steps: 8 })
@@ -40,6 +45,8 @@ for (const [game, idx] of GAMES) {
   const loParams = await page.evaluate(() => window.__ipl.sm.current?.ctx?.params ?? null)
   check(`${game}: channel click -> loadout`, loParams?.game === game, JSON.stringify(loParams))
   await page.waitForTimeout(1400)
+  const goLabel = (await page.locator('.loadout-go').textContent())?.trim() ?? ''
+  check(`${game}: ENTER button label`, goLabel.includes(GAME_TITLES[game]), goLabel)
   await page.screenshot({ path: `qa/screens/flow-loadout-${game}.png` })
 
   await page.click('.loadout-go')

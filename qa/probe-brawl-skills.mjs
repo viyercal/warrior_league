@@ -16,14 +16,14 @@ page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 
 async function boot(loadout) {
-  await page.goto('http://localhost:5187/?scene=brawl&mute=1', { waitUntil: 'load' })
+  await page.goto(`http://localhost:${process.env.IPL_PORT || '5187'}/?scene=brawl&mute=1`, { waitUntil: 'load' })
   await page.evaluate(l => {
     const raw = localStorage.getItem('ipl-profile-v2')
     const p = raw ? JSON.parse(raw) : { name: 'NOVA', stats: { wins: {}, plays: {} } }
     p.loadout = l
     localStorage.setItem('ipl-profile-v2', JSON.stringify(p))
   }, loadout)
-  await page.goto('http://localhost:5187/?scene=brawl&mute=1', { waitUntil: 'load' })
+  await page.goto(`http://localhost:${process.env.IPL_PORT || '5187'}/?scene=brawl&mute=1`, { waitUntil: 'load' })
   await page.waitForFunction(() => window.__scene?.phase === 'fight', null, { timeout: 15000 })
   // freeze the AIs so checks are deterministic (probe-only patch)
   await page.evaluate(() => {

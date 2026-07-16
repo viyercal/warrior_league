@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { skyDome, starField, cloudLayer, fireflies } from '../../art/environment.js'
-import { canvasTexture, glowTexture } from '../../core/assets.js'
+import { canvasTexture, glowTexture, cloudTexture } from '../../core/assets.js'
 import { glowMaterial, energyMaterial, toonMaterial } from '../../art/materials.js'
 import { rand, TAU } from '../../core/utils.js'
 
@@ -197,6 +197,35 @@ function obsidianRock(scale, tall = false) {
   return m
 }
 
+/** Low drifting ash-smoke wisps — keep the basalt floor alive in wide shots. */
+function groundHaze() {
+  const group = new THREE.Group()
+  const tex = cloudTexture()
+  const wisps = []
+  for (let i = 0; i < 9; i++) {
+    const warm = Math.random() < 0.4
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: tex, color: warm ? '#4a1d10' : '#150c12', transparent: true,
+      opacity: rand(0.09, 0.17), depthWrite: false, rotation: rand(TAU),
+    }))
+    s.scale.set(rand(14, 26), rand(7, 12), 1)
+    s.position.set(rand(-GROUND_R * 0.8, GROUND_R * 0.8), rand(1.3, 2.8), rand(-GROUND_R * 0.8, GROUND_R * 0.8))
+    group.add(s)
+    wisps.push({ s, vx: rand(0.5, 1.4), vz: rand(-0.35, 0.35), vr: rand(-0.05, 0.05) })
+  }
+  group.tick = dt => {
+    for (const w of wisps) {
+      w.s.position.x += w.vx * dt
+      w.s.position.z += w.vz * dt
+      w.s.material.rotation += w.vr * dt
+      if (w.s.position.x > GROUND_R) w.s.position.x = -GROUND_R
+      if (w.s.position.z > GROUND_R) w.s.position.z = -GROUND_R
+      else if (w.s.position.z < -GROUND_R) w.s.position.z = GROUND_R
+    }
+  }
+  return group
+}
+
 function volcano(x, z, s) {
   const g = new THREE.Group()
   const cone = new THREE.Mesh(
@@ -292,6 +321,11 @@ export function buildSiegeWorld(scene) {
     rock.position.set(Math.cos(a) * r, rand(0.2, 0.7), Math.sin(a) * r)
     scene.add(rock)
   }
+
+  // drifting ash haze
+  const haze = groundHaze()
+  scene.add(haze)
+  tickables.push(haze)
 
   // ember fireflies
   const embers = fireflies({ count: 70, area: [66, 66], height: [0.4, 7], color: '#ff9a3c', size: 0.5 })

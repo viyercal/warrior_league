@@ -86,7 +86,7 @@ export class TurretManager {
     pad.discount = false
     this.audio.play('levelup', { vol: 0.7 })
     _v1.set(pad.x, 0, pad.z)
-    this.vfx.ring(_v1, { color: '#54e0ff', radius: 3, life: 0.5 })
+    this.vfx.shockwave(_v1, { color: '#54e0ff', radius: 3.4 })
     this.vfx.burst(_v1.clone().setY(1), { color: '#7df9ff', count: 20, speed: 6, size: 0.26 })
     return t
   }

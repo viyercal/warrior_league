@@ -6,7 +6,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 810 } })
 const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
-await page.goto('http://localhost:5187/?scene=brawl&mute=1', { waitUntil: 'load' })
+await page.goto(`http://localhost:${process.env.IPL_PORT || '5187'}/?scene=brawl&mute=1`, { waitUntil: 'load' })
 await page.waitForTimeout(2500)
 
 const state = () => page.evaluate(() => {
@@ -74,13 +74,19 @@ await page.evaluate(() => {
 })
 
 // --- walk to nearest enemy and jab ---
+// (clear i-frames: the enemy may have respawned mid-soak with 2s invuln)
 await page.evaluate(() => {
   const s = window.__scene
-  s.baseFighters[1].pos.set(3, 0, 0)
-  s.baseFighters[1].vel.set(0, 0)
+  const e = s.baseFighters[1]
+  e.pos.set(3, 0, 0)
+  e.vel.set(0, 0)
+  e.iFrames = 0
+  e.invulnT = 0
+  e.ghostT = 0
   s.player.pos.set(1.4, 0, 0)
   s.player.vel.set(0, 0)
   s.player.facing = 1
+  s.player.hitstun = 0
 })
 const dmgBefore = (await state()).fighters[1].dmg
 for (let i = 0; i < 3; i++) {
@@ -94,11 +100,15 @@ console.log('JAB COMBO:', dmgAfterJab >= dmgBefore + 8 ? `OK ${dmgBefore}% -> ${
 // --- smash ---
 await page.evaluate(() => {
   const s = window.__scene
-  s.baseFighters[1].pos.set(3, 0, 0)
-  s.baseFighters[1].vel.set(0, 0)
+  const e = s.baseFighters[1]
+  e.pos.set(3, 0, 0)
+  e.vel.set(0, 0)
+  e.iFrames = 0
+  e.invulnT = 0
   s.player.pos.set(1.2, 0, 0)
   s.player.vel.set(0, 0)
   s.player.facing = 1
+  s.player.hitstun = 0
 })
 const preSmash = (await state()).fighters[1].dmg
 await page.keyboard.press('k')

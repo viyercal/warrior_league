@@ -32,7 +32,9 @@ async function openWithLoadout(loadout) {
   return page
 }
 
-const KEY = ['KeyQ', 'KeyW', 'KeyE', 'KeyR']
+// KEY RULE (CONTRACTS.md): hoops is a WASD-move game — skills bind to Digit1-4
+// (Q/E/R aliases); W never casts. Use digits so slot 1 actually fires.
+const KEY = ['Digit1', 'Digit2', 'Digit3', 'Digit4']
 const cast = async (page, i, settleMs = 350) => {
   await page.keyboard.press(KEY[i])
   await page.waitForTimeout(settleMs)

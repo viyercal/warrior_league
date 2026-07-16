@@ -55,7 +55,7 @@ export class BrawlHud {
 
   results({ fighters, won, onHub }) {
     const p = this.hud.el('div', 'brawl-results ui-interactive')
-    this.hud.el('div', 'brawl-results-title', won ? 'CHAMPION' : 'DEFEATED', p)
+    this.hud.el('div', `brawl-results-title${won ? '' : ' lose'}`, won ? 'CHAMPION' : 'DEFEATED', p)
     const table = this.hud.el('div', 'brawl-results-table', '', p)
     this.hud.el('div', 'brawl-results-row brawl-results-head',
       '<span>FIGHTER</span><span>KOs</span><span>FALLS</span>', table)

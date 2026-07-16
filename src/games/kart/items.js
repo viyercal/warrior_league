@@ -79,9 +79,12 @@ export class Items {
       if (tgt) {
         _v1.copy(tgt.group ? tgt.group.position : tgt.pos)
         _v1.y = 0.55
-        _v2.copy(_v1).sub(s.h.pos).normalize()
-        const k = s.homing ? Math.min(1, dt * 3.4) : Math.min(1, dt * 1.6)
-        s.h.vel.lerp(_v2.multiplyScalar(s.speed), k).setLength(s.speed)
+        _v2.copy(_v1).sub(s.h.pos)
+        const d = _v2.length()
+        // homing shells get distance-scaled terminal guidance — without it the
+        // fixed gain gives a ~10u turn radius and the shell orbits its target
+        const gain = s.homing ? 3.4 + 26 / Math.max(1.5, d) : 1.6
+        s.h.vel.lerp(_v2.normalize().multiplyScalar(s.speed), Math.min(1, dt * gain)).setLength(s.speed)
       }
       // decoy interception
       if (ctx.decoy && distXZ(s.h.pos, ctx.decoy.group.position) < 1.5) {
@@ -94,7 +97,7 @@ export class Items {
       let dead = false
       for (const k of ctx.karts) {
         if (k === s.owner || k.finished || k.ghostT > 0) continue
-        if (distXZ(s.h.pos, k.group.position) < (k.giantT > 0 ? 1.9 : 1.15)) {
+        if (distXZ(s.h.pos, k.group.position) < (k.giantT > 0 ? 1.9 : 1.35)) {
           ctx.onShellHit(k, s)
           s.h.kill()
           dead = true

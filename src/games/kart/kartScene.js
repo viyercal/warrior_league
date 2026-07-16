@@ -64,7 +64,7 @@ export default class KartScene {
     this.ui = buildKartHud(hud, { skillDefs: this.skillDefs, minimapPts: this.track.minimapPts })
     this.hintBox = hud.hints([
       ['W / ↑', 'Accelerate'], ['A / D', 'Steer'], ['SPACE', 'Hold to drift'],
-      ['SHIFT', 'Spend boost'], ['1-4', 'Skills'], ['R', 'Restart race'],
+      ['SHIFT', 'Spend boost'], ['1-4', 'Skills'], ['R', 'Restart (post-race)'],
     ])
 
     input.onKey((code, down) => {
@@ -72,9 +72,10 @@ export default class KartScene {
         if (code === 'Space') this._releaseDrift()
         return
       }
+      // R restarts once the race is decided (or pre-GO); mid-race it stays the slot-4 skill alias.
+      if (code === 'KeyR' && (this.over || this.state !== 'race')) { audio.play('click'); this.ctx.goTo('kart'); return }
       const i = wasdKeyIndex(code)
       if (i >= 0) this._castSkill(i)
-      else if (code === 'KeyR') { audio.play('click'); this.ctx.goTo('kart') }
       else if (code === 'KeyH') this.hintBox.style.display = this.hintBox.style.display === 'none' ? '' : 'none'
     })
 

@@ -224,6 +224,8 @@ export class Fighter {
       } else if (this.airJumps > 0) {
         this.airJumps--
         this.vel.y = AIR_JUMP_V
+        // Smash-style momentum redirect: holding a direction steers the jump
+        if (mv) this.vel.x = lerp(this.vel.x, mv * RUN_SPEED, 0.8)
         this.flipT = 0.48
         _v1.set(this.pos.x, this.pos.y + 0.4, 0)
         this.vfx.ring(_v1, { color: this.glow, radius: 1.3, life: 0.3, y: this.pos.y + 0.4 })

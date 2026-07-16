@@ -18,12 +18,13 @@ export function createKartFactory() {
   const spoilerGeo = new THREE.BoxGeometry(1.3, 0.08, 0.42)
   const strutGeo = new THREE.BoxGeometry(0.07, 0.34, 0.07)
   const pipeGeo = new THREE.CylinderGeometry(0.055, 0.08, 0.34, 8)
-  const wheelMat = toonMaterial({ color: '#20202a', rimStrength: 0.28, rim: '#ffb98a' })
-  const seatMat = toonMaterial({ color: '#2a2233', rimStrength: 0.3 })
-  const pipeMat = toonMaterial({ color: '#585e6e', rimStrength: 0.5, rim: '#ffe0b0' })
   const steerGeo = new THREE.TorusGeometry(0.15, 0.035, 6, 14)
 
   function buildKart({ primary, secondary, glow, driver = 'minion', appearance = null, minionColor = '#8fd5ff' }) {
+    // per-kart materials — setGhost() mutates them, so they must NOT be shared across karts
+    const wheelMat = toonMaterial({ color: '#20202a', rimStrength: 0.28, rim: '#ffb98a' })
+    const seatMat = toonMaterial({ color: '#2a2233', rimStrength: 0.3 })
+    const pipeMat = toonMaterial({ color: '#585e6e', rimStrength: 0.5, rim: '#ffe0b0' })
     const group = new THREE.Group()
     const body = new THREE.Group() // lean/roll pivot
     body.position.y = 0.32

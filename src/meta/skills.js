@@ -12,6 +12,9 @@ export const SKILLS = [
       moba: 'Blink to your cursor — escape ganks or dive the backline.',
       hoops: 'Ankle-breaker warp — teleport past your defender for an open lane.',
       arena: 'Blink out of the horde before it closes around you.',
+      kart: 'Blink 12 meters up the road — corner-cut like a legend.',
+      brawl: 'Blink-dodge through attacks — or blink back to the ledge.',
+      siege: 'Blink across the battlefield to plug a breach instantly.',
     },
   },
   {
@@ -22,6 +25,9 @@ export const SKILLS = [
       moba: 'Long-range poke that bursts on the first enemy hit.',
       hoops: 'Ignite the ball — your next shot flies flat and true (+accuracy).',
       arena: 'Piercing bolt that detonates on impact.',
+      kart: 'Fire a blazing shell at the kart ahead — direct hit spins them out.',
+      brawl: 'A flaming bolt that racks up damage % from across the stage.',
+      siege: 'Artillery bolt — bursts on the first raider it touches.',
     },
   },
   {
@@ -32,6 +38,9 @@ export const SKILLS = [
       moba: 'Zone control — slow the enemy wave and champion.',
       hoops: 'Ice the defender\'s shoes — they lag behind your drive.',
       arena: 'Kite the horde through the frost and watch them crawl.',
+      kart: 'Drop an ice slick behind you — pursuers skid and crawl.',
+      brawl: 'Chill the platform — slowed fighters are easy to launch.',
+      siege: 'Frost the chokepoint and watch the assault crawl.',
     },
   },
   {
@@ -42,6 +51,9 @@ export const SKILLS = [
       moba: 'Point-blank burst that shoves minions and champions away.',
       hoops: 'Shockwave screen — knock the defender back and rise up clean.',
       arena: 'Panic button — clear space when you\'re surrounded.',
+      kart: 'Shockwave shunts every nearby kart off your racing line.',
+      brawl: 'Point-blank launcher — a kill move at high percent.',
+      siege: 'Blast the raiders swarming you off the walls.',
     },
   },
   {
@@ -52,6 +64,9 @@ export const SKILLS = [
       moba: 'Run down fleeing kills or escape a bad fight.',
       hoops: 'Fast-break turbo — blow past everyone coast to coast.',
       arena: 'Outrun everything. Everything.',
+      kart: 'Raw turbo. Pedal, meet metal.',
+      brawl: 'Move and swing faster — a combo machine.',
+      siege: 'Sprint between fronts before the lanes collapse.',
     },
   },
   {
@@ -62,6 +77,9 @@ export const SKILLS = [
       moba: 'Tank a tower shot or a full combo for free.',
       hoops: 'Unstealable handle — dribble through traffic untouched.',
       arena: 'Wade through the horde while the shield holds.',
+      kart: 'A barrier that eats one hit — shells, slams, slicks.',
+      brawl: 'A barrier that soaks hits while you keep swinging.',
+      siege: 'Hold the line inside the barrier.',
     },
   },
   {
@@ -72,6 +90,9 @@ export const SKILLS = [
       moba: 'Turn a losing trade into a double kill.',
       hoops: 'Second wind — instantly refill your stamina meter.',
       arena: 'Sustain through the late waves.',
+      kart: 'Patch your kart — restore lost top speed and some boost.',
+      brawl: 'Shave 45% off your damage meter.',
+      siege: 'Combat medic — patch yourself mid-siege.',
     },
   },
   {
@@ -82,6 +103,9 @@ export const SKILLS = [
       moba: 'Draws tower and champion aggro while you reposition.',
       hoops: 'Holo-screener — the AI bites on the fake every time.',
       arena: 'The horde swarms the clone. It does not swarm you.',
+      kart: 'Deploy a holo-kart that baits homing shells.',
+      brawl: 'A clone that fights beside you for 6 seconds.',
+      siege: 'The decoy draws raider fire away from the citadel.',
     },
   },
   {
@@ -92,6 +116,9 @@ export const SKILLS = [
       moba: 'Yank the enemy champion out of position. Free kill.',
       hoops: 'Magnetize the rock — loose balls and rebounds snap to you.',
       arena: 'Bunch the horde up, then delete it with your other skills.',
+      kart: 'Magnetize boost rings and slipstream toward the kart ahead.',
+      brawl: 'Yank fighters into the air above you — combo starter.',
+      siege: 'Drag raiders into your turret kill-zone.',
     },
   },
   {
@@ -102,6 +129,9 @@ export const SKILLS = [
       moba: 'Bonus damage and bulk — walk through the front line.',
       hoops: 'Posterize mode — dunk from the free-throw line, undeniable.',
       arena: 'Stomp attacks hit everything near you.',
+      kart: 'Monster-kart mode — crush whatever you touch.',
+      brawl: 'Heavier, harder — your smashes hit like trucks.',
+      siege: 'Become the wall.',
     },
   },
   {
@@ -112,6 +142,9 @@ export const SKILLS = [
       moba: 'Walk through the fight untargetable. Style on them.',
       hoops: 'Phase through the defender — they guard empty air.',
       arena: 'The horde can\'t hit what isn\'t there.',
+      kart: 'Phase through shells, slicks, and karts.',
+      brawl: 'Untouchable for 3 seconds — walk through the brawl.',
+      siege: 'Slip through the horde untouched.',
     },
   },
   {
@@ -122,6 +155,9 @@ export const SKILLS = [
       moba: 'Massive delayed nuke — lead your target or zone the objective.',
       hoops: 'Call the comet onto the rim — alley-oop from the heavens.',
       arena: 'Delete an entire wave in one screen-shaking impact.',
+      kart: 'Call a comet onto your closest rival. Rude.',
+      brawl: 'A comet smashes the stage — massive launch power.',
+      siege: 'Orbital strike on a lane push. Deleted.',
     },
   },
 ]

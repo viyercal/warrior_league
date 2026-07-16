@@ -1,0 +1,120 @@
+/* ============ SLAM CITY 2K HUD (all classes prefixed .hoops-/.hs-/.hm-) ============ */
+
+/* ---------- scoreboard ---------- */
+.hoops-score {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: stretch; gap: 0;
+  background: linear-gradient(180deg, rgba(10, 14, 34, 0.9), rgba(6, 8, 20, 0.82));
+  border: 1px solid rgba(125, 249, 255, 0.28);
+  border-radius: 14px;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.55), 0 0 24px rgba(125, 249, 255, 0.12);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  z-index: 12;
+}
+.hs-team {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px;
+}
+.hs-name {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 800; letter-spacing: 0.3em;
+}
+.hs-you .hs-name { color: #7df9ff; text-shadow: 0 0 12px rgba(125, 249, 255, 0.7); }
+.hs-cpu .hs-name { color: #ff6a6a; text-shadow: 0 0 12px rgba(255, 106, 106, 0.7); }
+.hs-pts {
+  font-family: var(--font-display);
+  font-size: 34px; font-weight: 800; font-style: italic;
+  color: #fff; min-width: 40px; text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+.hs-mid {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 6px 14px; gap: 2px;
+  background: rgba(4, 6, 14, 0.6);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+.hs-poss { font-size: 13px; line-height: 1; }
+.hs-poss.hp-you { color: #7df9ff; text-shadow: 0 0 10px #7df9ff; }
+.hs-poss.hp-cpu { color: #ff6a6a; text-shadow: 0 0 10px #ff6a6a; }
+.hs-clock {
+  font-family: var(--font-display);
+  font-size: 24px; font-weight: 800;
+  color: #f4ecd7;
+  min-width: 38px; text-align: center;
+  border: 1px solid rgba(244, 236, 215, 0.25);
+  border-radius: 8px; padding: 0 6px;
+  background: rgba(0, 0, 0, 0.45);
+}
+.hs-clock.hs-clock-low {
+  color: #ff4d4d; border-color: rgba(255, 77, 77, 0.6);
+  animation: hoopsClockPulse 0.5s ease infinite alternate;
+}
+@keyframes hoopsClockPulse {
+  from { box-shadow: 0 0 4px rgba(255, 77, 77, 0.3); }
+  to { box-shadow: 0 0 16px rgba(255, 77, 77, 0.85); }
+}
+
+/* ---------- shot meter ---------- */
+.hoops-meter {
+  position: absolute; left: 0; top: 0;
+  width: 16px; height: 150px;
+  margin-top: -75px;
+  background: rgba(5, 8, 18, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 9px;
+  overflow: hidden;
+  z-index: 14;
+  box-shadow: 0 0 14px rgba(0, 0, 0, 0.6);
+}
+.hm-band {
+  position: absolute; left: 0; width: 100%;
+  background: linear-gradient(180deg, rgba(120, 255, 160, 0.95), rgba(60, 220, 110, 0.9));
+  box-shadow: 0 0 12px rgba(92, 255, 138, 0.9);
+}
+.hm-fill {
+  position: absolute; left: 2px; right: 2px; bottom: 0;
+  background: linear-gradient(0deg, #ffd166, #fff8e0);
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(255, 209, 102, 0.8);
+}
+.hoops-meter.hm-perfect { animation: hmFlash 0.45s ease; border-color: #7dffa8; }
+.hoops-meter.hm-good { animation: hmFlash 0.35s ease; border-color: #ffd166; }
+.hoops-meter.hm-bad { animation: hmShake 0.3s ease; border-color: #ff5c6e; }
+@keyframes hmFlash {
+  0% { box-shadow: 0 0 30px rgba(125, 255, 168, 0.9); }
+  100% { box-shadow: 0 0 14px rgba(0, 0, 0, 0.6); }
+}
+@keyframes hmShake {
+  0%, 100% { margin-left: 0; }
+  25% { margin-left: -5px; }
+  75% { margin-left: 5px; }
+}
+
+/* ---------- on-fire tag ---------- */
+.hoops-fire {
+  position: absolute; top: 86px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 800; letter-spacing: 0.24em;
+  color: #ff9a3c;
+  text-shadow: 0 0 16px rgba(255, 122, 40, 0.9);
+  animation: hoopsFirePulse 0.6s ease infinite alternate;
+  z-index: 12;
+}
+@keyframes hoopsFirePulse {
+  from { transform: translateX(-50%) scale(1); filter: brightness(1); }
+  to { transform: translateX(-50%) scale(1.07); filter: brightness(1.35); }
+}
+
+/* ---------- announcer banner flavor ---------- */
+.big-banner.hoops-ann .banner-main {
+  font-size: 92px;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- return-to-hub button ---------- */
+.hoops-hub-btn {
+  position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%);
+  z-index: 32;
+}

@@ -1,0 +1,132 @@
+/* ============ HUB scene UI (all classes prefixed hub-) ============ */
+
+/* ---- top-left logo lockup ---- */
+.hub-logo {
+  position: absolute; top: 20px; left: 28px;
+  z-index: 11;
+  animation: hubFadeDown 0.7s ease both;
+}
+.hub-logo-main {
+  font-family: var(--font-display);
+  font-size: 44px; font-weight: 800; font-style: italic; letter-spacing: 0.06em;
+  line-height: 1;
+  background: linear-gradient(135deg, #7df9ff 10%, #4da3ff 45%, #b47dff 90%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 18px rgba(101, 205, 255, 0.5));
+}
+.hub-logo-sub {
+  margin-top: 3px;
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.4em;
+  color: var(--ink-dim);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- top-right player plate ---- */
+.hub-player {
+  position: absolute; top: 20px; right: 26px;
+  z-index: 11;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+  padding: 12px 16px;
+  background: rgba(10, 14, 30, 0.55);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  animation: hubFadeDown 0.7s 0.08s ease both;
+}
+.hub-player-name {
+  display: flex; align-items: center; gap: 9px;
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 700; letter-spacing: 0.2em;
+  color: var(--ink);
+}
+.hub-player-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--dot, #7df9ff);
+  box-shadow: 0 0 10px var(--dot, #7df9ff), 0 0 22px var(--dot, #7df9ff);
+  animation: hubDotPulse 2.4s ease-in-out infinite;
+}
+@keyframes hubDotPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+.hub-skills { display: flex; gap: 6px; }
+.hub-skill-ico {
+  --sc: #7df9ff;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  background: rgba(8, 12, 26, 0.8);
+  border: 1px solid color-mix(in srgb, var(--sc) 55%, transparent);
+  border-radius: 9px;
+  box-shadow: 0 0 9px color-mix(in srgb, var(--sc) 30%, transparent);
+  filter: drop-shadow(0 0 4px var(--sc));
+}
+
+/* ---- bottom-center customize button ---- */
+.hub-customize {
+  position: absolute; left: 50%; bottom: 26px;
+  transform: translateX(-50%);
+  z-index: 11;
+  font-size: 15px; letter-spacing: 0.3em;
+  padding: 12px 34px;
+  animation: hubFadeUp 0.7s 0.15s ease both;
+}
+.hub-customize:hover { transform: translateX(-50%) translateY(-2px) scale(1.03); }
+.hub-customize:active { transform: translateX(-50%) scale(0.98); }
+
+/* ---- channel title plates (positioned per-frame from JS) ---- */
+.hub-plate {
+  --acc: #7df9ff;
+  position: absolute; left: -999px; top: -999px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+  z-index: 11;
+  transition: opacity 0.25s ease;
+}
+.hub-plate.gone { opacity: 0; }
+.hub-plate-title {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 800; letter-spacing: 0.18em;
+  color: #dfe9ff;
+  padding: 3px 15px;
+  background: rgba(6, 9, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  transition: all 0.18s ease;
+}
+.hub-plate-sub {
+  margin-top: 3px;
+  font-family: var(--font-display);
+  font-size: 9px; font-weight: 600; letter-spacing: 0.34em;
+  color: var(--ink-dim);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  transition: color 0.18s ease;
+}
+.hub-plate.hot .hub-plate-title {
+  color: #ffffff;
+  transform: translateY(-3px) scale(1.08);
+  border-color: var(--acc);
+  background: rgba(8, 12, 28, 0.85);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--acc) 50%, transparent);
+  text-shadow: 0 0 14px var(--acc), 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+.hub-plate.hot .hub-plate-sub { color: var(--acc); }
+.hub-plate.locked .hub-plate-title { color: #97a2c4; }
+.hub-plate.locked.hot .hub-plate-title { color: #cdd6f0; }
+
+/* ---- entrance animations ---- */
+@keyframes hubFadeDown {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hubFadeUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(14px); }
+  to { opacity: 1; transform: translateX(-50%); }
+}

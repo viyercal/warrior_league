@@ -1,0 +1,87 @@
+/* ============ NOVA ARENA HUD ============ */
+
+.arena-wave {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 800; font-style: italic; letter-spacing: 0.28em;
+  color: var(--ink);
+  text-shadow: 0 0 18px rgba(125, 249, 255, 0.55), 0 2px 6px #000;
+  z-index: 12;
+}
+
+.arena-score {
+  position: absolute; top: 14px; right: 26px; text-align: right; z-index: 12;
+}
+.arena-score span {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.34em;
+  color: var(--ink-dim);
+}
+.arena-score b {
+  font-family: var(--font-display);
+  font-size: 36px; font-weight: 800; font-style: italic;
+  color: var(--gold);
+  text-shadow: 0 0 18px rgba(255, 209, 102, 0.55), 0 2px 4px #000;
+}
+
+/* damage flash + low HP heartbeat */
+.arena-vignette {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 9;
+  background: radial-gradient(ellipse at center, transparent 42%, rgba(255, 30, 60, 0.6) 100%);
+}
+.arena-vignette.arena-vg-on { animation: arenaVg 0.5s ease-out; }
+@keyframes arenaVg {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.arena-lowhp {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 9;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(255, 40, 60, 0.4) 100%);
+  transition: opacity 0.35s;
+}
+.arena-lowhp.on { opacity: 1; animation: arenaLowPulse 1.1s ease-in-out infinite; }
+@keyframes arenaLowPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* boss HP bar */
+.arena-boss {
+  position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
+  width: 460px; z-index: 12;
+}
+.arena-boss-name {
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 800; letter-spacing: 0.42em; text-align: center;
+  color: #ff5c6e;
+  text-shadow: 0 0 14px rgba(255, 45, 85, 0.7), 0 1px 3px #000;
+  margin-bottom: 4px;
+}
+.arena-boss-track {
+  height: 14px;
+  background: rgba(5, 8, 18, 0.85);
+  border: 1px solid rgba(255, 92, 110, 0.55);
+  border-radius: 7px; overflow: hidden;
+  box-shadow: 0 0 18px rgba(255, 45, 85, 0.35), inset 0 0 8px rgba(0, 0, 0, 0.7);
+}
+.arena-boss-fill {
+  height: 100%; width: 100%;
+  background: linear-gradient(180deg, #ff8a9a, #ff2d55);
+  box-shadow: 0 0 12px #ff2d55;
+  border-radius: 6px;
+  transition: width 0.15s ease;
+}
+
+/* kill-streak popups reuse the banner, smaller + punchier */
+.arena-streak { top: 24%; }
+.arena-streak .banner-main {
+  font-size: 52px;
+  letter-spacing: 0.14em;
+}
+
+/* defeat panel */
+.arena-end {
+  position: absolute; left: 50%; top: 58%; transform: translateX(-50%);
+  display: flex; gap: 16px; z-index: 35;
+}

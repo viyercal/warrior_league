@@ -1,0 +1,18 @@
+{
+  "name": "immersive-playable-league",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.166.1"
+  },
+  "devDependencies": {
+    "vite": "^5.4.8",
+    "playwright-core": "^1.47.0"
+  }
+}

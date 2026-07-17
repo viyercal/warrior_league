@@ -8,7 +8,10 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true })
 const page = await browser.newPage({ viewport: { width: 1440, height: 810 } })
 page.on('pageerror', e => console.log('PAGEERROR', e))
 await page.goto(`http://localhost:${port}/?scene=siege&mute=1`, { waitUntil: 'load' })
-await page.waitForTimeout(2600)
+await page.waitForFunction(() => window.__scene?.phase === 'intro', null, { timeout: 15000 })
+await page.waitForTimeout(300)
+await page.keyboard.press('Space') // skip the intro cinematic
+await page.waitForTimeout(300)
 
 // ---- shot 1: wave-6 skirmish at the west lane elbow, quake + blaster ----
 await page.evaluate(() => {

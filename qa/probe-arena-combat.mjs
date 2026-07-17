@@ -14,7 +14,9 @@ const fails = []
 const assert = (ok, msg) => { if (!ok) fails.push(msg); console.log((ok ? 'PASS' : 'FAIL') + ' — ' + msg) }
 
 await page.goto(`http://localhost:${port}/?scene=arena&mute=1`, { waitUntil: 'load' })
-await page.waitForTimeout(3500) // wave 1 spawning
+await page.waitForTimeout(1200)
+await page.keyboard.press('Space') // skip the intro cinematic (any key)
+await page.waitForTimeout(2800) // wave 1 spawning
 
 // hero position before movement
 const p0 = await page.evaluate(() => ({ ...window.__scene.hero.group.position }))

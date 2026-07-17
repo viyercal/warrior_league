@@ -29,7 +29,10 @@ for (let li = 0; li < LOADOUTS.length; li++) {
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
   page.on('pageerror', e => errors.push(String(e)))
   await page.goto(`http://localhost:${port}/?scene=siege&mute=1`, { waitUntil: 'load' })
-  await page.waitForTimeout(2800)
+  await page.waitForFunction(() => window.__scene?.phase === 'intro', null, { timeout: 15000 })
+  await page.waitForTimeout(300)
+  await page.keyboard.press('Space') // skip the intro cinematic
+  await page.waitForTimeout(250)
   await page.evaluate(() => { window.__qaKeep = setInterval(() => { const s = window.__scene; if (!s.over && s.deadT <= 0) s.hp = 100 }, 300) })
 
   const equipped = await page.evaluate(() => window.__scene.skillDefs.map(d => d.id))

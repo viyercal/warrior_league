@@ -187,8 +187,199 @@
   animation: siegeLowPulse 1s ease-in-out infinite;
 }
 
-/* ---- end panel ---- */
+/* ---- cinematic letterbox ---- */
+/* gameplay chrome bows out while a cinematic runs */
+#ui.siege-cinema .ability-bar, #ui.siege-cinema .hint-box, #ui.siege-cinema .stat-bar,
+#ui.siege-cinema .siege-citadel, #ui.siege-cinema .siege-wave, #ui.siege-cinema .siege-gold,
+#ui.siege-cinema .siege-boss, #ui.siege-cinema .siege-prompt, #ui.siege-cinema .siege-prepare {
+  opacity: 0 !important;
+}
+.siege-cine {
+  position: absolute; left: 0; right: 0; height: 0;
+  background: #050302; z-index: 24;
+  transition: height 0.45s ease;
+}
+.siege-cine-top { top: 0; }
+.siege-cine-bot { bottom: 0; }
+.siege-cine.on { height: 9vh; }
+
+/* ---- intro title / boss name slam ---- */
+.siege-title {
+  position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%);
+  text-align: center; z-index: 26; pointer-events: none;
+  transition: opacity 0.45s;
+}
+.siege-title.out { opacity: 0; }
+.siege-title-main {
+  font-family: var(--font-display);
+  font-size: 84px; font-weight: 800; font-style: italic; letter-spacing: 0.14em;
+  color: #ffd9a0;
+  -webkit-text-stroke: 2px rgba(40, 18, 6, 0.9);
+  text-shadow: 0 0 46px rgba(255, 140, 59, 0.75), 0 6px 0 rgba(20, 8, 4, 0.85);
+  animation: siegeTitleSlam 0.5s cubic-bezier(0.16, 1.4, 0.4, 1);
+}
+@keyframes siegeTitleSlam {
+  0% { transform: scale(2.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.siege-title-sub {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 800; letter-spacing: 0.5em;
+  color: #e8dcc4;
+  text-shadow: 0 0 14px rgba(255, 140, 59, 0.5), 0 2px 4px #000;
+  animation: siegeTitleSub 0.6s ease 0.22s backwards;
+}
+@keyframes siegeTitleSub {
+  0% { opacity: 0; letter-spacing: 0.9em; }
+  100% { opacity: 1; letter-spacing: 0.5em; }
+}
+.siege-bosscard .siege-title-main {
+  font-size: 68px; color: #ff5a3c;
+  text-shadow: 0 0 50px rgba(255, 53, 36, 0.85), 0 6px 0 rgba(24, 4, 2, 0.9);
+}
+.siege-bosscard .siege-title-sub { color: #ffab7a; }
+
+/* ---- wave composition preview row (inside the wave banner) ---- */
+.siege-comp {
+  display: flex; gap: 8px; justify-content: center; margin-top: 12px;
+  animation: siegeCompIn 0.4s ease 0.15s backwards;
+}
+@keyframes siegeCompIn {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.siege-comp-chip {
+  --cc: #c98d5f;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 4px;
+  background: linear-gradient(180deg, rgba(30, 24, 17, 0.92), rgba(14, 10, 7, 0.92));
+  border: 1px solid color-mix(in srgb, var(--cc) 55%, #3a2c1a);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cc) 22%, transparent), 0 2px 5px rgba(0, 0, 0, 0.6);
+}
+.siege-comp-glyph {
+  font-style: normal; font-size: 15px; line-height: 1;
+  color: var(--cc);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--cc) 70%, transparent);
+}
+.siege-comp-chip b {
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 800; letter-spacing: 0.06em;
+  color: #e8dcc4; text-shadow: 0 1px 2px #000;
+}
+
+/* ---- PREPARE countdown chip ---- */
+.siege-prepare {
+  position: absolute; top: 21%; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 19px; font-weight: 800; letter-spacing: 0.34em;
+  color: #ffd9a0; z-index: 13;
+  background: linear-gradient(180deg, rgba(32, 26, 18, 0.88), rgba(16, 12, 8, 0.88));
+  border: 1px solid rgba(176, 121, 58, 0.7);
+  border-radius: 6px; padding: 8px 20px 8px 24px;
+  box-shadow: 0 0 24px rgba(255, 184, 77, 0.28), inset 0 1px 0 rgba(232, 220, 196, 0.12);
+  text-shadow: 0 0 12px rgba(255, 140, 59, 0.55), 0 1px 3px #000;
+}
+.siege-prepare b { color: var(--gold); font-style: italic; }
+.siege-prepare.tick b { display: inline-block; animation: siegePrepTick 0.3s ease-out; }
+@keyframes siegePrepTick {
+  0% { transform: scale(1.7); }
+  100% { transform: scale(1); }
+}
+
+/* ---- breach drama: crimson bleed pulse + low-hp heartbeat ---- */
+.siege-citadel.bleed .siege-citadel-track { animation: siegeBleed 0.9s ease-out; }
+@keyframes siegeBleed {
+  0%, 40% {
+    box-shadow: 0 0 42px rgba(194, 37, 44, 1), inset 0 0 22px rgba(194, 37, 44, 0.75);
+    border-color: #ff4a3c;
+  }
+  100% { box-shadow: 0 0 14px rgba(255, 180, 106, 0.16), inset 0 0 10px rgba(0, 0, 0, 0.8); }
+}
+.siege-citadel.heartbeat { animation: siegeHeartbeat 1.05s ease-in-out infinite; }
+@keyframes siegeHeartbeat {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  8% { transform: translateX(-50%) scale(1.045); }
+  16% { transform: translateX(-50%) scale(1); }
+  24% { transform: translateX(-50%) scale(1.03); }
+  32% { transform: translateX(-50%) scale(1); }
+}
+
+/* ---- ANNIHILATION popup ---- */
+.siege-annihilate {
+  position: absolute; left: 50%; top: 21%; transform: translateX(-50%);
+  z-index: 26; pointer-events: none;
+  font-family: var(--font-display);
+  font-size: 58px; font-weight: 800; font-style: italic; letter-spacing: 0.16em;
+  color: #ff8c3b;
+  -webkit-text-stroke: 2px rgba(40, 12, 4, 0.9);
+  text-shadow: 0 0 40px rgba(255, 90, 38, 0.9), 0 5px 0 rgba(20, 8, 4, 0.8);
+  animation: siegeAnnIn 0.32s cubic-bezier(0.16, 1.5, 0.4, 1);
+  transition: opacity 0.4s;
+}
+.siege-annihilate.out { opacity: 0; }
+@keyframes siegeAnnIn {
+  0% { transform: translateX(-50%) scale(2.8); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* ---- end tablet (victory / defeat stats) ---- */
 .siege-end {
-  position: absolute; left: 50%; top: 60%; transform: translateX(-50%);
-  display: flex; gap: 16px; z-index: 35;
+  position: absolute; left: 50%; top: 56%; transform: translateX(-50%);
+  width: 470px; padding: 22px 26px 20px;
+  text-align: center; z-index: 35;
+  background:
+    linear-gradient(180deg, rgba(84, 74, 60, 0.4), rgba(0, 0, 0, 0.25) 26%, rgba(0, 0, 0, 0.42)),
+    rgba(26, 21, 16, 0.94);
+  border: 1px solid rgba(176, 121, 58, 0.5);
+  border-top-color: rgba(232, 220, 196, 0.25);
+  border-radius: 10px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(232, 220, 196, 0.12), inset 0 0 44px rgba(0, 0, 0, 0.5);
+  animation: siegeEndIn 0.35s ease;
+}
+@keyframes siegeEndIn {
+  0% { opacity: 0; transform: translate(-50%, 16px); }
+  100% { opacity: 1; transform: translate(-50%, 0); }
+}
+.siege-end-title {
+  font-family: var(--font-display);
+  font-size: 23px; font-weight: 800; font-style: italic; letter-spacing: 0.24em;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255, 184, 77, 0.5), 0 2px 3px #000;
+}
+.siege-end-title.lose {
+  color: #e04a3a;
+  text-shadow: 0 0 20px rgba(194, 59, 46, 0.6), 0 2px 3px #000;
+}
+.siege-end-sub {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.3em;
+  color: var(--ink-dim);
+}
+.siege-stats { margin: 14px 0 16px; }
+.siege-stat-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 4px;
+  border-bottom: 1px solid rgba(176, 121, 58, 0.18);
+}
+.siege-stat-row:last-child { border-bottom: none; }
+.siege-stat-label {
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 800; letter-spacing: 0.24em;
+  color: var(--ink-dim);
+}
+.siege-stat-value {
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 800; letter-spacing: 0.08em;
+  color: #f0e6d0; text-shadow: 0 1px 2px #000;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.siege-stat-value .siege-comp { margin: 0; animation: none; }
+.siege-stat-value .siege-comp-chip { padding: 2px 6px; }
+.siege-end-row { display: flex; gap: 14px; justify-content: center; }
+.siege-end-note {
+  margin-top: 10px;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim);
 }

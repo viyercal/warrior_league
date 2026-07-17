@@ -24,7 +24,10 @@ const newPage = async loadout => {
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
   page.on('pageerror', e => errors.push(String(e)))
   await page.goto(`http://localhost:${port}/?scene=siege&mute=1`, { waitUntil: 'load' })
-  await page.waitForTimeout(2400)
+  await page.waitForFunction(() => window.__scene?.phase === 'intro', null, { timeout: 15000 })
+  await page.waitForTimeout(300)
+  await page.keyboard.press('Space') // skip the intro cinematic (world is frozen during it)
+  await page.waitForTimeout(250)
   await page.evaluate(() => { window.__scene.breakT = 99999 }) // hold waves off — hermetic field
   return { ctx, page, errors }
 }
@@ -274,12 +277,14 @@ console.log('--- exploder wall damage / rebuild discount / wave bonus / H toggle
     await page.waitForTimeout(300)
     cleared = await page.evaluate(() => {
       const s = window.__scene
-      if (s.waveState === 'break' && s.wave === 1) return { delta: s.goldEarned - window.__qaEarn0 }
+      if (s.waveState === 'break' && s.wave === 1) return { delta: s.goldEarned - window.__qaEarn0, perfect: s.perfectWaves }
       return null
     })
   }
   assert(!!cleared, 'wave 1 cleared by turrets')
-  if (cleared) assert(cleared.delta === 140, `wave bonus: 10 kills x8 + 60 bonus = 140g (${cleared.delta}g)`)
+  // turrets stop everything before the gate -> PERFECT WAVE adds +40 on top
+  if (cleared) assert(cleared.delta === 180, `wave bonus: 10 kills x8 + 60 bonus + 40 perfect = 180g (${cleared.delta}g)`)
+  if (cleared) assert(cleared.perfect === 1, `PERFECT WAVE counted (${cleared.perfect})`)
 
   // H toggles the hint box
   const h0 = await page.evaluate(() => document.querySelector('.hint-box').style.display !== 'none')

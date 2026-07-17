@@ -8,6 +8,9 @@ import { createKartFactory } from './kart.js'
 import { AI_ROSTER, initBrain, updateAI } from './racers.js'
 import { Items } from './items.js'
 import { buildKartHud, fmtTime, ordinal } from './kartHud.js'
+import { KartIntro } from './intro.js'
+import { RaceDrama } from './drama.js'
+import { PodiumCeremony } from './podium.js'
 import '../../ui/kart.css'
 
 const _v1 = new THREE.Vector3()
@@ -47,7 +50,6 @@ export default class KartScene {
 
     // ---------- race state ----------
     this.state = 'intro'
-    this.introT = 0.9
     this.t = 0
     this.clock = 0
     this.over = null
@@ -60,20 +62,41 @@ export default class KartScene {
     this.dustT = 0
     this.hitSfxT = 0
     this._timeouts = []
+    // presentation flow state (drama systems never touch physics/AI/rules)
+    this.timeScale = 1
+    this.freezeT = 0
+    this.finishCamT = 0
+    this._countPending = false
+    this._finishHandled = false
+    this._lapStart = 0
 
     // ---------- HUD ----------
     const hud = this.hud = new HUD()
-    this.ui = buildKartHud(hud, { skillDefs: this.skillDefs, minimapPts: this.track.minimapPts })
+    this.ui = buildKartHud(hud, { skillDefs: this.skillDefs, minimapPts: this.track.minimapPts, audio })
     this.hintBox = hud.hints([
       ['W / ↑', 'Accelerate'], ['A / D', 'Steer'], ['SPACE', 'Hold to drift'],
       ['SHIFT', 'Spend boost'], ['1-4', 'Skills'], ['R', 'Restart (post-race)'],
     ])
+    this.ui.registerChrome(this.hintBox)
+
+    // ---------- drama / cinematics ----------
+    this.drama = new RaceDrama({
+      scene: this.scene, ui: this.ui, audio, track: this.track, player: this.player,
+    })
+    this.podium = new PodiumCeremony({ scene: this.scene, track: this.track, vfx: this.vfx, audio })
+    this.intro = new KartIntro({
+      camera: this.camera, track: this.track, karts: this.karts, player: this.player,
+      hud, ui: this.ui, audio,
+    })
+    this.intro.start()
 
     input.onKey((code, down) => {
       if (!down) {
         if (code === 'Space') this._releaseDrift()
         return
       }
+      // ANY key skips the intro flyover straight to the countdown
+      if (this.state === 'intro') { this._skipIntro(); return }
       // R restarts once the race is decided (or pre-GO); mid-race it stays the slot-4 skill alias.
       if (code === 'KeyR' && (this.over || this.state !== 'race')) { audio.play('click'); this.ctx.goTo('kart'); return }
       const i = wasdKeyIndex(code)
@@ -297,7 +320,7 @@ export default class KartScene {
           for (const k of this.karts) {
             if (distXZ(k.group.position, pos) > def.params.radius + 1.2) continue
             if (k.isPlayer && (k.ghostT > 0 || this._consumeShield())) continue
-            this._spinOut(k, 1.2)
+            this._spinOut(k, 1.2, 'comet')
             this._damageKart(k, 0.08)
             _v1.copy(k.group.position).sub(pos).setY(0)
             if (_v1.lengthSq() > 0.01) k.kv.addScaledVector(_v1.normalize(), 7)
@@ -323,7 +346,7 @@ export default class KartScene {
     k.damage = clamp(k.damage + amt, 0, 0.3)
   }
 
-  _spinOut(k, dur = 1.2) {
+  _spinOut(k, dur = 1.2, cause = null) {
     if (k.giantT > 0 || k.ghostT > 0) return
     k.spinT = dur
     k.spinDur = dur
@@ -331,6 +354,8 @@ export default class KartScene {
     if (k.isPlayer) {
       this.ctx.engine.shake(0.35, 0.4)
       this._cancelDrift()
+      // wreck cam: an ordnance hit on YOU reads as an event, then you recover
+      if (cause === 'shell' || cause === 'comet') this.drama.wreck()
     }
   }
 
@@ -353,6 +378,7 @@ export default class KartScene {
     const fn = this._casters[def.archetype]
     if (!fn) return
     this.cds[i] = def.cd
+    this.drama.stats.casts[i]++
     this.ui.ability.flash(i)
     this.player.visual.hero?.cast()
     this.ctx.audio.play('cast', { vol: 0.5 })
@@ -361,55 +387,85 @@ export default class KartScene {
 
   // ============================== main loop ==============================
 
+  _skipIntro() {
+    if (this.state !== 'intro') return
+    this.intro.end()
+    this._sweep = 1 // count camera holds the settled behind-the-player pose
+    this.state = 'count'
+    this._countPending = true
+  }
+
   update(dt, t) {
     this.t += dt
     for (const tk of this.track.tickables) tk.tick(dt)
     this.vfx.update(dt)
 
+    // photo-finish freeze-frame: the world holds at the line (fire keeps burning)
+    if (this.freezeT > 0) {
+      this.freezeT -= dt
+      this._updateHud(dt)
+      return
+    }
+
+    // money-moment slow-mo envelope (1 everywhere outside drama beats)
+    this.timeScale = this.drama.tick(dt)
+    const gdt = dt * this.timeScale
+
     // state machine
     if (this.state === 'intro') {
-      this.introT -= dt
-      if (this.introT <= 0) {
+      if (!this.intro.update(dt)) {
+        this._sweep = 1
         this.state = 'count'
-        this.hud.countdown(this.ctx.audio).then(() => {
-          if (this.disposed) return
-          this.state = 'race'
-          for (const k of this.karts) if (!k.isPlayer) k.boostT = rand(0.3, 0.7)
-        })
+        this._countPending = true
       }
     }
+    if (this._countPending) {
+      // deferred one frame so an Escape-to-hub during the intro never leaks a countdown
+      this._countPending = false
+      this.hud.countdown(this.ctx.audio).then(() => {
+        if (this.disposed) return
+        this.state = 'race'
+        for (const k of this.karts) if (!k.isPlayer) k.boostT = rand(0.3, 0.7)
+      })
+    }
     const racing = this.state === 'race'
-    if (racing && !this.over) this.clock += dt
+    if (racing && !this.over) this.clock += gdt
 
     // driving
-    this._updatePlayer(dt, racing && !this.over)
+    this._updatePlayer(gdt, racing && !this.over)
     for (const k of this.karts) {
-      if (!k.isPlayer && (racing || this.over)) updateAI(k, dt, this.track, this.player.progress)
-      this._integrate(k, dt)
-      this._updateKartVisual(k, dt)
+      if (k.onPodium) { this._updateKartVisual(k, dt); continue }
+      if (!k.isPlayer && (racing || this.over)) updateAI(k, gdt, this.track, this.player.progress)
+      this._integrate(k, gdt)
+      this._updateKartVisual(k, gdt)
     }
-    if (racing || this.over) this._collide(dt)
-    this._updatePadsRings(dt)
+    if (racing || this.over) this._collide(gdt)
+    this._updatePadsRings(gdt)
 
     // items
-    this.items.update(dt, {
+    this.items.update(gdt, {
       karts: this.karts,
       decoy: this.decoy,
       t,
       onShellHit: (k, shell) => this._onShellHit(k, shell),
       onSlick: (k, sl) => this._onSlick(k, sl),
     })
-    this._updateDecoy(dt)
-    this._updateSkillTimers(dt)
-    if (racing && !this.over) this._updateRace(dt)
+    this._updateDecoy(gdt)
+    this._updateSkillTimers(gdt)
+    if (racing && !this.over) {
+      this._updateRace(gdt)
+      this.drama.raceTick(dt, this.standings)
+    }
+    this.podium.update(dt)
 
     this._updateHud(dt)
     this._updateCamera(dt)
 
-    // shadow sun follows the player
-    const pp = this.player.group.position
-    this.track.sun.position.copy(pp).addScaledVector(this.track.sunDir, 130)
-    this.track.sun.target.position.copy(pp)
+    // shadow sun follows the action (player / flyover camera / podium)
+    const anchor = this.state === 'intro' ? this.camera.position
+      : this.podium.active ? this.podium.center : this.player.group.position
+    this.track.sun.position.copy(anchor).addScaledVector(this.track.sunDir, 130)
+    this.track.sun.target.position.copy(anchor)
   }
 
   // ============================== player driving ==============================
@@ -541,6 +597,7 @@ export default class KartScene {
     p.boostT = Math.max(p.boostT, tier === 2 ? 1.4 : 0.9)
     p.boostPower = tier === 2 ? 12 : 8
     p.meter = Math.min(100, p.meter + (tier === 2 ? 18 : 10))
+    this.drama.stats.driftBoosts++
     this.ui.driftFlash(tier === 2 ? 'SUPER BOOST!' : 'BOOST!', tier === 2 ? 'super' : '')
     this.ctx.audio.play('dash', { vol: 0.8 })
     _v1.copy(p.group.position).setY(0.5)
@@ -645,7 +702,7 @@ export default class KartScene {
       k.group.scale.setScalar(sc)
     }
 
-    v.poseDriver(dt, { speed: k.speed, steer })
+    v.poseDriver(dt, { speed: k.speed, steer, dance: !!k.podiumDance })
     if (v.minion) v.minion.setMoving(k.speed > 4)
     // contact shadow eases off slightly at speed (dust lift under the wheels)
     v.under.material.opacity = 0.42 - clamp(k.speed / 45, 0, 1) * 0.1
@@ -657,10 +714,10 @@ export default class KartScene {
     this.hitSfxT -= dt
     for (let i = 0; i < this.karts.length; i++) {
       const a = this.karts[i]
-      if (a.ghostT > 0) continue
+      if (a.ghostT > 0 || a.onPodium) continue
       for (let j = i + 1; j < this.karts.length; j++) {
         const b = this.karts[j]
-        if (b.ghostT > 0) continue
+        if (b.ghostT > 0 || b.onPodium) continue
         const ra = a.isPlayer && a.giantT > 0 ? KART_R * 1.75 : KART_R
         const rb = b.isPlayer && b.giantT > 0 ? KART_R * 1.75 : KART_R
         const pa = a.group.position, pb = b.group.position
@@ -776,7 +833,7 @@ export default class KartScene {
   // ============================== item resolution ==============================
 
   _onShellHit(k, shell) {
-    if (k.ghostT > 0) return // phased — shell already killed, treat as fizzle
+    if (k.ghostT > 0 || k.onPodium) return // phased/ceremony — treat as fizzle
     _v1.copy(k.group.position).setY(0.7)
     if (k.isPlayer && k.giantT > 0) {
       this.vfx.flash(_v1, { color: '#ff7a45', size: 1.6, life: 0.2 })
@@ -785,10 +842,13 @@ export default class KartScene {
     if (k.isPlayer && this._consumeShield()) return
     this.vfx.impact(_v1, { color: '#ff5a26', size: 1.2 })
     this.ctx.audio.play('explode', { vol: 0.55 })
-    this._spinOut(k, 1.2)
+    this._spinOut(k, 1.2, 'shell')
     this._damageKart(k, 0.08)
     if (k.isPlayer) this.ctx.engine.shake(0.4, 0.4)
     if (shell.owner === this.player && !k.isPlayer) {
+      this.drama.stats.shellsLanded++
+      // money moment: your bolt lands square on the RIVAL
+      if (k === this.drama.rival && !this.over) this.drama.rivalStruck()
       _v1.y = 2
       this.vfx.text(_v1, 'HIT!', { color: '#ffb84d', size: 0.9 })
     }
@@ -879,9 +939,16 @@ export default class KartScene {
     // lap milestones
     const lap = Math.floor(Math.max(0, this.player.sCont))
     if (lap !== this._lastLap) {
+      // best-lap bookkeeping (ignore sub-realistic laps from debug warps)
+      if (this._lastLap !== undefined && lap === this._lastLap + 1) {
+        const lt = this.clock - this._lapStart
+        if (lt > 15) this.drama.noteLap(lt)
+      }
+      this._lapStart = this.clock
       if (lap === LAPS - 1 && this._lastLap !== undefined) {
         this.hud.banner('FINAL LAP!', { color: '#ff5a26', duration: 1.6 })
         this.ctx.audio.play('whistle', { vol: 0.7 })
+        this.drama.finalLap() // war-horn + drums + torches flare
       } else if (lap > 0 && lap < LAPS) {
         this.ctx.audio.play('go', { vol: 0.4 })
       }
@@ -898,7 +965,23 @@ export default class KartScene {
       }
     }
     if (this.player.finished) {
-      this._endRace(this.player.finishOrder)
+      if (this._finishHandled) return
+      this._finishHandled = true
+      const margin = this._photoMargin()
+      if (margin < 0.35) {
+        // PHOTO FINISH: freeze the frame at the line before the verdict
+        this._photoFired = true
+        this.freezeT = 1.1
+        for (const b of this.hud.root.querySelectorAll('.big-banner')) b.remove()
+        this.hud.banner('PHOTO FINISH', {
+          sub: `MARGIN ${Math.max(margin, 0.01).toFixed(2)}s`, color: '#e8dcc4', duration: 1.4,
+        })
+        this.ctx.audio.play('zap', { vol: 0.35 })
+        this.ctx.audio.play('crowd', { vol: 0.75 })
+        this._timeout(() => { if (!this.disposed) this._endRace(this.player.finishOrder) }, 1150)
+      } else {
+        this._endRace(this.player.finishOrder)
+      }
       return
     }
 
@@ -917,17 +1000,35 @@ export default class KartScene {
     }
   }
 
+  /** Seconds separating the player from the nearest other racer at the line. */
+  _photoMargin() {
+    let m = Infinity
+    for (const k of this.karts) {
+      if (k.isPlayer) continue
+      m = Math.min(m, k.finished
+        ? Math.abs(this.player.finishTime - k.finishTime)
+        : ((LAPS - k.sCont) * this.track.length) / Math.max(k.speed, 8))
+    }
+    return m
+  }
+
   _endRace(playerPos) {
     if (this.over) return
     this.over = playerPos === 1 ? 'won' : 'done'
+    this._finishHandled = true
     this._stopFlames()
     this._cancelDrift()
+    this.drama.setRaceOver()
+    // money moment: savor the line — slow-mo + a side-profile camera swing
+    if (!this._photoFired) this.drama.finishMoment()
+    this.finishCamT = 2.6
     const { profile, audio } = this.ctx
 
     // final rows: finished karts by order, rest by progress with estimated times
     const done = this.karts.filter(k => k.finished).sort((a, b) => a.finishTime - b.finishTime)
     const rest = this.karts.filter(k => !k.finished).sort((a, b) => b.progress - a.progress)
-    const rows = [...done, ...rest].map(k => ({
+    const order = [...done, ...rest]
+    const rows = order.map(k => ({
       name: k.isPlayer ? `${k.name} (YOU)` : k.name,
       color: k.color,
       isPlayer: k.isPlayer,
@@ -958,8 +1059,17 @@ export default class KartScene {
 
     this._timeout(() => {
       if (this.disposed) return
+      // PODIUM CEREMONY: cut to the stone podium beside the arch, then the tablet
+      this.finishCamT = 0
+      this.ui.hideChrome(true) // ceremony frame: standings tablet only
+      this.podium.begin({
+        top3: order.slice(0, 3), player: this.player,
+        camera: this.camera, look: this._look,
+      })
       this.ui.finishPanel(rows, {
         playerPos,
+        side: true, // ceremony framing: tablet clears the podium blocks
+        stats: this.drama.finalStats(this.skillDefs),
         onHub: () => { this.ctx.audio.play('click'); this.ctx.goTo('hub') },
         onRetry: () => { this.ctx.audio.play('click'); this.ctx.goTo('kart') },
       })
@@ -969,6 +1079,9 @@ export default class KartScene {
 
   _forceEnd(win) {
     if (this.over) return
+    if (this.state === 'intro') this.intro.end() // QA can force-end mid-cinematic
+    this._countPending = false
+    this.freezeT = 0
     if (this.state !== 'race') this.state = 'race'
     this.standings.sort((a, b) => b.progress - a.progress)
     const p = this.player
@@ -1004,14 +1117,16 @@ export default class KartScene {
     this.ui.setDamage(p.damage / 0.3)
     this.ui.wrongWay(this.wrongWayT > 0.7 && !this.over)
     this.ui.speedLines(!!this.boosting && !this.over)
-    this.ui.drawMap(this.karts)
+    this.ui.drawMap(this.karts, this.over ? null : this.drama.rival)
   }
 
   _updateCamera(dt) {
+    if (this.state === 'intro') return // the flyover module owns the camera
     const p = this.player
     const pp = p.group.position
+    let fovT = 62
 
-    if (this.state === 'intro' || this.state === 'count') {
+    if (this.state === 'count') {
       // slow sweep from head-on to chase during the countdown
       this._sweep = Math.min(1, (this._sweep ?? 0) + dt / 4.4)
       const az = p.heading + Math.PI * (1 - this._sweep) * 0.9
@@ -1023,21 +1138,39 @@ export default class KartScene {
       return
     }
 
-    const speedK = clamp(p.speed / 32, 0, 1)
-    const back = 7.2 + (this.boosting ? 1.3 : 0) + speedK * 0.6
-    _v3.set(Math.sin(p.heading), 0, Math.cos(p.heading))
-    _v1.copy(pp).addScaledVector(_v3, -back)
-    _v1.y = 3.4
-    this.camera.position.lerp(_v1, 1 - Math.exp(-6.5 * dt))
-    _v2.copy(pp).addScaledVector(_v3, 5.5)
-    _v2.y = 1.3
-    this._look.lerp(_v2, 1 - Math.exp(-9 * dt))
-    this.camera.lookAt(this._look)
-    // drift roll
-    this._roll = damp(this._roll ?? 0, -p.driftOff * 0.3 - p.steer * 0.04, 6, dt)
-    this.camera.rotateZ(this._roll)
-    // speed/boost FOV kick
-    const fovT = 62 + speedK * 9 + (this.boosting ? 6 : 0)
+    if (this.podium.active) {
+      // ceremony frame behind the results tablet
+      this.podium.updateCamera(this.camera, this._look, dt)
+      fovT = 50
+    } else if (this.over && this.finishCamT > 0) {
+      // finish-line money moment: swing out to a side profile of the chariot
+      this.finishCamT -= dt
+      _v3.set(Math.sin(p.heading), 0, Math.cos(p.heading))
+      _v1.set(pp.x + _v3.z * 8.2, 2.0, pp.z - _v3.x * 8.2) // left of the chariot
+      this.camera.position.lerp(_v1, 1 - Math.exp(-4.2 * dt))
+      _v2.copy(pp).addScaledVector(_v3, 1.4)
+      _v2.y = 1.0
+      this._look.lerp(_v2, 1 - Math.exp(-7 * dt))
+      this.camera.lookAt(this._look)
+      fovT = 55
+    } else {
+      const speedK = clamp(p.speed / 32, 0, 1)
+      const punch = this.drama.punch // money-moment punch-in
+      const back = (7.2 + (this.boosting ? 1.3 : 0) + speedK * 0.6) * (1 - punch * 0.3)
+      _v3.set(Math.sin(p.heading), 0, Math.cos(p.heading))
+      _v1.copy(pp).addScaledVector(_v3, -back)
+      _v1.y = 3.4 - punch * 0.9
+      this.camera.position.lerp(_v1, 1 - Math.exp(-6.5 * dt))
+      _v2.copy(pp).addScaledVector(_v3, 5.5)
+      _v2.y = 1.3
+      this._look.lerp(_v2, 1 - Math.exp(-9 * dt))
+      this.camera.lookAt(this._look)
+      // drift roll
+      this._roll = damp(this._roll ?? 0, -p.driftOff * 0.3 - p.steer * 0.04, 6, dt)
+      this.camera.rotateZ(this._roll)
+      // speed/boost FOV kick, tightened by the punch-in
+      fovT = 62 + speedK * 9 + (this.boosting ? 6 : 0) - punch * 10
+    }
     this._fov = damp(this._fov, fovT, 5, dt)
     this.camera.fov = this._fov
     this.camera.updateProjectionMatrix()
@@ -1052,6 +1185,7 @@ export default class KartScene {
   dispose() {
     this.disposed = true
     for (const id of this._timeouts) clearTimeout(id)
+    this.intro?.end()
     this._stopFlames()
     this.items.dispose()
     this.vfx.dispose()

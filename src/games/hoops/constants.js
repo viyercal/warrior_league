@@ -14,6 +14,7 @@ export const COURT = {
 }
 
 export const RULES = { TARGET: 11, SHOT_CLOCK: 14 }
+export const AI_NAME = 'IRONHIDE'   // display name of the CPU warrior
 export const GRAV = -16          // stylized ball gravity
 
 export const isThree = pos =>

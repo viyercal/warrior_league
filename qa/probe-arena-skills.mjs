@@ -31,7 +31,9 @@ for (let li = 0; li < LOADOUTS.length; li++) {
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
   page.on('pageerror', e => errors.push(String(e)))
   await page.goto(`http://localhost:${port}/?scene=arena&mute=1`, { waitUntil: 'load' })
-  await page.waitForTimeout(2800)
+  await page.waitForTimeout(1000)
+  await page.keyboard.press('Space') // skip the intro cinematic (any key)
+  await page.waitForTimeout(1800)
   // keep hero alive while we test
   await page.evaluate(() => { window.__qaKeep = setInterval(() => { if (!window.__scene.over) window.__scene.hp = 100 }, 300) })
 

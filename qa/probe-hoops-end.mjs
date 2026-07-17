@@ -1,5 +1,6 @@
-// SLAM CITY 2K end-state probe: BOTH win and lose show a banner, save stats,
-// and return to the hub (auto after 8s AND via the button).
+// BLOOD COURT end-state probe: BOTH win and lose show a banner + the duel-style
+// stats panel (points by type, shooting %, steals/blocks, longest run, favorite
+// art), save stats, and return to the hub (auto after 8s AND via the button).
 // node qa/probe-hoops-end.mjs [base=http://localhost:5184]
 import { chromium } from 'playwright-core'
 
@@ -24,6 +25,16 @@ async function open() {
 const wins = page => page.evaluate(() =>
   (JSON.parse(localStorage.getItem('ipl-profile-v2')).stats.wins.hoops || 0))
 
+const STAT_ROWS = ['2-POINTERS', '3-POINTERS', 'DUNKS', 'SHOOTING', 'STEALS', 'BLOCKS', 'LONGEST RUN', 'FAVORITE ART']
+async function checkStatsPanel(page, label) {
+  ok(await page.evaluate(() => !!document.querySelector('.hoops-panel')), `stats panel appears on ${label}`)
+  const rows = await page.evaluate(() =>
+    [...document.querySelectorAll('.hoops-panel-row .k')].map(e => e.textContent))
+  ok(STAT_ROWS.every(k => rows.includes(k)), `stats panel rows complete on ${label} (${rows.join(', ')})`)
+  ok(await page.evaluate(() => !!document.querySelector('.hoops-panel .hoops-hub-btn')),
+    `RETURN TO HUB button lives inside the ${label} panel`)
+}
+
 /* ---------------- WIN: banner + stat save + auto-return ---------------- */
 {
   const page = await open()
@@ -33,6 +44,7 @@ const wins = page => page.evaluate(() =>
   const banner = await page.evaluate(() => document.querySelector('.banner-main')?.textContent || '')
   ok(banner === 'VICTORY', `win banner shows (got "${banner}")`)
   ok(await page.evaluate(() => !!document.querySelector('.hoops-hub-btn')), 'RETURN TO HUB button present on win')
+  await checkStatsPanel(page, 'win')
   const w1 = await wins(page)
   ok(w1 === w0 + 1, `win increments stats.wins.hoops (${w0} -> ${w1})`)
   const ended = await page.evaluate(() => window.__scene.debug.snapshot().phase)
@@ -56,6 +68,7 @@ const wins = page => page.evaluate(() =>
   ok(banner === 'DEFEAT', `lose banner shows (got "${banner}")`)
   const w1 = await wins(page)
   ok(w1 === w0, 'lose does not increment wins')
+  await checkStatsPanel(page, 'defeat')
   await page.screenshot({ path: 'qa/screens/hoops-fin-defeat.png' })
   await page.locator('.hoops-hub-btn').click()
   const back = await page.waitForFunction(

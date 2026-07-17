@@ -37,6 +37,11 @@ const MIXES = {
   10: { grunt: 6, shieldbearer: 2 }, // boss escort
 }
 
+/** Read-only {type: count} preview of wave n — HUD banner composition row. */
+export function waveComposition(n) {
+  return { ...MIXES[Math.min(Math.max(n, 1), WAVE_COUNT)] }
+}
+
 /** Shuffled spawn queue for wave n. */
 export function buildWaveQueue(n) {
   const mix = MIXES[Math.min(Math.max(n, 1), WAVE_COUNT)]

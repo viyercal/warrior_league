@@ -6,9 +6,10 @@ import { glowSpriteMaterial } from '../../art/materials.js'
 import { clamp, damp, lerp, rand, TAU, distXZ, disposeObject3D } from '../../core/utils.js'
 import { buildSiegeWorld, FIELD_R, CITADEL_POS } from './siegeEnv.js'
 import { Citadel } from './citadel.js'
-import { RaiderArmy, Colossus, buildWaveQueue, WAVE_COUNT, BOSS_WAVE } from './raiders.js'
+import { RaiderArmy, Colossus, buildWaveQueue, waveComposition, WAVE_COUNT, BOSS_WAVE } from './raiders.js'
 import { TurretManager, UPGRADE_COST } from './turrets.js'
 import { SiegeHud } from './siegeHud.js'
+import { IntroCinematic, BossEntrance, GateSmolder } from './siegeCinematics.js'
 import '../../ui/siege.css'
 
 const _v1 = new THREE.Vector3()
@@ -131,6 +132,25 @@ export default class SiegeScene {
     this._txt = 12
     this._targets = []
 
+    // ---------- battle honors (stats panel) ----------
+    this.killsByType = {}
+    this.goldSpent = 0
+    this.turretsBuilt = 0
+    this.topTier = 0
+    this.perfectWaves = 0
+    this.gateDamage = 0
+    this.castCounts = [0, 0, 0, 0]
+    this._waveCitHp0 = this.citadel.hp
+    this._bleedWave = 0
+
+    // ---------- presentation: cinematics, exposure grade, gate smolder ----------
+    this.exposure = 1.12
+    this.exposureT = 1.12
+    this.dawnT = null
+    this.smolder = new GateSmolder(this.scene)
+    this._titleRemove = null
+    this._bossCardRemove = null
+
     this._armyCtx = {
       heroPos: this.hero.group.position,
       heroTargetable: true,
@@ -148,18 +168,30 @@ export default class SiegeScene {
 
     input.onKey((code, down) => {
       if (!down) return
+      if (this.phase !== 'play') { this._skipCine(); return } // ANY key skips a cinematic
       const i = wasdKeyIndex(code)
       if (i >= 0) this._castSkill(i)
       else if (code === 'KeyF') this._padAction()
       else if (code === 'KeyH') this.hud.toggleHints()
     })
+    input.onMouse((btn, down) => {
+      if (down && this.phase !== 'play') this._skipCine()
+    })
 
     audio.music('siege')
     profile.stats.plays.siege = (profile.stats.plays.siege || 0) + 1
     this.ctx.saveProfile()
-    this._timeout(() => {
-      if (!this.over) this.hud.hud.banner('LAST BASTION', { color: '#ffb84d', sub: 'HOLD THE GATE — 10 WAVES', duration: 2.4 })
-    }, 600)
+
+    // seed the HUD readouts (they only refresh once gameplay starts)
+    this.hud.setGold(this.gold)
+    this.hud.setHp(1, '100 / 100')
+    this.hud.setCitadel(1, this.citadel.hp, this.citadel.maxHp)
+
+    // ---------- opening cinematic: the war camps burn, the road, the gate ----------
+    // World state is FROZEN while it plays; any key (or click) skips it.
+    this.phase = 'intro'
+    this.cine = new IntroCinematic(this.camera)
+    this.hud.setCine(true)
 
     this.debug = {
       win: () => this._victory(),
@@ -179,6 +211,15 @@ export default class SiegeScene {
     const gdt = dt * this.timeScale
     this._txt = 12
 
+    // exposure grade (boss-entrance dip, victory dawn swell)
+    this.exposure = damp(this.exposure, this.exposureT, 3, dt)
+    this.ctx.engine.setExposure(this.exposure)
+    if (this.dawnT != null && this.dawnT < 1) {
+      this.dawnT = Math.min(1, this.dawnT + dt / 3)
+      const k = this.dawnT
+      this.env.dawn.set(k * k * (3 - 2 * k))
+    }
+
     for (const tk of this.env.tickables) tk.tick(dt)
     for (const p of this.env.portals) {
       if (p.flash > 0) {
@@ -190,6 +231,11 @@ export default class SiegeScene {
 
     this.vfx.update(dt)
     this.citadel.update(dt)
+    this.smolder.setActive(!this.over && !this.citadel.dead && this.citadel.frac() > 0 && this.citadel.frac() < 0.25)
+    this.smolder.tick(dt)
+
+    // cinematic phases: the world holds its breath while the camera works
+    if (this.phase !== 'play') { this._updateCine(dt); return }
 
     if (!this.over) this._updatePlayer(gdt, dt)
     else this.hero.update(dt)
@@ -215,6 +261,66 @@ export default class SiegeScene {
 
     this._updateHud(dt)
     this._updateCamera(dt)
+  }
+
+  // ============================== cinematics ==============================
+
+  _updateCine(dt) {
+    this.hero.update(dt)
+    if (this.phase === 'intro' && !this._titleRemove && this.cine.t >= 3.15) {
+      // the bastion revealed: title slam
+      this._titleRemove = this.hud.showTitle()
+      this.ctx.audio.play('tower', { vol: 0.65 })
+      this.ctx.engine.shake(0.22, 0.4)
+    }
+    if (this.phase === 'bossin' && this.boss) {
+      this._updateBoss(dt) // the Colossus marches through its own entrance
+      if (!this._bossCardRemove && this.cine.t >= 1.1) {
+        this._bossCardRemove = this.hud.bossCard()
+        this.ctx.audio.play('kill', { vol: 0.8 })
+        this.ctx.engine.shake(0.35, 0.5)
+      }
+    }
+    if (this.cine && this.cine.update(dt)) this._endCine()
+  }
+
+  _skipCine() {
+    if (!this.cine) return
+    this.cine.skip()
+    this._endCine()
+  }
+
+  _endCine() {
+    if (this.phase === 'play') return
+    const wasIntro = this.phase === 'intro'
+    this.phase = 'play'
+    this.cine = null
+    this.hud.setCine(false)
+    this._titleRemove?.()
+    this._titleRemove = null
+    this._bossCardRemove?.()
+    this._bossCardRemove = null
+    if (wasIntro) {
+      // hard snap to the gameplay frame, then sound the first war horn
+      const hp = this.hero.group.position
+      this.camera.position.set(hp.x + this.camOffset.x, this.camOffset.y, hp.z + this.camOffset.z)
+      this._look.set(hp.x, 0.6, hp.z)
+      this.camera.lookAt(this._look)
+      if (!this.over && this.wave === 0) this._announceWave(1)
+    } else {
+      this.exposureT = 1.12 // lights back up after the boss entrance
+    }
+  }
+
+  /** War-horn sting + banner with a composition preview of what marches. */
+  _announceWave(n) {
+    if (this.over) return
+    this.ctx.audio.play('tower', { vol: 0.6 })  // war horn: deep bellow…
+    this.ctx.audio.play('kill', { vol: 0.22 })  // …with a brass snarl over it
+    const sub = n === BOSS_WAVE ? 'THE SIEGE COLOSSUS AWAKENS'
+      : n === 5 ? 'SHIELDBEARERS — FLANK THEM OR PIERCE WITH SKILLS'
+        : n === 1 ? 'THEY MARCH FROM BOTH WAR CAMPS' : ''
+    this.hud.waveBanner(n, waveComposition(n), { boss: n === BOSS_WAVE, sub })
   }
 
   // ============================== player ==============================
@@ -375,8 +481,27 @@ export default class SiegeScene {
 
   _raiderHitCitadel(e) {
     this.ctx.audio.play('hit', { vol: 0.22 })
+    this._damageCitadel(e.def.cdmg, e.minion.group.position)
+  }
+
+  /**
+   * Every wound the bastion takes routes through here (same damage values —
+   * this only adds the drama): first blood each wave = THE GATE BLEEDS.
+   */
+  _damageCitadel(dmg, fromPos) {
+    if (this.over) return
+    const before = this.citadel.hp
+    const fell = this.citadel.damage(dmg, fromPos)
+    this.gateDamage += before - this.citadel.hp
     this.hud.citadelHit()
-    if (this.citadel.damage(e.def.cdmg, e.minion.group.position)) this._citadelDown()
+    if (!fell && this._bleedWave !== this.wave) {
+      this._bleedWave = this.wave
+      this.hud.bleedPulse()
+      this.hud.hud.banner('THE GATE BLEEDS', { color: '#ff5c6e', duration: 1.5, sub: 'THE HORDE IS AT THE WALLS' })
+      this.ctx.engine.shake(0.4, 0.5)
+      this.ctx.audio.play('tower', { vol: 0.55 })
+    }
+    if (fell) this._citadelDown()
   }
 
   // ============================== combat ==============================
@@ -398,9 +523,18 @@ export default class SiegeScene {
     const pos = e.minion.group.position
     this.vfx.impact(pos, { color: e.def.color, size: 0.9 * e.def.scale })
     this.kills++
+    this.killsByType[e.type] = (this.killsByType[e.type] || 0) + 1
     this.score += 10
     this._earnGold(KILL_GOLD, pos)
     if (e.type === 'exploder') this._explode(e)
+  }
+
+  /** A single blast erased 5+ raiders: brief slow-mo + popup. */
+  _annihilation() {
+    this.slowmoT = Math.max(this.slowmoT, 0.7)
+    this.hud.annihilate()
+    this.ctx.audio.play('kill', { vol: 0.9 })
+    this.ctx.engine.shake(0.5, 0.5)
   }
 
   _earnGold(g, pos = null) {
@@ -428,10 +562,7 @@ export default class SiegeScene {
       if (distXZ(this.hero.group.position, p) < 3) this._damageHero(e.def.dmg, p, { knock: 4 })
       if (this.decoy && distXZ(this.decoy.hero.group.position, p) < 3) this.decoy.hp -= e.def.dmg
       // the blast scorches the bastion walls when it pops at the gate
-      if (distXZ(this.citadel.group.position, p) < 13) {
-        this.hud.citadelHit()
-        if (this.citadel.damage(e.def.cdmg, p)) this._citadelDown()
-      }
+      if (distXZ(this.citadel.group.position, p) < 13) this._damageCitadel(e.def.cdmg, p)
       for (const pad of this.turrets.pads) {
         if (pad.turret && Math.hypot(pad.x - p.x, pad.z - p.z) < 3) this.turrets.take(pad.turret, 15)
       }
@@ -499,12 +630,17 @@ export default class SiegeScene {
       const cost = this.turrets.buildCost(pad)
       if (this.gold < cost) return this._deny()
       this.gold -= cost
+      this.goldSpent += cost
       this.turrets.build(pad)
+      this.turretsBuilt++
+      this.topTier = Math.max(this.topTier, 1)
     } else if (pad.turret.buildT <= 0 && pad.turret.level < 3) {
       const cost = UPGRADE_COST[pad.turret.level - 1]
       if (this.gold < cost) return this._deny()
       this.gold -= cost
+      this.goldSpent += cost
       this.turrets.upgrade(pad.turret)
+      this.topTier = Math.max(this.topTier, pad.turret.level)
     }
   }
 
@@ -537,6 +673,7 @@ export default class SiegeScene {
     const fn = this._casters[def.archetype]
     if (!fn) return
     this.cds[i] = def.cd
+    this.castCounts[i]++
     this.hud.ability.flash(i)
     this.hero.cast()
     this.ctx.audio.play('cast', { vol: 0.5 })
@@ -608,7 +745,9 @@ export default class SiegeScene {
         this.vfx.shockwave(pos, { color: def.color, radius: def.params.radius })
         this.ctx.engine.shake(0.45, 0.4)
         audio.play('explode', { vol: 0.7 })
+        const k0 = this.kills
         this._aoeRaiders(pos.x, pos.z, def.params.radius, def.params.damage, { color: def.color, knock: def.params.knock })
+        if (this.kills - k0 >= 5) this._annihilation()
       },
 
       buff: def => {
@@ -847,7 +986,9 @@ export default class SiegeScene {
         this.vfx.ring(_v1, { color: '#ffffff', radius: m.radius, life: 0.35 })
         this.ctx.engine.shake(0.6, 0.5)
         this.ctx.audio.play('explode', { vol: 0.85 })
+        const k0 = this.kills
         this._aoeRaiders(m.x, m.z, m.radius, m.dmg, { color: m.color, knock: 5 })
+        if (this.kills - k0 >= 5) this._annihilation()
         this.scene.remove(m.ring)
         m.ring.geometry.dispose()
         m.ring.material.dispose()
@@ -908,15 +1049,23 @@ export default class SiegeScene {
         _v1.y = 2.4
         this.vfx.text(_v1, `+${WAVE_BONUS}g`, { color: '#ffd166', size: 1, life: 1.1 })
         this.ctx.audio.play('coin', { vol: 0.6 })
+        const perfect = this.wave > 0 && this.citadel.hp >= this._waveCitHp0
+        if (perfect) this._perfectWave()
         const next = this.wave + 1
-        this.hud.hud.banner(`WAVE ${next}`, {
-          color: next === BOSS_WAVE ? '#c23b2e' : '#ff8a3c',
-          duration: 2,
-          sub: next === BOSS_WAVE ? 'THE SIEGE COLOSSUS AWAKENS'
-            : next === 5 ? 'SHIELDBEARERS — FLANK THEM OR PIERCE WITH SKILLS' : '',
-        })
+        if (perfect) this._timeout(() => { if (this.waveState === 'break') this._announceWave(next) }, 1250)
+        else this._announceWave(next)
       }
     }
+  }
+
+  /** The walls took nothing this wave: banner + mild gold + beacon flare. */
+  _perfectWave() {
+    this.perfectWaves++
+    _v1.set(CITADEL_POS.x, 8.6, CITADEL_POS.z)
+    this._earnGold(40, _v1) // additive bonus on top of the wave bonus
+    this.citadel.beaconFlare()
+    this.ctx.audio.play('levelup', { vol: 0.8 })
+    this.hud.hud.banner('PERFECT WAVE', { color: '#ffd166', duration: 1.15, sub: '+40g — NOT ONE STONE LOST' })
   }
 
   _startWave(n) {
@@ -924,7 +1073,7 @@ export default class SiegeScene {
     this.waveState = 'active'
     this.spawnQueue = buildWaveQueue(n)
     this.spawnT = 0.2
-    if (n === 1) this.hud.hud.banner('WAVE 1', { color: '#ff8a3c', sub: 'THEY MARCH FROM BOTH WAR CAMPS', duration: 2 })
+    this._waveCitHp0 = this.citadel.hp
     if (n === BOSS_WAVE) this._spawnBoss()
   }
 
@@ -948,8 +1097,7 @@ export default class SiegeScene {
       hitCitadel: dmg => {
         this.ctx.engine.shake(0.3, 0.35)
         this.ctx.audio.play('tower', { vol: 0.5 })
-        this.hud.citadelHit()
-        if (this.citadel.damage(dmg, this.boss.group.position)) this._citadelDown()
+        this._damageCitadel(dmg, this.boss.group.position)
       },
       enrage: () => {
         this.hud.hud.banner('ENRAGED', { color: '#c23b2e', duration: 1.6, cls: 'siege-streak' })
@@ -962,8 +1110,23 @@ export default class SiegeScene {
     this.vfx.flash(_v1, { color: '#c23b2e', size: 7, life: 0.5 })
     this.ctx.engine.shake(0.4, 0.6)
     this.ctx.audio.play('spawn', { vol: 0.9 })
-    this.hud.hud.banner('SIEGE COLOSSUS', { color: '#c23b2e', sub: 'IT MARCHES ON THE GATE', duration: 2.6 })
     this.hud.showBoss()
+
+    // full entrance cinematic: lights dim, war drums, horizon-march framing,
+    // letterboxed name slam. Skippable; world frozen except the boss's march.
+    this._clearBanners() // stale wave banners bow out of the shot
+    this.phase = 'bossin'
+    this.cine = new BossEntrance(this.camera, this.boss)
+    this.hud.setCine(true)
+    this.exposureT = 0.5
+    this.ctx.audio.play('crowd', { vol: 0.6 })
+    for (let i = 0; i < 5; i++) {
+      this._timeout(() => {
+        if (this.phase !== 'bossin') return
+        this.ctx.audio.play('tower', { vol: 0.45 + i * 0.07 }) // war drums build
+        this.ctx.engine.shake(0.15, 0.22)
+      }, 220 + i * 520)
+    }
   }
 
   _bossSlam(pos) {
@@ -1032,6 +1195,7 @@ export default class SiegeScene {
     this.slowmoT = 1.5
     this.score += 250
     this.kills++
+    this.killsByType.colossus = (this.killsByType.colossus || 0) + 1
     this._earnGold(100, boss.group.position)
     const pos = boss.group.position.clone()
     this.ctx.audio.play('kill', { vol: 1 })
@@ -1135,24 +1299,28 @@ export default class SiegeScene {
   _victory() {
     if (this.over) return
     this.over = 'won'
+    if (this.phase !== 'play') this._endCine()
     this._clearBanners()
     this.hud.setPrompt(null)
     this.hud.setRespawn(null)
+    this.hud.setPrepare(null)
     this.ctx.audio.play('victory')
     this.hero.setState('dance')
     this.hero.setMoveSpeed(0)
     const profile = this.ctx.profile
     profile.stats.wins.siege = (profile.stats.wins.siege || 0) + 1
     this.ctx.saveProfile()
-    this.hud.hud.banner('CITADEL STANDS', {
-      color: '#ffd166', duration: 0,
-      sub: `SCORE ${this.score} — ${this.kills} KILLS — ${this.goldEarned}g EARNED — RETURNING TO HUB`,
+    // wave-10 perfect check (the boss path never reaches the wave-clear block)
+    if (this.wave >= WAVE_COUNT && this.citadel.hp >= this._waveCitHp0) this.perfectWaves++
+
+    // ---------- the ceremony: dawn breaks, the beacon burns gold ----------
+    this.dawnT = 0
+    this.exposureT = 1.22
+    this.citadel.setVictory()
+    this.hud.hud.banner('THE BASTION STANDS', {
+      color: '#ffd166', duration: 0, sub: 'DAWN BREAKS OVER THE BURNED CAMPS',
     })
-    const panel = this.hud.hud.el('div', 'siege-end ui-interactive')
-    const hub = document.createElement('button')
-    hub.textContent = 'RETURN TO HUB'
-    hub.onclick = () => { this.ctx.audio.play('click'); this.ctx.goTo('hub') }
-    panel.append(hub)
+    this._endStatsPanel(true)
     const cit = this.citadel.group.position
     for (let i = 0; i < 6; i++) {
       this._timeout(() => {
@@ -1164,13 +1332,49 @@ export default class SiegeScene {
     this._timeout(() => this.ctx.goTo('hub'), 8000)
   }
 
+  /** Duel-style battle-honors tablet shared by victory + defeat. */
+  _endStatsPanel(won) {
+    const rows = [
+      ['KILLS', `${this.kills} ${this.hud.compHTML(this.killsByType)}`],
+      ['GOLD', `${this.goldEarned}g EARNED — ${this.goldSpent}g SPENT`],
+      ['BALLISTAS', this.turretsBuilt ? `${this.turretsBuilt} RAISED — TOP LV${this.topTier}` : 'NONE RAISED'],
+      ['PERFECT WAVES', String(this.perfectWaves)],
+      ['GATE DAMAGE TAKEN', String(Math.round(this.gateDamage))],
+      ['FAVORITE ART', this._favoriteArt()],
+    ]
+    const buttons = won
+      ? [{ text: 'RETURN TO HUB', onClick: () => { this.ctx.audio.play('click'); this.ctx.goTo('hub') } }]
+      : [
+          { text: 'RETRY', onClick: () => { this.ctx.audio.play('click'); this.ctx.goTo('siege') } },
+          { text: 'HUB', ghost: true, onClick: () => { this.ctx.audio.play('back'); this.ctx.goTo('hub') } },
+        ]
+    this.hud.endPanel({
+      title: 'BATTLE HONORS',
+      sub: won ? `SCORE ${this.score} — 10 WAVES HELD` : `SCORE ${this.score} — FELL ON WAVE ${this.wave}`,
+      lose: !won, rows, buttons,
+      note: won ? 'returning to the halls shortly…' : '',
+    })
+  }
+
+  _favoriteArt() {
+    let best = 0, idx = -1
+    for (let i = 0; i < 4; i++) {
+      if (this.castCounts[i] > best) { best = this.castCounts[i]; idx = i }
+    }
+    if (idx < 0) return '—'
+    const def = this.skillDefs[idx]
+    return `${def.icon} ${def.name.toUpperCase()} ×${best}`
+  }
+
   _citadelDown() {
     if (this.over) return
     this.over = 'fallen'
+    if (this.phase !== 'play') this._endCine()
     this.citadel.hp = 0
     this._clearBanners()
     this.hud.setPrompt(null)
     this.hud.setRespawn(null)
+    this.hud.setPrepare(null)
     this.hud.hideBoss()
     this.ctx.audio.play('defeat')
     this.hero.setMoveSpeed(0)
@@ -1199,19 +1403,12 @@ export default class SiegeScene {
       color: '#ff5c6e', duration: 0,
       sub: `WAVE ${this.wave} — SCORE ${this.score} — ${this.kills} KILLS`,
     })
-    const panel = this.hud.hud.el('div', 'siege-end ui-interactive')
-    const retry = document.createElement('button')
-    retry.textContent = 'RETRY'
-    retry.onclick = () => { this.ctx.audio.play('click'); this.ctx.goTo('siege') }
-    const hub = document.createElement('button')
-    hub.className = 'ghost'
-    hub.textContent = 'HUB'
-    hub.onclick = () => { this.ctx.audio.play('back'); this.ctx.goTo('hub') }
-    panel.append(retry, hub)
+    this._endStatsPanel(false)
   }
 
   _jumpWave(n) {
     if (this.over) return
+    if (this.phase !== 'play') this._endCine()
     this.spawnQueue.length = 0
     this.army.clearAll()
     if (this.boss) {
@@ -1240,13 +1437,17 @@ export default class SiegeScene {
     else if (this.over === 'fallen') { label = `WAVE ${this.wave}`; sub = '' }
     else if (this.waveState === 'break') {
       label = `WAVE ${this.wave + 1} / ${WAVE_COUNT}`
-      sub = 'INCOMING…'
+      sub = '' // the PREPARE chip carries the countdown
     } else {
       label = `WAVE ${this.wave} / ${WAVE_COUNT}`
       const left = this.spawnQueue.length + this.army.aliveCount() + (this.boss && this.boss.alive ? 1 : 0)
       sub = left > 0 ? `${left} RAIDERS LEFT` : ''
     }
     this.hud.setWave(label, sub)
+
+    // between waves: PREPARE — 3/2/1 chip instead of a bare pause
+    const prep = !this.over && this.waveState === 'break' ? Math.max(1, Math.ceil(this.breakT)) : null
+    if (this.hud.setPrepare(prep) != null) this.ctx.audio.play('countdown', { vol: 0.16 })
   }
 
   _updateCamera(dt) {
@@ -1269,6 +1470,8 @@ export default class SiegeScene {
   dispose() {
     this.disposed = true
     for (const id of this._timeouts) clearTimeout(id)
+    this.ctx.engine.setExposure(1.12) // undo boss-dip / dawn grade
+    this.hud.setCine(false) // don't leak the cinema class on #ui to the next scene
     this.buffTrail?.stop()
     this.heroTrail?.stop()
     this.vfx.dispose()

@@ -13,20 +13,28 @@ export function fmtTime(sec) {
 /**
  * All DOM HUD for WAR CHARIOTS (parchment + bronze): position, lap/clock,
  * boost + damage bars, speed, minimap, drift flash, popups, wrong-way,
- * speedlines, finish panel.
+ * speedlines, rival plate, cinematic letterbox, impact flash, finish panel.
  */
-export function buildKartHud(hud, { skillDefs, minimapPts }) {
+export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
   const ability = hud.abilityBar(skillDefs, { game: 'kart', keys: WASD_KEY_LABELS })
 
   const posEl = hud.el('div', 'kart-pos', '<b>6</b><span>/6</span>')
   const posNum = posEl.querySelector('b')
   const posTotal = posEl.querySelector('span')
+  const rivalEl = hud.el('div', 'kart-rival')
   const topEl = hud.el('div', 'kart-top', '<div class="kart-lap">LAP 1/3</div><div class="kart-clock">0:00.0</div>')
   const lapEl = topEl.querySelector('.kart-lap')
   const clockEl = topEl.querySelector('.kart-clock')
 
+  // cinematic letterbox + chrome that fades out during the intro flyover
+  const cineTop = hud.el('div', 'kart-cine kart-cine-top')
+  const cineBot = hud.el('div', 'kart-cine kart-cine-bot')
+  const impactEl = hud.el('div', 'kart-impact')
+  const chrome = [posEl, rivalEl, topEl, ability.root]
+
   // bottom-left cluster: boost + damage + speed
   const cluster = hud.el('div', 'kart-cluster')
+  chrome.push(cluster)
   const boostWrap = hud.el('div', 'kart-boost', '<span>BOOST</span><div class="kart-boost-track"><div class="kart-boost-fill"></div></div>', cluster)
   const boostFill = boostWrap.querySelector('.kart-boost-fill')
   const dmgWrap = hud.el('div', 'kart-dmg', '<span>DMG</span><div class="kart-dmg-track"><div class="kart-dmg-fill"></div></div>', cluster)
@@ -40,6 +48,7 @@ export function buildKartHud(hud, { skillDefs, minimapPts }) {
 
   // ---------- minimap ----------
   const mapBox = hud.el('div', 'kart-minimap')
+  chrome.push(mapBox)
   const canvas = document.createElement('canvas')
   canvas.width = canvas.height = 172
   mapBox.appendChild(canvas)
@@ -77,6 +86,8 @@ export function buildKartHud(hud, { skillDefs, minimapPts }) {
   bctx.fillRect(sx - 3, sy - 3, 6, 6)
 
   let lastPos = 6
+  let pendPos = 6
+  let pendSince = 0
   let shownPos = -1
   let shownSpeed = -1
   return {
@@ -108,27 +119,63 @@ export function buildKartHud(hud, { skillDefs, minimapPts }) {
       clearTimeout(driftEl._t)
       driftEl._t = setTimeout(() => driftEl.classList.remove('on'), 1000)
     },
-    popup(text, good) {
+    popup(text, cls) {
       const el = document.createElement('div')
-      el.className = `kart-popup ${good ? 'up' : 'down'}`
+      el.className = `kart-popup ${cls || ''}`
       el.textContent = text
       popupWrap.appendChild(el)
-      setTimeout(() => el.remove(), 1600)
+      setTimeout(() => el.remove(), 1700)
     },
     posChanged(p) {
-      if (p !== lastPos) {
-        this.popup(p < lastPos ? `${ordinal(p)}!` : `${ordinal(p)}`, p < lastPos)
-        lastPos = p
-      }
+      // hysteresis: a position must hold ~0.3s before it announces (no
+      // popup/sting flapping while trading paint side-by-side)
+      const now = performance.now()
+      if (p === lastPos) { pendPos = p; return }
+      if (p !== pendPos) { pendPos = p; pendSince = now; return }
+      if (now - pendSince < 300) return
+      const up = p < lastPos
+      this.popup(`P${p} ${up ? '▲' : '▼'}`, up ? 'up' : 'down')
+      audio?.play(up ? 'swish' : 'back', { vol: up ? 0.45 : 0.4 })
+      lastPos = p
+    },
+    setRival(name) {
+      rivalEl.classList.toggle('on', !!name)
+      if (name) rivalEl.innerHTML = `<i>⌁</i> RIVAL · ${name}`
+    },
+    /** Fade the gameplay chrome (intro flyover / podium ceremony). */
+    hideChrome(on) {
+      for (const el of chrome) el.classList.toggle('kart-chrome-hide', on)
+    },
+    /** Cinematic letterbox + chrome fade for the intro flyover. */
+    setCine(on) {
+      cineTop.classList.toggle('on', on)
+      cineBot.classList.toggle('on', on)
+      this.hideChrome(on)
+    },
+    registerChrome(el) { chrome.push(el) },
+    /** Crimson wreck-cam vignette flash. */
+    impactFlash() {
+      impactEl.classList.remove('on')
+      void impactEl.offsetWidth
+      impactEl.classList.add('on')
     },
     wrongWay(on) { wrongEl.classList.toggle('on', on) },
     speedLines(on) { speedlines.classList.toggle('on', on) },
-    drawMap(karts) {
+    drawMap(karts, rival = null) {
       mctx.clearRect(0, 0, 172, 172)
       mctx.drawImage(base, 0, 0)
       for (let i = karts.length - 1; i >= 0; i--) {
         const k = karts[i]
         const [px, py] = mapPt(k.group.position.x, k.group.position.z)
+        if (k === rival) { // crimson rival halo
+          mctx.beginPath()
+          mctx.arc(px, py, 7.5, 0, Math.PI * 2)
+          mctx.strokeStyle = '#c23b2e'
+          mctx.lineWidth = 2
+          mctx.shadowColor = '#c23b2e'
+          mctx.shadowBlur = 6
+          mctx.stroke()
+        }
         mctx.beginPath()
         mctx.arc(px, py, k.isPlayer ? 5.5 : 4, 0, Math.PI * 2)
         mctx.fillStyle = k.isPlayer ? '#ffffff' : k.mapColor
@@ -138,14 +185,18 @@ export function buildKartHud(hud, { skillDefs, minimapPts }) {
       }
       mctx.shadowBlur = 0
     },
-    finishPanel(rows, { playerPos, onHub, onRetry }) {
-      const panel = hud.el('div', 'kart-finish ui-interactive')
+    finishPanel(rows, { playerPos, onHub, onRetry, stats = null, side = false }) {
+      const panel = hud.el('div', `kart-finish ui-interactive${side ? ' kart-finish-side' : ''}`)
       hud.el('div', 'kart-finish-title', 'FINAL STANDINGS', panel)
       const list = hud.el('div', 'kart-finish-list', '', panel)
       rows.forEach((r, i) => {
         hud.el('div', `kart-finish-row${r.isPlayer ? ' you' : ''}${i === 0 ? ' first' : ''}`,
           `<b>${ordinal(i + 1)}</b><span class="kn" style="--kc:${r.color}">${r.name}</span><span class="kt">${r.time}</span>`, list)
       })
+      if (stats) {
+        const grid = hud.el('div', 'kart-finish-stats', '', panel)
+        for (const [label, value] of stats) hud.el('div', 'kart-stat', `<span>${label}</span><b>${value}</b>`, grid)
+      }
       const btns = hud.el('div', 'kart-finish-btns', '', panel)
       const hubBtn = document.createElement('button')
       hubBtn.textContent = 'RETURN TO HUB'

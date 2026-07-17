@@ -8,6 +8,8 @@ import { clamp, damp, lerp, rand, TAU, distXZ, pick, disposeObject3D } from '../
 import { buildArena, ARENA_R } from './arenaEnv.js'
 import { Horde, Boss } from './enemies.js'
 import { WAVE_COUNT, BOSS_WAVE, buildWaveQueue } from './waves.js'
+import { ArenaCine } from './arenaCine.js'
+import { buildHeatMeter, buildEndPanel } from './arenaHud.js'
 import '../../ui/arena.css'
 
 const _v1 = new THREE.Vector3()
@@ -21,6 +23,10 @@ const BLASTER_INTERVAL = 0.16
  * THE PIT — torchlit horde-survival in a volcanic fighting pit.
  * WASD move, aim with cursor, hold LMB to fire, 1-4 (or Q/E/R) loadout skills.
  * 8 waves; wave 5 is the PIT WARDEN boss.
+ *
+ * Presentation layer (Crucible-grade): skippable intro descent + boss-entrance
+ * cinematics (ArenaCine), elite spawns from wave 3, ANNIHILATION multi-kill
+ * slow-mo, FURY streak meter, last-stand drama, duel-style end stat tablets.
  */
 export default class ArenaScene {
   constructor(ctx) {
@@ -108,10 +114,29 @@ export default class ArenaScene {
     this.spawnT = 0
     this.boss = null
     this.slowmoT = 0
+    this.slowmoScale = 0.22
     this.timeScale = 1
     this.over = null
     this._timeouts = []
     this._txt = 12
+
+    // ---------- drama state (presentation only) ----------
+    this.freezeT = 0 // elite-kill hit-stop
+    this.punch = 0 // ANNIHILATION camera punch-in
+    this.gameT = 0 // game-time clock for the multi-kill window
+    this.heat = 0 // FURY meter 0..1
+    this.killTimes = [] // rolling kill timestamps (≤ 4s window)
+    this.annihilCd = 0
+    this.exposure = 1.12
+    this.exposureT = 1.12
+    this.lastStand = false
+    this.unbroken = false
+    this.beatT = 0
+    this.killsByType = { grunt: 0, sprinter: 0, brute: 0, exploder: 0 }
+    this.eliteKills = 0
+    this.wardenSlain = false
+    this.orbsEaten = 0
+    this.castCounts = [0, 0, 0, 0]
 
     this._hordeCtx = {
       heroPos: this.hero.group.position,
@@ -136,36 +161,52 @@ export default class ArenaScene {
     this.bossFill = this.bossBox.querySelector('.arena-boss-fill')
     this.vgEl = hud.el('div', 'arena-vignette')
     this.lowEl = hud.el('div', 'arena-lowhp')
+    this.lastEl = hud.el('div', 'arena-laststand')
+    this.heatUi = buildHeatMeter(hud)
     this.hintBox = hud.hints([
       ['WASD', 'Move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Hurl fire'], ['1-4', 'Skills'], ['H', 'Toggle help'],
     ])
 
     input.onKey((code, down) => {
       if (!down) return
+      if (this.cine.active) { this.cine.skip(); return } // ANY key skips cinematics
       const i = wasdKeyIndex(code)
       if (i >= 0) this._castSkill(i)
       else if (code === 'KeyH') this.hintBox.style.display = this.hintBox.style.display === 'none' ? '' : 'none'
+    })
+    input.onMouse((btn, down) => {
+      if (down && this.cine.active) this.cine.skip()
     })
 
     audio.music('arena')
     profile.stats.plays.arena = (profile.stats.plays.arena || 0) + 1
     this.ctx.saveProfile()
-    this._timeout(() => { if (!this.over) this.hud.banner('WAVE 1', { color: '#ffb84d', sub: 'SURVIVE THE HORDE' }) }, 650)
+
+    // ---------- intro cinematic: descend into the pit (any key skips) ----------
+    this.cine = new ArenaCine(this)
+    this.cine.startIntro(quiet => this._introEnd(quiet))
 
     this.debug = {
-      win: () => this._victory(),
-      lose: () => this._defeat(),
+      win: () => { this.cine.skip(true); this._victory() },
+      lose: () => { this.cine.skip(true); this._defeat() },
       wave: n => this._jumpWave(n),
     }
+  }
+
+  /** Intro handoff: gate-flash fired by the cine; slam the WAVE 1 banner. */
+  _introEnd(quiet) {
+    if (quiet || this.over) return
+    this.hud.banner('WAVE 1', { color: '#ffb84d', sub: 'SURVIVE THE HORDE' })
+    this.ctx.audio.play('go', { vol: 0.7 })
   }
 
   // ============================== main loop ==============================
 
   update(dt, t) {
-    // boss-death slow-mo
+    // slow-mo (boss death / ANNIHILATION)
     if (this.slowmoT > 0) {
       this.slowmoT -= dt
-      this.timeScale = this.slowmoT > 0.55 ? 0.22 : lerp(0.22, 1, 1 - Math.max(0, this.slowmoT) / 0.55)
+      this.timeScale = this.slowmoT > 0.45 ? this.slowmoScale : lerp(this.slowmoScale, 1, 1 - Math.max(0, this.slowmoT) / 0.45)
     } else this.timeScale = 1
     const gdt = dt * this.timeScale
     this._txt = 12
@@ -188,6 +229,31 @@ export default class ArenaScene {
 
     this.vfx.update(dt)
 
+    // cinematic exposure dip + fissure-surge cooldown
+    this.exposure = damp(this.exposure, this.exposureT, 3, dt)
+    this.ctx.engine.setExposure(this.exposure)
+    if (!this.cine.active) this.env.fissureSurge.k = Math.max(0, this.env.fissureSurge.k - dt * 1.6)
+
+    // cinematic owns the camera; gameplay is frozen underneath it
+    if (this.cine.active) {
+      this.cine.update(dt)
+      this.hero.update(dt)
+      this._updateHud(dt)
+      return
+    }
+
+    // elite-kill hit-stop: the pit holds its breath
+    if (this.freezeT > 0) {
+      this.freezeT -= dt
+      this._updateHud(dt)
+      this._updateCamera(dt)
+      return
+    }
+
+    this.gameT += gdt
+    this.annihilCd = Math.max(0, this.annihilCd - dt)
+    this.heat = Math.max(0, this.heat - dt * 0.11)
+
     if (!this.over) this._updatePlayer(gdt, dt)
     else this.hero.update(dt)
 
@@ -209,8 +275,30 @@ export default class ArenaScene {
       if (this.streakT <= 0) this.streak = 0
     }
 
+    this._updateDrama(dt)
     this._updateHud(dt)
     this._updateCamera(dt)
+  }
+
+  /** Last-stand pulse + muffled heartbeat below 20% HP; UNBROKEN on recovery to 50%+. */
+  _updateDrama(dt) {
+    const low = !this.over && this.hp > 0 && this.hp <= 20
+    this.lastEl.classList.toggle('on', low)
+    if (low) {
+      if (!this.lastStand) { this.lastStand = true; this.beatT = 0 }
+      this.beatT -= dt
+      if (this.beatT <= 0) {
+        this.beatT = 0.95
+        this.ctx.audio.play('bounce', { vol: 0.55 })
+        this.ctx.audio.play('bounce', { delay: 0.17, vol: 0.32 })
+      }
+    }
+    if (this.lastStand && !this.unbroken && !this.over && this.hp >= 50) {
+      this.unbroken = true // once per run
+      this.hud.banner('UNBROKEN', { color: '#e8dcc4', sub: 'THE PIT COULD NOT CLAIM YOU', duration: 1.9, cls: 'arena-unbroken' })
+      this.ctx.audio.play('levelup', { vol: 0.55 })
+      this.ctx.audio.play('tower', { vol: 0.3 })
+    }
   }
 
   // ============================== player ==============================
@@ -349,7 +437,7 @@ export default class ArenaScene {
     if (this._txt > 0) {
       this._txt--
       _v1.copy(e.minion.group.position)
-      _v1.y += 1.4 * e.def.scale
+      _v1.y += 1.4 * e.scale
       this.vfx.text(_v1, String(Math.round(dmg)), { color, size, life: 0.7, rise: 2.1 })
     }
     if (killed) this._onKill(e)
@@ -357,23 +445,73 @@ export default class ArenaScene {
 
   _onKill(e) {
     const pos = e.minion.group.position
-    this.vfx.impact(pos, { color: e.def.color, size: 0.9 * e.def.scale })
-    this.score += 10
+    this.vfx.impact(pos, { color: e.def.color, size: 0.9 * e.scale })
+    const pts = e.elite ? 30 : 10
+    this.score += pts
     this.kills++
+    this.killsByType[e.type] = (this.killsByType[e.type] || 0) + 1
+    if (e.elite) this.eliteKills++
     _v1.copy(pos)
     _v1.y += 1.1
-    this.vfx.text(_v1, '+10', { color: '#ffb84d', size: 0.6, life: 0.8 })
+    this.vfx.text(_v1, `+${pts}`, { color: '#ffb84d', size: e.elite ? 0.85 : 0.6, life: 0.8 })
     this.streak++
     this.streakT = 4
+    this.heat = Math.min(1, this.heat + 0.09) // FURY flame
+
+    // multi-kill money moment: 4+ kills inside 0.4s (nova / meteor blasts)
+    const kt = this.killTimes
+    kt.push(this.gameT)
+    while (kt.length && kt[0] < this.gameT - 4) kt.shift()
+    if (this.annihilCd <= 0) {
+      let recent = 0
+      for (let i = kt.length - 1; i >= 0 && kt[i] >= this.gameT - 0.4; i--) recent++
+      if (recent >= 4) this._annihilation(pos)
+    }
+
+    // streak ladder — crowdless-pit war-drum stings (no crowd in THE PIT)
     if (this.streak === 10) {
       this.hud.banner('RAMPAGE!', { color: '#ff8c3b', duration: 1.4, cls: 'arena-streak' })
       this.ctx.audio.play('kill', { vol: 0.8 })
+      this.ctx.audio.play('tower', { vol: 0.45 })
     } else if (this.streak === 20) {
       this.hud.banner('END THEM!', { color: '#c23b2e', duration: 1.6, cls: 'arena-streak' })
       this.ctx.audio.play('kill', { vol: 1 })
+      this.ctx.audio.play('tower', { vol: 0.6 })
+      this.ctx.audio.play('zap', { vol: 0.4, delay: 0.12 })
+    }
+
+    if (e.elite) {
+      // elite falls: brief hit-stop + heavier sting + crown-ember plume
+      this.freezeT = Math.max(this.freezeT, 0.09)
+      this.ctx.audio.play('kill', { vol: 1 })
+      this.ctx.audio.play('tower', { vol: 0.5, delay: 0.03 })
+      _v1.copy(pos)
+      _v1.y += 1.5 * e.scale
+      this.vfx.burst(_v1, { color: '#ff8c3b', count: 18, speed: 6, size: 0.26, up: 4 })
     }
     if (e.type === 'exploder') this._explode(e)
-    else if (Math.random() < 0.2) this._dropOrb(pos)
+    if (e.elite) this._dropOrb(pos) // elites always pay out a heal orb
+    else if (e.type !== 'exploder' && Math.random() < 0.2) this._dropOrb(pos)
+  }
+
+  /** ANNIHILATION: 0.7s slow-mo + camera punch-in + popup. */
+  _annihilation(pos) {
+    this.annihilCd = 3
+    this._slowmo(0.7, 0.3)
+    this.punch = 1
+    this.ctx.engine.shake(0.5, 0.45)
+    this.hud.banner('ANNIHILATION', { color: '#ff5a26', duration: 1.4, cls: 'arena-annihilate' })
+    this.ctx.audio.play('explode', { vol: 0.9 })
+    this.ctx.audio.play('kill', { vol: 1, delay: 0.05 })
+    this.ctx.audio.play('tower', { vol: 0.7, delay: 0.1 })
+    _v1.copy(pos)
+    _v1.y = 1
+    this.vfx.flash(_v1, { color: '#ff5a26', size: 4, life: 0.3 })
+  }
+
+  _slowmo(dur, scale) {
+    this.slowmoT = Math.max(this.slowmoT, dur)
+    this.slowmoScale = scale
   }
 
   _explode(e) {
@@ -397,7 +535,7 @@ export default class ArenaScene {
       if (!e.alive || e === exclude) continue
       const p = e.minion.group.position
       const dx = p.x - x, dz = p.z - z
-      const rr = r + 0.45 * e.def.scale
+      const rr = r + 0.45 * e.scale
       if (dx * dx + dz * dz > rr * rr) continue
       let kx = 0, kz = 0
       if (knock) {
@@ -464,6 +602,7 @@ export default class ArenaScene {
       }
       if (!this.over && d < 0.9) {
         this.hp = Math.min(100, this.hp + 12)
+        this.orbsEaten++
         this.ctx.audio.play('heal', { vol: 0.5 })
         this.vfx.burst(p, { color: '#ffb84d', count: 14, speed: 4, size: 0.24 })
         _v1.copy(hp)
@@ -483,11 +622,12 @@ export default class ArenaScene {
   // ============================== skills ==============================
 
   _castSkill(i) {
-    if (this.over || this.cds[i] > 0.001) return
+    if (this.over || this.cine.active || this.cds[i] > 0.001) return
     const def = this.skillDefs[i]
     const fn = this._casters[def.archetype]
     if (!fn) return
     this.cds[i] = def.cd
+    this.castCounts[i]++
     this.abilityUi.flash(i)
     this.hero.cast()
     this.ctx.audio.play('cast', { vol: 0.5 })
@@ -884,9 +1024,11 @@ export default class ArenaScene {
     const g = pick(this.env.gates)
     g.flash = 1
     const x = g.x + rand(-1.6, 1.6), z = g.z + rand(-1.6, 1.6)
-    this.horde.spawn(type, x, z)
+    // from wave 3, ~1 in 8 spawns is an ELITE (banner-free, just visibly special)
+    const elite = this.wave >= 3 && Math.random() < 0.125
+    this.horde.spawn(type, x, z, elite)
     _v1.set(g.x, 1.4, g.z)
-    this.vfx.flash(_v1, { color: '#ff8c3b', size: 2.6, life: 0.3 })
+    this.vfx.flash(_v1, { color: elite ? '#ffb84d' : '#ff8c3b', size: elite ? 3.4 : 2.6, life: 0.3 })
   }
 
   // ============================== boss ==============================
@@ -909,9 +1051,12 @@ export default class ArenaScene {
     best.flash = 1
     _v1.set(best.x, 3, best.z)
     this.vfx.flash(_v1, { color: '#c23b2e', size: 6, life: 0.45 })
-    this.ctx.audio.play('spawn', { vol: 0.9 })
-    this.hud.banner('PIT WARDEN', { color: '#c23b2e', sub: 'KEEPER OF THE PIT', duration: 2.4 })
     this.bossBox.style.display = ''
+    // entrance cinematic: lights dim, fissures surge, the portal cracks wide,
+    // name slam — then the fight (any key skips)
+    this.cine.startBoss({ boss: this.boss, gate: best }, () => {
+      this.iFrames = Math.max(this.iFrames, 0.8) // fair re-entry into the fray
+    })
   }
 
   _bossSlam(pos) {
@@ -950,9 +1095,10 @@ export default class ArenaScene {
     boss.alive = false
     boss.hero.setState('ko')
     boss.tele.visible = false
-    this.slowmoT = 1.3
+    this._slowmo(1.3, 0.22)
     this.score += 250
     this.kills++
+    this.wardenSlain = true
     const pos = boss.group.position.clone()
     _v1.copy(pos)
     _v1.y = 5
@@ -1003,9 +1149,9 @@ export default class ArenaScene {
       for (const e of this.horde.active) {
         if (!e.alive) continue
         const p = e.minion.group.position
-        const rr = b.r + 0.5 * e.def.scale
+        const rr = b.r + 0.5 * e.scale
         const dx = p.x - bp.x, dz = p.z - bp.z
-        if (dx * dx + dz * dz > rr * rr || bp.y > 2.4 * e.def.scale) continue
+        if (dx * dx + dz * dz > rr * rr || bp.y > 2.4 * e.scale) continue
         hit = true
         if (b.big) {
           this.vfx.shockwave(bp, { color: b.big.color, radius: b.big.radius })
@@ -1062,6 +1208,23 @@ export default class ArenaScene {
     for (const b of this.hud.root.querySelectorAll('.big-banner')) b.remove()
   }
 
+  /** Run stats for the end tablet (duel-style, win AND death). */
+  _stats(won) {
+    let fi = -1, fmax = 0
+    this.castCounts.forEach((n, i) => { if (n > fmax) { fmax = n; fi = i } })
+    return {
+      waves: won ? WAVE_COUNT : Math.max(0, this.wave - 1),
+      waveCount: WAVE_COUNT,
+      score: this.score,
+      kills: this.kills,
+      orbs: this.orbsEaten,
+      byType: this.killsByType,
+      elites: this.eliteKills,
+      warden: this.wardenSlain,
+      favorite: fi >= 0 ? `${this.skillDefs[fi].icon} ${this.skillDefs[fi].name}` : '—',
+    }
+  }
+
   _victory() {
     if (this.over) return
     this.over = 'won'
@@ -1073,8 +1236,13 @@ export default class ArenaScene {
     profile.stats.wins.arena = (profile.stats.wins.arena || 0) + 1
     this.ctx.saveProfile()
     this.hud.banner('ARENA CHAMPION', {
-      color: '#ffb84d', duration: 0,
+      color: '#ffb84d', duration: 0, cls: 'arena-endbanner',
       sub: `SCORE ${this.score} — ${this.kills} KILLS — RETURNING TO HUB`,
+    })
+    buildEndPanel(this.hud, {
+      won: true,
+      stats: this._stats(true),
+      onHub: () => { this.ctx.audio.play('click'); this.ctx.goTo('hub') },
     })
     for (let i = 0; i < 6; i++) {
       this._timeout(() => {
@@ -1096,22 +1264,20 @@ export default class ArenaScene {
     this.hero.setMoveSpeed(0)
     this.ctx.audio.play('defeat')
     this.hud.banner('DEFEATED', {
-      color: '#c23b2e', duration: 0,
+      color: '#c23b2e', duration: 0, cls: 'arena-endbanner',
       sub: `WAVE ${this.wave} — SCORE ${this.score}`,
     })
-    const panel = this.hud.el('div', 'arena-end ui-interactive')
-    const retry = document.createElement('button')
-    retry.textContent = 'RETRY'
-    retry.onclick = () => { this.ctx.audio.play('click'); this.ctx.goTo('arena') }
-    const hub = document.createElement('button')
-    hub.className = 'ghost'
-    hub.textContent = 'HUB'
-    hub.onclick = () => { this.ctx.audio.play('back'); this.ctx.goTo('hub') }
-    panel.append(retry, hub)
+    buildEndPanel(this.hud, {
+      won: false,
+      stats: this._stats(false),
+      onRetry: () => { this.ctx.audio.play('click'); this.ctx.goTo('arena') },
+      onHub: () => { this.ctx.audio.play('back'); this.ctx.goTo('hub') },
+    })
   }
 
   _jumpWave(n) {
     if (this.over) return
+    this.cine.skip(true)
     this.spawnQueue.length = 0
     this.horde.clearAll()
     if (this.boss) this._removeBoss()
@@ -1129,7 +1295,8 @@ export default class ArenaScene {
     this.scoreNum.textContent = String(Math.round(this.dispScore))
 
     let label
-    if (this.over === 'won') label = 'ARENA CLEARED'
+    if (this.cine.active) label = this.cine.mode === 'boss' ? 'THE WARDEN COMES' : 'STEEL YOURSELF'
+    else if (this.over === 'won') label = 'ARENA CLEARED'
     else if (this.over === 'dead') label = `WAVE ${this.wave}`
     else if (this.waveState === 'break') label = `WAVE ${this.wave + 1} INCOMING`
     else {
@@ -1137,13 +1304,16 @@ export default class ArenaScene {
       label = `WAVE ${this.wave} — ${left} LEFT`
     }
     this.waveEl.textContent = label
+    this.heatUi.set(this.heat)
     this.lowEl.classList.toggle('on', this.hp > 0 && this.hp <= 28 && !this.over)
   }
 
   _updateCamera(dt) {
     const hp = this.hero.group.position
     const m = this.ctx.input.mouse
-    _v1.set(hp.x + this.camOffset.x + m.x * 2.6, this.camOffset.y, hp.z + this.camOffset.z - m.y * 2)
+    this.punch = damp(this.punch, 0, 3.4, dt)
+    const z = 1 - 0.26 * this.punch // ANNIHILATION punch-in
+    _v1.set(hp.x + (this.camOffset.x + m.x * 2.6) * z, this.camOffset.y * z, hp.z + (this.camOffset.z - m.y * 2) * z)
     const k = 1 - Math.exp(-7 * dt)
     this.camera.position.lerp(_v1, k)
     _v2.set(hp.x + m.x * 1.9, 0.6, hp.z - m.y * 1.5)
@@ -1160,6 +1330,8 @@ export default class ArenaScene {
   dispose() {
     this.disposed = true
     for (const id of this._timeouts) clearTimeout(id)
+    this.cine.dispose()
+    this.ctx.engine.setExposure(1.12)
     this.buffTrail?.stop()
     this.heroTrail?.stop()
     this.vfx.dispose()

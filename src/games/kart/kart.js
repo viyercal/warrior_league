@@ -186,8 +186,9 @@ export function createKartFactory() {
       _ghostSaved: null,
     }
 
-    /** Standing charioteer pose override — call AFTER hero.update(dt). */
-    visual.poseDriver = (dt, { speed = 0, steer = 0 } = {}) => {
+    /** Standing charioteer pose override — call AFTER hero.update(dt).
+     * `dance: true` (podium ceremony) lets the hero's own dance anim play. */
+    visual.poseDriver = (dt, { speed = 0, steer = 0, dance = false } = {}) => {
       // war banner ripples with speed
       pennantT += dt * (2.5 + Math.min(Math.abs(speed) * 0.18, 5))
       const attr = pennant.geometry.attributes.position
@@ -197,6 +198,11 @@ export function createKartFactory() {
       }
       attr.needsUpdate = true
 
+      if (hero && dance) {
+        if (!visual._dancing) { visual._dancing = true; hero.setState('dance') }
+        hero.update(dt)
+        return
+      }
       if (hero) {
         hero.update(dt)
         // braced stance, leaning into the wind

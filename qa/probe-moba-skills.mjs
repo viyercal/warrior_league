@@ -19,7 +19,9 @@ const loadWith = async loadout => {
     }))
   }, loadout)
   await page.goto(`http://localhost:${port}/?scene=moba&mute=1`, { waitUntil: 'load' })
-  await page.waitForTimeout(4200)
+  await page.waitForTimeout(1400)
+  await page.keyboard.press('Space') // any key skips the intro cinematic
+  await page.waitForTimeout(2800)
   await page.evaluate(() => {
     const s = window.__scene
     s.hero.group.position.set(-4, 0, 12)

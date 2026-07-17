@@ -7,7 +7,10 @@ const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 await page.goto(`http://localhost:${process.env.IPL_PORT || '5187'}/?scene=brawl&mute=1`, { waitUntil: 'load' })
-await page.waitForTimeout(2500)
+// skip the entrance cinematic (any key) so gameplay checks start sooner
+await page.waitForFunction(() => !!window.__scene?.phase, null, { timeout: 15000 })
+await page.keyboard.press('x')
+await page.waitForTimeout(800)
 
 const state = () => page.evaluate(() => {
   const s = window.__scene

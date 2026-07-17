@@ -490,7 +490,8 @@ function scatterClutter(scene) {
 
 // ============================================================================
 // buildArena — THE PIT: a torchlit fighting pit sunk in a volcanic cavern.
-// Returns { tickables, gates, rimMat, rimBase } (contract with arenaScene).
+// Returns { tickables, gates, rimMat, rimBase, brazierPositions, fissureSurge }
+// (contract with arenaScene; fissureSurge.k superheats the magma veins).
 // ============================================================================
 
 export function buildArena(scene) {
@@ -564,12 +565,15 @@ export function buildArena(scene) {
   floor.rotation.x = -Math.PI / 2
   floor.receiveShadow = true
   scene.add(floor)
-  // magma breathing: slow pulse, hot-to-dark, never strobing
+  // magma breathing: slow pulse, hot-to-dark, never strobing.
+  // fissureSurge.k (0..1, scene-driven) superheats the veins for boss drama.
+  const fissureSurge = { k: 0 }
   let pulseT = rand(10)
   tickables.push({
     tick: dt => {
       pulseT += dt
-      floorMat.emissiveIntensity = 1.0 + 0.16 * Math.sin(pulseT * 0.7) + 0.05 * Math.sin(pulseT * 2.3 + 1.3)
+      floorMat.emissiveIntensity =
+        (1.0 + 0.16 * Math.sin(pulseT * 0.7) + 0.05 * Math.sin(pulseT * 2.3 + 1.3)) * (1 + 1.5 * fissureSurge.k)
     },
   })
 
@@ -659,9 +663,11 @@ export function buildArena(scene) {
   const smokeMatProto = new THREE.SpriteMaterial({
     map: smokeTexture(), color: '#241d18', transparent: true, opacity: 0.16, depthWrite: false,
   })
+  const brazierPositions = []
   for (let i = 0; i < 6; i++) {
     const a = (i * TAU) / 6
     const x = Math.cos(a) * 24.2, z = Math.sin(a) * 24.2
+    brazierPositions.push(new THREE.Vector3(x, 2.9, z))
     const g = new THREE.Group()
     g.position.set(x, 0, z)
     const ped = new THREE.Mesh(pedGeo, ironDark)
@@ -787,6 +793,7 @@ export function buildArena(scene) {
       archMat,
       baseColor: archMat.color.clone(),
       portalMat,
+      portal, // mesh — boss entrance cracks it wide
     })
   }
 
@@ -857,5 +864,5 @@ export function buildArena(scene) {
   dir.shadow.normalBias = 0.03
   scene.add(dir)
 
-  return { tickables, gates, rimMat, rimBase: rimMat.color.clone() }
+  return { tickables, gates, rimMat, rimBase: rimMat.color.clone(), brazierPositions, fissureSurge }
 }

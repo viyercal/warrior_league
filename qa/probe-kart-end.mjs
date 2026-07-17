@@ -12,12 +12,19 @@ const check = (name, ok, detail = '') => {
   console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? ' — ' + detail : ''}`)
 }
 
+const skipIntro = async page => {
+  // boot -> intro flyover (any key skips) -> countdown -> race
+  await page.waitForFunction(() => window.__scene?.state === 'intro', null, { timeout: 15000 })
+  await page.keyboard.press('x')
+  await page.waitForFunction(() => window.__scene?.state === 'race', null, { timeout: 12000 })
+  await page.waitForTimeout(300)
+}
 const newPage = async () => {
   const page = await browser.newPage({ viewport: { width: 1440, height: 810 } })
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
   page.on('pageerror', e => errors.push(String(e)))
   await page.goto(`http://localhost:${port}/?scene=kart&mute=1`, { waitUntil: 'load' })
-  await page.waitForTimeout(5600)
+  await skipIntro(page)
   return page
 }
 const stats = page => page.evaluate(() => {
@@ -90,7 +97,7 @@ const stats = page => page.evaluate(() => {
   }))
   check('R after finish restarts race', st.scene === 'kart' && !st.over && st.clock < 3, JSON.stringify(st))
   // during a fresh race R must NOT restart (it is the slot-4 skill alias)
-  await page.waitForTimeout(4200) // countdown done
+  await skipIntro(page) // restarted scene replays the intro; skip to GO
   await page.keyboard.down('w')
   await page.waitForTimeout(800)
   const clock0 = await page.evaluate(() => window.__scene.clock)

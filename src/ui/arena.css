@@ -82,8 +82,180 @@
   letter-spacing: 0.14em;
 }
 
-/* defeat panel */
-.arena-end {
-  position: absolute; left: 50%; top: 58%; transform: translateX(-50%);
-  display: flex; gap: 16px; z-index: 35;
+/* ---------- cinematic letterbox (intro descent + warden entrance) ---------- */
+.arena-cine {
+  position: absolute; left: 0; right: 0; height: 0;
+  background: #050302; z-index: 18;
+  transition: height 0.45s ease;
 }
+.arena-cine-top { top: 0; }
+.arena-cine-bot { bottom: 0; }
+.arena-cine.on { height: 11vh; }
+/* gameplay HUD chrome fades out under the letterbox */
+#ui .hint-box, #ui .arena-heat, #ui .ability-bar, #ui .stat-bar, #ui .arena-score, #ui .arena-wave {
+  transition: opacity 0.35s;
+}
+#ui.arena-cine-on .hint-box, #ui.arena-cine-on .arena-heat, #ui.arena-cine-on .ability-bar,
+#ui.arena-cine-on .stat-bar, #ui.arena-cine-on .arena-score {
+  opacity: 0;
+}
+
+/* ---------- intro title plates ---------- */
+.arena-title {
+  position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
+  text-align: center; z-index: 19; pointer-events: none;
+  opacity: 0; transition: opacity 0.35s;
+}
+.arena-title.in { opacity: 1; }
+.arena-title.out { opacity: 0; }
+.arena-title-main {
+  font-family: var(--font-display);
+  font-size: 118px; font-weight: 800; font-style: italic; line-height: 1;
+  letter-spacing: 0.14em; font-variant: small-caps;
+  color: var(--gold);
+  -webkit-text-stroke: 2.5px rgba(24, 14, 6, 0.9);
+  text-shadow: 0 0 46px rgba(255, 140, 59, 0.5), 0 0 14px rgba(255, 90, 38, 0.35), 0 6px 0 rgba(20, 10, 4, 0.75);
+}
+.arena-title.in .arena-title-main { animation: arenaTitleIn 0.5s cubic-bezier(0.16, 1.4, 0.4, 1); }
+.arena-title-plate {
+  display: inline-block; margin-top: 10px; padding: 7px 26px;
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 800; letter-spacing: 0.5em; font-variant: small-caps;
+  color: var(--ink);
+  background: linear-gradient(170deg, rgba(70, 58, 44, 0.55), rgba(12, 9, 7, 0.8));
+  border: 1px solid rgba(176, 121, 58, 0.55); border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(232, 220, 196, 0.14);
+}
+.arena-title.in .arena-title-plate { animation: arenaPlateIn 0.5s ease 0.12s backwards; }
+.arena-title-hint {
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 700; letter-spacing: 0.34em;
+  color: var(--ink-dim);
+  animation: arenaHintPulse 1.4s ease-in-out infinite;
+}
+@keyframes arenaTitleIn { from { transform: scale(2.4); opacity: 0; filter: blur(7px); } }
+@keyframes arenaPlateIn { from { transform: translateY(14px); opacity: 0; } }
+@keyframes arenaHintPulse { 0%, 100% { opacity: 0.75; } 50% { opacity: 0.25; } }
+
+/* ---------- PIT WARDEN name slam ---------- */
+.arena-nameslam { top: 26%; }
+.arena-nameslam .banner-main {
+  font-size: 92px; letter-spacing: 0.1em;
+  -webkit-text-stroke: 2.5px rgba(24, 8, 6, 0.95);
+}
+.arena-nameslam .banner-sub { font-size: 15px; letter-spacing: 0.48em; color: #d8a878; }
+
+/* ---------- ANNIHILATION multi-kill popup (own slot, clears wave banners) ---------- */
+.arena-annihilate { top: 18%; }
+.arena-annihilate .banner-main {
+  font-size: 74px; font-style: italic; letter-spacing: 0.12em;
+  animation: arenaAnnihilate 0.1s ease-in-out 4 alternate;
+}
+@keyframes arenaAnnihilate { from { transform: translateX(-3px); } to { transform: translateX(3px); } }
+
+/* ---------- UNBROKEN (last-stand recovery) ---------- */
+.arena-unbroken .banner-main {
+  font-size: 58px; letter-spacing: 0.2em;
+  color: #ece2cc;
+  text-shadow: 0 0 26px rgba(232, 220, 196, 0.45), 0 4px 0 rgba(20, 10, 4, 0.7);
+}
+
+/* ---------- last stand: crimson edge pulse below 20% HP ---------- */
+.arena-laststand {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 10;
+  background: radial-gradient(ellipse at center,
+    transparent 46%, rgba(120, 12, 16, 0.55) 88%, rgba(70, 4, 6, 0.8) 100%);
+  transition: opacity 0.4s;
+}
+.arena-laststand.on { opacity: 1; animation: arenaLastPulse 0.95s ease-in-out infinite; }
+@keyframes arenaLastPulse { 0%, 100% { opacity: 1; } 45% { opacity: 0.5; } }
+
+/* ---------- FURY streak-flame meter (right of the HP bar) ---------- */
+.arena-heat {
+  position: absolute; left: 336px; bottom: 34px;
+  width: 15px; height: 62px; z-index: 12;
+  background: linear-gradient(180deg, rgba(8, 5, 4, 0.9), rgba(26, 18, 12, 0.85));
+  border: 1px solid rgba(176, 121, 58, 0.45);
+  border-radius: 3px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+.arena-heat-fill {
+  position: absolute; left: 1px; right: 1px; bottom: 1px; height: 0%;
+  background: linear-gradient(180deg, #ffe9a8, #ffb84d 30%, #ff5a26 62%, #a1252c);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(255, 140, 59, 0.55);
+  transition: height 0.18s ease;
+}
+.arena-heat-label {
+  position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 9px; font-weight: 800; letter-spacing: 0.2em;
+  color: var(--ink-dim);
+}
+.arena-heat.blazing { border-color: rgba(255, 140, 59, 0.85); animation: arenaHeatFlicker 0.5s ease-in-out infinite; }
+.arena-heat.blazing .arena-heat-label { color: #ffb84d; text-shadow: 0 0 8px rgba(255, 140, 59, 0.8); }
+@keyframes arenaHeatFlicker {
+  0%, 100% { box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 14px rgba(255, 120, 40, 0.5); }
+  50% { box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 26px rgba(255, 120, 40, 0.85); }
+}
+
+/* end-state banners: compact single line, high slot — clears the stat tablet */
+.arena-endbanner { top: 13%; }
+.arena-endbanner .banner-main { font-size: 62px; letter-spacing: 0.12em; }
+.arena-endbanner .banner-sub { font-size: 15px; }
+
+/* ---------- end tablet: duel-style run stats (victory AND death) ---------- */
+.arena-end {
+  position: absolute; left: 50%; top: 40%; transform: translateX(-50%);
+  width: 440px; padding: 20px 24px 18px;
+  text-align: center; z-index: 35;
+  background:
+    linear-gradient(180deg, rgba(84, 74, 60, 0.4), rgba(0, 0, 0, 0.25) 26%, rgba(0, 0, 0, 0.42)),
+    rgba(26, 21, 16, 0.94);
+  border: 1px solid rgba(176, 121, 58, 0.5);
+  border-top-color: rgba(232, 220, 196, 0.25);
+  border-radius: 10px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(232, 220, 196, 0.12), inset 0 0 44px rgba(0, 0, 0, 0.5);
+  animation: arenaEndIn 0.35s ease;
+}
+@keyframes arenaEndIn { from { opacity: 0; transform: translate(-50%, 16px); } }
+.arena-end-title {
+  font-family: var(--font-display);
+  font-size: 19px; font-weight: 800; font-style: italic; letter-spacing: 0.24em;
+  font-variant: small-caps;
+  color: var(--gold);
+  text-shadow: 0 0 18px rgba(255, 184, 77, 0.45), 0 2px 3px #000;
+  margin-bottom: 12px;
+}
+.arena-end-title.lose { color: #e04a3a; text-shadow: 0 0 18px rgba(194, 59, 46, 0.55), 0 2px 3px #000; }
+.arena-stat-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 5px 2px;
+  border-bottom: 1px solid rgba(176, 121, 58, 0.16);
+}
+.arena-stat-label {
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.26em;
+  font-variant: small-caps; color: var(--ink-dim);
+}
+.arena-stat-val {
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 800; color: var(--ink);
+  text-shadow: 0 1px 2px #000;
+}
+.arena-kill-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 12px 0 2px; }
+.arena-kill-chip {
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+  color: var(--ink);
+  padding: 3px 9px;
+  background: rgba(12, 9, 6, 0.8);
+  border: 1px solid rgba(176, 121, 58, 0.35);
+  border-radius: 4px;
+}
+.arena-kill-chip.elite { color: #ffb84d; border-color: rgba(255, 184, 77, 0.55); box-shadow: 0 0 10px rgba(255, 140, 59, 0.25); }
+.arena-kill-chip.warden { color: #e04a3a; border-color: rgba(194, 59, 46, 0.6); box-shadow: 0 0 10px rgba(194, 59, 46, 0.3); }
+.arena-end-buttons { display: flex; gap: 14px; justify-content: center; margin-top: 14px; }
+.arena-end-auto { margin-top: 9px; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim); }

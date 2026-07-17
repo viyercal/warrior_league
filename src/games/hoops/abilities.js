@@ -43,6 +43,7 @@ export class Abilities {
     const s = this.slots[i]
     this.cds[i] = s.cd
     this.bar.flash(i)
+    this.env.helpers.onCast?.(i)   // stats ledger (favorite art)
     game.player.hero.cast()
     audio.play('cast')
     const P = game.player.hero.group.position

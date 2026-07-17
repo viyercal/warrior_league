@@ -54,6 +54,7 @@ function flameKit() {
     new THREE.ConeGeometry(0.065, 0.36, 7, 2, true).translate(0, 0.2, 0),
   ]
   const flames = []
+  let boost = 1, boostT = 1   // match-point flare: every flame swells together
   return {
     make(s = 1) {
       const g = new THREE.Group()
@@ -67,11 +68,14 @@ function flameKit() {
       flames.push(g)
       return g
     },
-    tick(t) {
+    setBoost(b) { boostT = b },
+    tick(t, dt = 0.016) {
+      boost += (boostT - boost) * Math.min(1, dt * 2.2)
       for (const f of flames) {
         const { phase, s } = f.userData
         const k = 1 + 0.15 * Math.sin(t * 10.3 + phase) + 0.07 * Math.sin(t * 23.7 + phase * 1.7)
-        f.scale.set(s * (1 + (k - 1) * 0.45), s * k, s * (1 + (k - 1) * 0.45))
+        const sb = s * boost
+        f.scale.set(sb * (1 + (k - 1) * 0.45), sb * k, sb * (1 + (k - 1) * 0.45))
       }
     },
   }
@@ -732,7 +736,12 @@ function buildJumbotron(kit) {
   const tex = new THREE.CanvasTexture(c)
   tex.colorSpace = THREE.SRGBColorSpace
 
-  const draw = ({ you = 0, cpu = 0, clock = 14, poss = 'player' } = {}) => {
+  let last = { you: 0, cpu: 0, clock: 14, poss: 'player' }
+  let flashState = null   // { text, color, t } — momentum/match-point flashes
+
+  const draw = (state = {}) => {
+    last = { ...last, ...state }
+    const { you, cpu, clock, poss } = last
     // iron plate warmed by firelight
     const g = cx.createLinearGradient(0, 0, 0, 300)
     g.addColorStop(0, '#221812')
@@ -773,9 +782,31 @@ function buildJumbotron(kit) {
     cx.font = '900 74px Georgia, "Times New Roman", serif'
     cx.fillStyle = clock <= 5 ? '#e04338' : '#e8dcc4'
     cx.fillText(String(Math.max(0, Math.ceil(clock))), 256, 264)
+    // drama flash plate: "5-0 RUN" / "MATCH POINT" over the lower board
+    if (flashState) {
+      cx.fillStyle = 'rgba(12,6,3,0.82)'
+      cx.fillRect(22, 96, 468, 118)
+      cx.strokeStyle = flashState.color
+      cx.lineWidth = 4
+      cx.strokeRect(30, 104, 452, 102)
+      cx.textAlign = 'center'
+      cx.font = 'italic 900 58px Georgia, "Times New Roman", serif'
+      cx.fillStyle = flashState.color
+      cx.fillText(flashState.text, 256, 174)
+    }
     tex.needsUpdate = true
   }
   draw()
+
+  const flash = (text, color = '#ffb84d') => {
+    flashState = { text, color, t: 1.7 }
+    draw()
+  }
+  const jumboTick = dt => {
+    if (!flashState) return
+    flashState.t -= dt
+    if (flashState.t <= 0) { flashState = null; draw() }
+  }
 
   // dimmed below bloom threshold: fire-lit board, not an LED wall
   const screenMat = new THREE.MeshBasicMaterial({ map: tex, color: '#d8d0c2' })
@@ -808,7 +839,7 @@ function buildJumbotron(kit) {
     group.add(cbl)
   }
   group.position.set(0, 10.6, -0.4)
-  return { group, set: draw }
+  return { group, set: draw, flash, tick: jumboTick }
 }
 
 /* ============================= colosseum wall ============================= */
@@ -1092,23 +1123,31 @@ export function buildArena(scene) {
   group.add(rig)
 
   let t = 0
+  let flare = 0, flareT = 0   // match-point flare: braziers + torch pools surge
   return {
     group,
     crowd,
     jumbo,
     netFlare: hoop.netFlare,
+    /** MATCH POINT mode: every flame swells, torch pools burn hotter. */
+    setMatchPoint(on) {
+      flareT = on ? 1 : 0
+      kit.setBoost(on ? 1.3 : 1)
+    },
     tick(dt) {
       t += dt
       crowd.tick(dt)
       ads.tick(dt)
       hoop.netTick(dt)
       embers.tick(dt)
-      kit.tick(t)
+      kit.tick(t, dt)
+      jumbo.tick(dt)
       sweepPivot.rotation.y = Math.sin(t * 0.18) * 1.4
-      hoop.rimGlow.material.opacity = 0.055 + Math.sin(t * 2.6) * 0.02
-      // torchlight breathes
-      torchA.intensity = 20 + Math.sin(t * 9.1) * 1.7 + Math.sin(t * 23.7) * 0.9
-      torchB.intensity = 13 + Math.sin(t * 8.3 + 2) * 1.2 + Math.sin(t * 21.1) * 0.7
+      flare += (flareT - flare) * Math.min(1, dt * 2)
+      hoop.rimGlow.material.opacity = 0.055 + Math.sin(t * 2.6) * 0.02 + flare * 0.05
+      // torchlight breathes (hotter when the match hangs on the next basket)
+      torchA.intensity = (20 + Math.sin(t * 9.1) * 1.7 + Math.sin(t * 23.7) * 0.9) * (1 + flare * 0.55)
+      torchB.intensity = (13 + Math.sin(t * 8.3 + 2) * 1.2 + Math.sin(t * 21.1) * 0.7) * (1 + flare * 0.55)
     },
   }
 }

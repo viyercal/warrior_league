@@ -1,4 +1,4 @@
-// RIFT LEGENDS flow probe: mechanics + win/lose verification via debug hooks.
+// WAR RIFT flow probe: intro cinematic + mechanics + win/lose verification via debug hooks.
 // node qa/probe-moba-flow.mjs [port]
 import { chromium } from 'playwright-core'
 
@@ -10,8 +10,33 @@ page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 const load = async () => {
   await page.goto(`http://localhost:${port}/?scene=moba&mute=1`, { waitUntil: 'load' })
-  await page.waitForTimeout(4200)
+  await page.waitForTimeout(1500)
+  await page.keyboard.press('Space') // any key skips the intro cinematic
+  await page.waitForTimeout(2700)
 }
+
+// ============ 0. intro cinematic: frozen game, letterbox, any-key skip ============
+await page.goto(`http://localhost:${port}/?scene=moba&mute=1`, { waitUntil: 'load' })
+await page.waitForTimeout(1900)
+const intro = await page.evaluate(() => {
+  const s = window.__scene
+  return {
+    phase: s.phase, gameT: s.gameT, minions: s.army.active.length,
+    letterbox: !!document.querySelector('.moba-cine.on'),
+    cineMode: document.getElementById('ui').classList.contains('moba-cinemode'),
+  }
+})
+console.log('intro check (want phase intro, gameT 0, no minions, letterbox on):', JSON.stringify(intro))
+await page.screenshot({ path: 'qa/screens/moba-flow-intro.png' })
+await page.keyboard.press('Space')
+await page.waitForTimeout(700)
+const afterSkip = await page.evaluate(() => ({
+  phase: window.__scene.phase,
+  gameAdvancing: window.__scene.gameT > 0,
+  letterboxOff: !document.querySelector('.moba-cine.on'),
+  banner: [...document.querySelectorAll('.banner-main')].map(b => b.textContent),
+}))
+console.log('skip check (want play, advancing, letterbox off, DESTROY THE ENEMY BEACON):', JSON.stringify(afterSkip))
 
 // ============ 1. last-hit / CS / gold / XP ============
 await load()
@@ -57,7 +82,7 @@ const kill = await page.evaluate(() => ({
   kills: window.__scene.kills, gold: window.__scene.goldEarned,
   banner: [...document.querySelectorAll('.banner-main')].map(b => b.textContent),
 }))
-console.log('champ kill check (want kills 1, +300 gold):', JSON.stringify(kill))
+console.log('champ kill check (want kills 1, +300 gold, FIRST BLOOD banner):', JSON.stringify(kill))
 await page.screenshot({ path: 'qa/screens/moba-flow-kill.png' })
 
 // ============ 3. player death + respawn countdown ============
@@ -107,9 +132,11 @@ const win = await page.evaluate(() => ({
   banner: [...document.querySelectorAll('.banner-main')].map(b => b.textContent),
   sub: document.querySelector('.banner-sub')?.textContent,
   button: !!document.querySelector('.moba-end button'),
+  statsPanel: !!document.querySelector('.moba-end-grid'),
+  statCells: document.querySelectorAll('.moba-end-stat').length,
   wins: JSON.parse(localStorage.getItem('ipl-profile-v2')).stats.wins.moba,
 }))
-console.log(`win check (want VICTORY banner, button, wins ${winsBefore}+1):`, JSON.stringify(win))
+console.log(`win check (want VICTORY banner, button, 6 stat cells, wins ${winsBefore}+1):`, JSON.stringify(win))
 await page.screenshot({ path: 'qa/screens/moba-flow-victory.png' })
 // click RETURN TO HUB
 await page.click('.moba-end button')

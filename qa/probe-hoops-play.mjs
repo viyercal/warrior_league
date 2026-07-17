@@ -1,5 +1,6 @@
-// SLAM CITY 2K gameplay probe: real-input meter shots -> ON FIRE, rebound,
-// shot-clock turnover, crossover, defensive block/steal.
+// BLOOD COURT gameplay probe: cinematic intro (letterbox + title + VS plate,
+// any-key skip), real-input meter shots -> ON FIRE, rebound, shot-clock
+// turnover, crossover, defensive block/steal.
 // node qa/probe-hoops-play.mjs [base=http://localhost:5184]
 import { chromium } from 'playwright-core'
 
@@ -20,8 +21,33 @@ const snap = () => page.evaluate(() => window.__scene.debug.snapshot())
 const waitLive = () => page.waitForFunction(() => window.__scene?.game?.phase === 'live', null, { timeout: 20000 })
 
 await page.goto(`${base}/?scene=hoops&mute=1`, { waitUntil: 'load' })
+
+// --- cinematic intro: letterboxed, titled, frozen game state, ANY key skips ---
+await page.waitForFunction(() => window.__scene?.game?.phase === 'intro', null, { timeout: 15000 })
+const intro = await page.evaluate(() => ({
+  cine: !!document.querySelector('.hoops-cine.on'),
+  title: document.querySelector('.hoops-intro-title')?.textContent || '',
+  vs: !!document.querySelector('.hoops-vs-mid'),
+  foe: document.querySelector('.hoops-vsr .hoops-vs-name')?.textContent || '',
+  rule: document.querySelector('.hoops-intro-rule')?.textContent || '',
+  clock: window.__scene.game.clock,
+}))
+ok(intro.cine, 'intro shows letterbox bars')
+ok(intro.title === 'BLOOD COURT', `intro title card shows (got "${intro.title}")`)
+ok(intro.vs && intro.foe === 'IRONHIDE', `VS plate names the CPU warrior (got "${intro.foe}")`)
+ok(intro.rule.includes('FIRST TO 11'), `house-rule plate shows (got "${intro.rule}")`)
+await page.waitForTimeout(900)
+const frozen = await page.evaluate(c0 => window.__scene.game.clock === c0 && window.__scene.game.phase === 'intro', intro.clock)
+ok(frozen, 'game state stays frozen during the intro')
+await page.screenshot({ path: 'qa/screens/hoops-fin-intro.png' })
+await page.keyboard.press('KeyG') // ANY key skips
+const skipped = await page.waitForFunction(() => window.__scene.game.phase !== 'intro', null, { timeout: 1500 })
+  .then(() => true).catch(() => false)
+ok(skipped, 'any key skips the intro')
+ok(await page.evaluate(() => !document.querySelector('.hoops-cine.on')), 'letterbox clears after skip')
+
 await waitLive()
-ok(true, 'scene reaches live phase after countdown')
+ok(true, 'scene reaches live phase after intro + check-up')
 
 // --- movement + sprint (real keys) ---
 const p0 = await page.evaluate(() => window.__scene.game.player.hero.group.position.z)
@@ -87,6 +113,8 @@ for (let i = 0; i < 6 && !fire; i++) {
   if (!s) { makes = 0; continue }
   if (s.score.you > lastScore) makes++
   else makes = 0 // fire needs consecutive makes
+  // authoritative consecutive-makes counter (guards against snapshot races)
+  makes = Math.max(makes, await page.evaluate(() => window.__scene.game.streak))
   lastScore = s.score.you
   fire = s.onFire
   if (s.phase === 'end') break

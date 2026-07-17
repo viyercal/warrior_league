@@ -1,6 +1,16 @@
 import { HUD } from '../../ui/hud.js'
 import { WAVE_COUNT } from './raiders.js'
 
+/** Display-only raider glyphs for wave-composition rows + kill tallies. */
+export const RAIDER_CHIPS = {
+  grunt: { glyph: '⚔', color: '#c98d5f', label: 'GRUNT' },
+  sprinter: { glyph: '➤', color: '#dcc296', label: 'SPRINTER' },
+  exploder: { glyph: '✶', color: '#ffb84d', label: 'EXPLODER' },
+  brute: { glyph: '◆', color: '#c23b2e', label: 'BRUTE' },
+  shieldbearer: { glyph: '⛨', color: '#b8c8d8', label: 'SHIELDBEARER' },
+  colossus: { glyph: '♆', color: '#ff5a26', label: 'COLOSSUS' },
+}
+
 /** All LAST BASTION DOM: bastion bar, wave/gold readouts, prompts, boss bar. */
 export class SiegeHud {
   constructor(skillDefs, abilityOpts) {
@@ -54,10 +64,142 @@ export class SiegeHud {
     this.respawnEl.style.display = 'none'
     this.respawnSecs = this.respawnEl.querySelector('span')
 
+    // cinematic letterbox (intro + boss entrance)
+    this.cineTop = hud.el('div', 'siege-cine siege-cine-top')
+    this.cineBot = hud.el('div', 'siege-cine siege-cine-bot')
+
+    // between-wave PREPARE countdown chip
+    this.prepEl = hud.el('div', 'siege-prepare')
+    this.prepEl.style.display = 'none'
+    this._prep = null
+
     this.hintBox = hud.hints([
       ['WASD', 'Move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Attack'],
       ['1-4', 'Skills'], ['F', 'Build / upgrade'], ['H', 'Toggle help'],
     ])
+  }
+
+  // ---------- cinematics ----------
+
+  setCine(on) {
+    this.cineTop.classList.toggle('on', on)
+    this.cineBot.classList.toggle('on', on)
+    this.hud.root.classList.toggle('siege-cinema', on) // hides gameplay chrome
+  }
+
+  /** Intro title card: LAST BASTION / HOLD THE GATE. Returns a remover. */
+  showTitle() {
+    const t = this.hud.el('div', 'siege-title')
+    this.hud.el('div', 'siege-title-main', 'LAST BASTION', t)
+    this.hud.el('div', 'siege-title-sub', 'HOLD THE GATE — 10 WAVES', t)
+    return () => { t.classList.add('out'); setTimeout(() => t.remove(), 500) }
+  }
+
+  /** Boss entrance name slam. Returns a remover. */
+  bossCard() {
+    const t = this.hud.el('div', 'siege-title siege-bosscard')
+    this.hud.el('div', 'siege-title-main', 'SIEGE COLOSSUS', t)
+    this.hud.el('div', 'siege-title-sub', 'GATE-BREAKER OF THE BURNING CAMPS', t)
+    return () => { t.classList.add('out'); setTimeout(() => t.remove(), 500) }
+  }
+
+  // ---------- wave ritual ----------
+
+  /** Chip row of raider glyphs (icon ×count). comp = {type: count}. */
+  compRow(comp, parent) {
+    const row = this.hud.el('div', 'siege-comp', '', parent)
+    for (const [type, count] of Object.entries(comp)) {
+      const def = RAIDER_CHIPS[type]
+      if (!def || !count) continue
+      const chip = this.hud.el('span', 'siege-comp-chip', '', row)
+      chip.style.setProperty('--cc', def.color)
+      this.hud.el('i', 'siege-comp-glyph', def.glyph, chip)
+      this.hud.el('b', '', `×${count}`, chip)
+    }
+    return row
+  }
+
+  /** Same chips as compRow, as an HTML string (for stats-panel values). */
+  compHTML(comp) {
+    const chips = Object.entries(comp)
+      .filter(([type, count]) => RAIDER_CHIPS[type] && count)
+      .map(([type, count]) => {
+        const def = RAIDER_CHIPS[type]
+        return `<span class="siege-comp-chip" style="--cc:${def.color}">` +
+          `<i class="siege-comp-glyph">${def.glyph}</i><b>×${count}</b></span>`
+      })
+    return chips.length ? `<span class="siege-comp">${chips.join('')}</span>` : ''
+  }
+
+  /** Wave banner with a composition preview row of what marches. */
+  waveBanner(n, comp, { boss = false, sub = '' } = {}) {
+    const b = this.hud.banner(`WAVE ${n}`, {
+      color: boss ? '#c23b2e' : '#ff8a3c', duration: 2.4, sub,
+    })
+    if (boss) comp = { colossus: 1, ...comp }
+    this.compRow(comp, b)
+    return b
+  }
+
+  setPrepare(secs) {
+    if (secs == null) {
+      if (this._prep !== null) { this._prep = null; this.prepEl.style.display = 'none' }
+      return null
+    }
+    this.prepEl.style.display = ''
+    if (this._prep !== secs) {
+      this._prep = secs
+      this.prepEl.innerHTML = `PREPARE — <b>${secs}</b>`
+      this.prepEl.classList.remove('tick')
+      void this.prepEl.offsetWidth
+      this.prepEl.classList.add('tick')
+      return secs // caller may play a tick
+    }
+    return null
+  }
+
+  // ---------- breach drama ----------
+
+  /** Crimson pulse on the bastion bar when the gate first bleeds. */
+  bleedPulse() {
+    this.citEl.classList.remove('bleed')
+    void this.citEl.offsetWidth
+    this.citEl.classList.add('bleed')
+  }
+
+  annihilate() {
+    const el = this.hud.el('div', 'siege-annihilate', 'ANNIHILATION')
+    setTimeout(() => el.classList.add('out'), 950)
+    setTimeout(() => el.remove(), 1400)
+  }
+
+  // ---------- end-of-run stats tablet ----------
+
+  /**
+   * Duel-style end tablet: title, sub, stat rows, buttons.
+   * rows: [[label, valueHTML], …]; buttons: [{text, ghost, onClick}, …].
+   * Root keeps the `.siege-end` contract (probes click `.siege-end button`).
+   */
+  endPanel({ title, sub = '', lose = false, rows = [], buttons = [], note = '' }) {
+    const p = this.hud.el('div', 'siege-end ui-interactive')
+    this.hud.el('div', `siege-end-title${lose ? ' lose' : ''}`, title, p)
+    if (sub) this.hud.el('div', 'siege-end-sub', sub, p)
+    const box = this.hud.el('div', 'siege-stats', '', p)
+    for (const [label, value] of rows) {
+      const r = this.hud.el('div', 'siege-stat-row', '', box)
+      this.hud.el('span', 'siege-stat-label', label, r)
+      this.hud.el('span', 'siege-stat-value', value, r)
+    }
+    const rowEl = this.hud.el('div', 'siege-end-row', '', p)
+    for (const { text, ghost, onClick } of buttons) {
+      const btn = document.createElement('button')
+      if (ghost) btn.className = 'ghost'
+      btn.textContent = text
+      btn.onclick = onClick
+      rowEl.appendChild(btn)
+    }
+    if (note) this.hud.el('div', 'siege-end-note', note, p)
+    return p
   }
 
   setCitadel(frac, hp, max) {
@@ -112,7 +254,10 @@ export class SiegeHud {
     this.vgEl.classList.add('on')
   }
 
-  setCitadelDanger(on) { this.lowEl.classList.toggle('on', on) }
+  setCitadelDanger(on) {
+    this.lowEl.classList.toggle('on', on)
+    this.citEl.classList.toggle('heartbeat', on) // the bar itself thumps
+  }
   fadeOut() { this.fadeEl.classList.add('on') }
 
   setRespawn(secs) {

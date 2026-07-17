@@ -1,10 +1,12 @@
 import * as THREE from 'three'
 import { HUD } from '../../ui/hud.js'
 import { clamp } from '../../core/utils.js'
+import { AI_NAME } from './constants.js'
 
 const _v = new THREE.Vector3()
 
-/** All DOM for BLOOD COURT: scoreboard, shot clock, shot meter, stamina, banners. */
+/** All DOM for BLOOD COURT: scoreboard, shot clock, shot meter, stamina,
+ *  banners, cinematic intro card, micro shot-labels and the end stats panel. */
 export class HoopsHud {
   constructor(audio) {
     this.hud = new HUD()
@@ -18,7 +20,7 @@ export class HoopsHud {
         <div class="hs-poss" data-poss>&#9664;</div>
         <div class="hs-clock" data-clock>14</div>
       </div>
-      <div class="hs-team hs-cpu"><span class="hs-pts" data-cpu>0</span><span class="hs-name">CPU</span></div>`
+      <div class="hs-team hs-cpu"><span class="hs-pts" data-cpu>0</span><span class="hs-name">${AI_NAME}</span></div>`
     this.elYou = sb.querySelector('[data-you]')
     this.elCpu = sb.querySelector('[data-cpu]')
     this.elClock = sb.querySelector('[data-clock]')
@@ -74,6 +76,45 @@ export class HoopsHud {
 
   toast(msg) { this.hud.toast(msg) }
 
+  /* ---- cinematic letterbox (also fades the gameplay HUD chrome out) ---- */
+  cine(on) {
+    if (!this._cineTop) {
+      this._cineTop = this.hud.el('div', 'hoops-cine hoops-cine-top')
+      this._cineBot = this.hud.el('div', 'hoops-cine hoops-cine-bot')
+    }
+    this._cineTop.classList.toggle('on', on)
+    this._cineBot.classList.toggle('on', on)
+    this.hud.root.classList.toggle('hoops-cine-mode', on)
+  }
+
+  /** Intro title card: BLOOD COURT + vs-plates + house rule. Returns a remover. */
+  showIntro({ player, foe }) {
+    const w = this.hud.el('div', 'hoops-intro')
+    this.hud.el('div', 'hoops-intro-title', 'BLOOD COURT', w)
+    this.hud.el('div', 'hoops-intro-sub', 'GLADIATOR B-BALL', w)
+    const vs = this.hud.el('div', 'hoops-vs', '', w)
+    const l = this.hud.el('div', 'hoops-vs-plate hoops-vsl', '', vs)
+    this.hud.el('div', 'hoops-vs-name', player, l)
+    this.hud.el('div', 'hoops-vs-sub', 'CHALLENGER', l)
+    this.hud.el('div', 'hoops-vs-mid', 'VS', vs)
+    const r = this.hud.el('div', 'hoops-vs-plate hoops-vsr', '', vs)
+    this.hud.el('div', 'hoops-vs-name', foe, r)
+    this.hud.el('div', 'hoops-vs-sub', 'WARDEN OF THE RIM', r)
+    this.hud.el('div', 'hoops-intro-rule', 'FIRST TO 11 — CHECK UP', w)
+    this.hud.el('div', 'hoops-intro-skip', 'PRESS ANY KEY', w)
+    return () => { w.classList.add('out'); setTimeout(() => w.remove(), 420) }
+  }
+
+  /** Small release-read label: OPEN LOOK / CONTESTED! / HEAT CHECK. */
+  microLabel(text, kind = 'open') {
+    this._micro?.remove()
+    const m = this._micro = this.hud.el('div', `hoops-micro hoops-micro-${kind}`, text)
+    setTimeout(() => {
+      m.classList.add('out')
+      setTimeout(() => m.remove(), 320)
+    }, 950)
+  }
+
   /* ---- shot meter ---- */
   meterShow() {
     this.meter.classList.remove('hm-perfect', 'hm-good', 'hm-bad')
@@ -103,15 +144,31 @@ export class HoopsHud {
     this.hints.style.display = this.hints.style.display === 'none' ? 'block' : 'none'
   }
 
-  /** End screen with a return button. Returns the button element. */
-  endScreen(won, onHub) {
-    this.announce(won ? 'VICTORY' : 'DEFEAT', {
-      color: won ? '#ffb84d' : '#c23b2e',
-      sub: won ? 'THE BLOOD COURT IS YOURS' : 'RISE AND FIGHT AGAIN',
-      duration: 0,
-    })
-    const btn = this.hud.el('button', 'hoops-hub-btn ui-interactive', 'RETURN TO HUB')
+  /** Duel-style end-of-game stats tablet. Returns the panel element. */
+  statsPanel({ won, score, match, favorite, onHub }) {
+    const p = this.hud.el('div', 'hoops-panel ui-interactive')
+    this.hud.el('div', `hoops-panel-title${won ? '' : ' lose'}`,
+      won ? 'BLOOD COURT CHAMPION' : `${AI_NAME} TAKES THE COURT`, p)
+    this.hud.el('div', 'hoops-panel-score',
+      `<span class="hps-you">${score.you}</span><i>—</i><span class="hps-cpu">${score.cpu}</span>`, p)
+    const grid = this.hud.el('div', 'hoops-panel-grid', '', p)
+    const row = (k, v) => {
+      const r = this.hud.el('div', 'hoops-panel-row', '', grid)
+      this.hud.el('span', 'k', k, r)
+      this.hud.el('span', 'v', v, r)
+    }
+    const pct = match.attempts ? Math.round(100 * match.makes / match.attempts) : 0
+    row('2-POINTERS', `${match.pts2} PTS`)
+    row('3-POINTERS', `${match.pts3} PTS`)
+    row('DUNKS', `${match.dunks} (${match.dunkPts} PTS)`)
+    row('SHOOTING', `${match.makes}/${match.attempts} · ${pct}%`)
+    row('STEALS', String(match.steals))
+    row('BLOCKS', String(match.blocks))
+    row('LONGEST RUN', match.longestRun ? `${match.longestRun}-0` : '—')
+    row('FAVORITE ART', favorite || '—')
+    const btn = this.hud.el('button', 'hoops-hub-btn ui-interactive', 'RETURN TO HUB', p)
     btn.addEventListener('click', onHub)
-    return btn
+    this.hud.el('div', 'hoops-panel-auto', 'returning to the halls shortly…', p)
+    return p
   }
 }

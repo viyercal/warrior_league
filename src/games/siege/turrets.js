@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import {
-  woodMaterial, ironMaterial, leatherMaterial,
+  woodMaterial, ironMaterial, leatherMaterial, clothMaterial,
   fireMaterial, emberGlowMaterial, glowSpriteMaterial, contactShadow,
 } from '../../art/materials.js'
 import { rand, TAU, clamp } from '../../core/utils.js'
@@ -39,7 +39,9 @@ export class TurretManager {
     this.ironMat = ironMaterial('#565a62')
     this.ropeMat = leatherMaterial('#6e5a3a')
     this.payloadFire = fireMaterial({ intensity: 1.55, speed: 1.9 })
-    this._shared = new Set([this.woodMat, this.woodDark, this.ironMat, this.ropeMat, this.payloadFire])
+    // tier pennants (presentation): bronze -> gold -> war crimson
+    this.flagMats = ['#a1682e', '#e0aa46', '#a1252c'].map(c => clothMaterial(c))
+    this._shared = new Set([this.woodMat, this.woodDark, this.ironMat, this.ropeMat, this.payloadFire, ...this.flagMats])
     this._flameGeo = new THREE.ConeGeometry(0.13, 0.42, 7)
     this._flameGeo.translate(0, 0.21, 0)
     this.pads = PAD_POSITIONS.map(([x, z]) => this._makePad(x, z))
@@ -113,6 +115,7 @@ export class TurretManager {
     _v1.set(pad.x, 0, pad.z)
     this.vfx.shockwave(_v1, { color: '#ffb84d', radius: 3.4 })
     this.vfx.burst(_v1.clone().setY(1), { color: '#ffd9a0', count: 20, speed: 6, size: 0.26 })
+    this.vfx.text(_v1.clone().setY(3.1), 'BALLISTA RAISED', { color: '#ffd166', size: 0.62, life: 1.0, rise: 1.6 })
     return t
   }
 
@@ -125,6 +128,7 @@ export class TurretManager {
     _v1.set(t.pad.x, 0, t.pad.z)
     this.vfx.ring(_v1, { color: '#ffd166', radius: 3.4, life: 0.5 })
     this.vfx.burst(_v1.clone().setY(1.6), { color: '#ffd166', count: 24, speed: 7, size: 0.28 })
+    this.vfx.text(_v1.clone().setY(3.6), `WAR STANDARD LV${t.level}`, { color: '#ffd166', size: 0.66, life: 1.0, rise: 1.6 })
   }
 
   /** Dispose per-turret geometries + fresh materials; never the shared kit. */
@@ -169,6 +173,26 @@ export class TurretManager {
     collar.rotation.x = Math.PI / 2
     collar.position.y = y
     g.add(collar)
+
+    // war-standard banner pole (presentation): one pennant per tier, so the
+    // tower's rank reads from across the field; rises with the construction
+    const poleH = tier.headY + 1.3
+    const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, poleH, 5), this.woodDark)
+    flagPole.position.set(0.68, poleH / 2, -0.44)
+    flagPole.castShadow = true
+    g.add(flagPole)
+    const finial = new THREE.Mesh(new THREE.OctahedronGeometry(0.075, 0), emberGlowMaterial(1.4, '#ffd166'))
+    finial.position.set(0.68, poleH + 0.08, -0.44)
+    g.add(finial)
+    t.flags = []
+    for (let i = 0; i < t.level; i++) {
+      const penGeo = new THREE.PlaneGeometry(0.66, 0.21, 3, 1)
+      penGeo.translate(0.35, 0, 0) // pivot on the pole so the sway reads as wind
+      const pen = new THREE.Mesh(penGeo, this.flagMats[i])
+      pen.position.set(0.68, poleH - 0.16 - i * 0.3, -0.44)
+      t.flags.push(pen)
+      g.add(pen)
+    }
 
     // rotating ballista head (fires along +z)
     const head = t.head = new THREE.Group()
@@ -290,6 +314,10 @@ export class TurretManager {
       }
 
       t.hitFlash = Math.max(0, t.hitFlash - dt * 3)
+      // pennants luff in the night wind (cheap: yaw sway around the pole)
+      for (let i = 0; i < t.flags.length; i++) {
+        t.flags[i].rotation.y = -0.35 + Math.sin(pad.t * 2.6 + i * 1.7) * 0.3
+      }
       // hp bar faces camera
       const frac = clamp(t.hp / t.maxHp, 0, 1)
       t.hpBar.visible = frac < 0.999

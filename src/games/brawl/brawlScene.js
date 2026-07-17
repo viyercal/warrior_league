@@ -2,11 +2,12 @@ import * as THREE from 'three'
 import { getSkill, KEY_CODES } from '../../meta/skills.js'
 import { HUD } from '../../ui/hud.js'
 import { VFX } from '../../art/vfx.js'
-import { clamp, lerp, rand, randInt, pick, disposeObject3D } from '../../core/utils.js'
+import { clamp, lerp, damp, rand, randInt, pick, disposeObject3D } from '../../core/utils.js'
 import { buildStage, PLATFORMS, MAIN, BLAST } from './stage.js'
 import { Fighter, ATTACKS } from './fighter.js'
 import { BrawlAI } from './brawlAi.js'
 import { BrawlHud } from './brawlHud.js'
+import { BrawlIntro } from './brawlIntro.js'
 import '../../ui/brawl.css'
 
 const _v1 = new THREE.Vector3()
@@ -14,11 +15,11 @@ const _v2 = new THREE.Vector3()
 
 const AI_ROSTER = [
   {
-    name: 'BLOODFANG', color: '#c23b2e',
+    name: 'BLOODFANG', color: '#c23b2e', title: 'THE CRIMSON MAW',
     appearance: { primary: '#a1252c', secondary: '#3a1418', glow: '#ff8c3b', head: 'classic', hair: 'horns', cape: true },
   },
   {
-    name: 'IRONJAW', color: '#9aa3b2',
+    name: 'IRONJAW', color: '#9aa3b2', title: 'THE UNBENDING',
     appearance: { primary: '#6b6f78', secondary: '#2c2620', glow: '#ffb84d', head: 'visor', hair: 'none', cape: false },
   },
 ]
@@ -63,9 +64,7 @@ export default class BrawlScene {
     this.baseFighters = [this.player, ai1, ai2]
     this.fighters = [...this.baseFighters]
     this.ais = [new BrawlAI(ai1), new BrawlAI(ai2)]
-    if (profile.appearance.trail !== 'none') {
-      this._heroTrail = this.vfx.trail(this.player.hero.hips, { color: profile.appearance.glow, size: 0.34, rate: 12, life: 0.5 })
-    }
+    this._heroTrail = null // created after the entrance cinematic (_beginRoundFlow)
 
     // shield bubble (Iron Bulwark) — pale forged-steel sheen
     this.bubble = new THREE.Mesh(
@@ -98,13 +97,27 @@ export default class BrawlScene {
     this._txt = 10
     this._timeouts = []
 
+    // ---------- drama / camera state (presentation only) ----------
+    this.punch = 0                            // camera punch toward _punchPos
+    this._punchPos = new THREE.Vector3(0, 3, 0)
+    this.zoomPulse = 0                        // brief mutual zoom (showdown)
+    this.orbit = 0
+    this.orbitTarget = 0                      // final-KO cinematic orbit
+    this._maxDist = 34                        // tightened once showdown hits
+    this._showdown = false
+    this._elimN = 0
+    this._artCasts = [0, 0, 0, 0]
+    this._stats = new Map(this.baseFighters.map(f =>
+      [f, { maxDmg: 0, survives: 0, airborne: false, defiant: false, elim: 0, jab: 0, smash: 0 }]))
+
     // ---------- player input ----------
     this._buf = { jump: false, jab: false, smash: false, drop: false, dodge: 0 }
     this._pIntent = { move: 0, jump: false, fastFall: false, drop: false, jab: false, smash: false, dodge: 0 }
     this._tapA = -9
     this._tapD = -9
     input.onKey((code, down) => {
-      if (!down) return
+      if (!down || this.disposed) return
+      if (this.intro) { this._dismissIntro(); this._beginRoundFlow(); return } // ANY key skips the entrance
       const now = performance.now() / 1000
       if (code === 'Space') this._buf.jump = true
       else if (code === 'KeyJ') this._buf.jab = true
@@ -135,15 +148,18 @@ export default class BrawlScene {
     this.ctx.saveProfile()
 
     this._endThem = new Set() // fighters already called out by the announcer
-    hud.banner('ROUND 1', { sub: '3 STOCKS — LAST WARRIOR STANDING', color: '#ffb84d', duration: 2 })
-    this._timeout(() => {
-      if (this.over) return
-      this.hud.countdown(audio).then(() => {
-        if (this.disposed || this.over) return
-        this.phase = 'fight'
-        this._timeout(() => { if (!this.over) this.hud.banner('FIGHT!', { color: '#c23b2e', duration: 1.1 }) }, 450)
-      })
-    }, 1500)
+
+    // ---------- entrance cinematic (state frozen; any key skips) ----------
+    this.abilityUi.root.classList.add('brawl-ui-hide')
+    this.hintBox.classList.add('brawl-ui-hide')
+    this.intro = new BrawlIntro({
+      camera: this.camera, look: this._look, vfx: this.vfx, audio, engine, bHud: this.bHud,
+      entries: [
+        { f: ai1, from: { x: 19, y: -5 }, arc: 6, title: AI_ROSTER[0].title },
+        { f: ai2, from: { x: -18, y: -4.5 }, arc: 7.5, title: AI_ROSTER[1].title },
+        { f: this.player, from: { x: -19, y: -5 }, arc: 6.5, title: 'THE CHALLENGER' },
+      ],
+    })
 
     this.debug = {
       win: () => {
@@ -171,6 +187,13 @@ export default class BrawlScene {
   update(dt, t) {
     for (const tk of this.env.tickables) tk.tick(dt)
     this.vfx.update(dt)
+
+    // entrance cinematic: combat state is frozen, the intro owns the camera
+    if (this.intro) {
+      if (this.intro.update(dt)) { this._dismissIntro(); this._beginRoundFlow() }
+      this.bHud.update()
+      return
+    }
 
     // freeze-frame on smash connect
     if (this.freezeT > 0) {
@@ -202,6 +225,7 @@ export default class BrawlScene {
       this._resolveMelee()
       for (const f of this.fighters) this._checkBlast(f)
       this._announcer()
+      this._dramaTick()
     }
     this._updateSkills(gdt, dt)
     this.bHud.update()
@@ -228,6 +252,57 @@ export default class BrawlScene {
     b.jump = b.jab = b.smash = b.drop = false
     b.dodge = 0
     return it
+  }
+
+  /** Tear down the entrance cinematic (natural end, skip, or forced finish). */
+  _dismissIntro() {
+    if (!this.intro) return
+    this.intro.finalize()
+    this.intro = null
+    this.phase = 'ready'
+    this.abilityUi.root.classList.remove('brawl-ui-hide')
+    this.hintBox.classList.remove('brawl-ui-hide')
+  }
+
+  /** ROUND 1 banner + countdown into the fight (post-intro flow). */
+  _beginRoundFlow() {
+    if (this.disposed) return
+    const { audio, profile } = this.ctx
+    if (profile.appearance.trail !== 'none' && !this._heroTrail) {
+      this._heroTrail = this.vfx.trail(this.player.hero.hips, { color: profile.appearance.glow, size: 0.34, rate: 12, life: 0.5 })
+    }
+    if (this.over) return
+    this.hud.banner('ROUND 1', { sub: '3 STOCKS — LAST WARRIOR STANDING', color: '#ffb84d', duration: 2 })
+    this._timeout(() => {
+      if (this.over) return
+      this.hud.countdown(audio).then(() => {
+        if (this.disposed || this.over) return
+        this.phase = 'fight'
+        this._timeout(() => { if (!this.over) this.hud.banner('FIGHT!', { color: '#c23b2e', duration: 1.1 }) }, 450)
+      })
+    }, 1500)
+  }
+
+  /**
+   * Per-frame drama bookkeeping (presentation + results stats only):
+   * peak damage, launches survived, and the one-time DEFIANT call-out for
+   * a warrior who rides out a kill-strength launch at 150%+.
+   */
+  _dramaTick() {
+    for (const f of this.baseFighters) {
+      const st = this._stats.get(f)
+      if (f.dmg > st.maxDmg) st.maxDmg = f.dmg
+      if (st.airborne && f.state === 'fight' && f.grounded && f.hitstun <= 0) {
+        st.airborne = false
+        st.survives++
+        if (!st.defiant && f.dmg >= 150) {
+          st.defiant = true
+          _v1.set(f.pos.x, f.pos.y + 2.7 * f.scaleMul, 0)
+          this.vfx.text(_v1, 'DEFIANT', { color: '#e8dcc4', size: 1.1, life: 1.25, rise: 1.1 })
+          this.ctx.audio.play('levelup', { vol: 0.35 })
+        }
+      }
+    }
   }
 
   /** Pure display trigger: announcer call-out when a warrior teeters on their last stock. */
@@ -283,6 +358,8 @@ export default class BrawlScene {
       }
       if (connected) {
         atk.hasHit = true
+        const stA = this._stats.get(a) // favorite-move bookkeeping (results panel)
+        if (stA) def.heavy ? stA.smash++ : stA.jab++
         if (heavyHit) {
           this.freezeT = 0.042
           this.ctx.engine.shake(0.4, 0.32)
@@ -339,6 +416,16 @@ export default class BrawlScene {
       d._launchTrail = this.vfx.trail(d.hero.hips, { color: '#ffb056', size: 0.7, rate: 55, life: 0.4 })
       this._timeout(() => { d._launchTrail?.stop(); d._launchTrail = null }, 600)
     }
+    // knockback-strength reads (presentation + stats only)
+    const stD = this._stats.get(d)
+    if (stD) {
+      if (d.dmg > stD.maxDmg) stD.maxDmg = d.dmg
+      if (kb > 11) stD.airborne = true
+    }
+    if (kb > 17) {
+      _v2.set(d.pos.x, d.pos.y + 2.8 * d.scaleMul, 0)
+      this.vfx.text(_v2, 'LAUNCHED!', { color: '#ff8c3b', size: 1.05, life: 0.95, rise: 1.5 })
+    }
     return kb
   }
 
@@ -372,6 +459,13 @@ export default class BrawlScene {
     this.vfx.text(_v1, 'KO!', { color: '#c23b2e', size: 2, life: 1.1, rise: 1 })
     this.ctx.engine.shake(0.55, 0.45)
     this.ctx.audio.play('explode', { vol: 0.8 })
+    this.ctx.audio.play('tower', { vol: 0.5 }) // stock-loss sting
+    // KO drama: brief slow-mo + camera punch toward the blast zone
+    this.slowmoT = Math.max(this.slowmoT, 0.5)
+    this.punch = Math.max(this.punch, 0.6)
+    this._punchPos.set(ex, ey, 0)
+    const st = this._stats.get(f)
+    st.airborne = false
 
     f.stocks--
     f.falls++
@@ -388,9 +482,25 @@ export default class BrawlScene {
       f.startKO()
       f.state = 'out'
       f.stocks = 0
+      st.elim = ++this._elimN
       this.bHud.feed(`${f.name} is ELIMINATED`, '#ff5c6e')
       this._checkEnd()
+      this._timeout(() => this._maybeShowdown(), 500)
     }
+  }
+
+  /** Exactly two warriors left: SHOWDOWN! banner, mutual zoom, tighter framing. */
+  _maybeShowdown() {
+    if (this.over || this._showdown) return
+    const alive = this.baseFighters.filter(f => f.stocks > 0)
+    if (alive.length !== 2) return
+    this._showdown = true
+    this._maxDist = 30    // camera stays tighter for the endgame
+    this.zoomPulse = 0.9  // brief mutual zoom-in
+    this._clearBanners()  // SHOWDOWN owns the center of the screen
+    this.hud.banner('SHOWDOWN!', { sub: `${alive[0].name} VS ${alive[1].name}`, color: '#ff8c3b', duration: 2.1 })
+    this.ctx.audio.play('crowd', { vol: 0.42 }) // low wind-swell
+    this.ctx.audio.play('dash', { vol: 0.35 })
   }
 
   _checkEnd() {
@@ -403,7 +513,14 @@ export default class BrawlScene {
   _finish(won) {
     if (this.over) return
     this.over = won ? 'won' : 'lost'
+    this._dismissIntro()
+    // final-KO cinematic: extended slow-mo + ~25° orbit + letterbox
     this.slowmoT = 1.15
+    this.orbitTarget = won ? 0.46 : -0.46
+    this.punch = Math.max(this.punch, 0.45)
+    this.bHud.setCine(true)
+    this.abilityUi.root.classList.add('brawl-ui-hide')
+    this.hintBox.classList.add('brawl-ui-hide')
     this._clearBanners()
     const profile = this.ctx.profile
     if (won) profile.stats.wins.brawl = (profile.stats.wins.brawl || 0) + 1
@@ -412,6 +529,10 @@ export default class BrawlScene {
 
     const flawless = won && this.player.falls === 0
     this._timeout(() => {
+      this.bHud.setCine(false)
+      this.orbitTarget = 0
+      this.abilityUi.root.classList.remove('brawl-ui-hide')
+      this.hintBox.classList.remove('brawl-ui-hide')
       this.ctx.audio.play(won ? 'victory' : 'defeat')
       this.hud.banner(won ? 'CHAMPION' : 'DEFEATED', {
         color: won ? '#ffb84d' : '#c23b2e', duration: 0,
@@ -432,12 +553,42 @@ export default class BrawlScene {
         }
       }
       this.bHud.results({
-        fighters: this.baseFighters,
+        rows: this._resultsRows(),
         won,
         onHub: () => { this.ctx.audio.play('click'); this.ctx.goTo('hub') },
       })
     }, 950)
     this._timeout(() => this.ctx.goTo('hub'), 950 + 8000)
+  }
+
+  /** Podium-ordered per-fighter stat rows for the results tablet. */
+  _resultsRows() {
+    const ranked = [...this.baseFighters].sort((a, b) => this._rankOf(b) - this._rankOf(a))
+    return ranked.map((f, i) => {
+      const st = this._stats.get(f)
+      return {
+        name: f.name, color: f.color, place: i + 1, winner: i === 0,
+        kos: f.kos, taken: f.falls, maxDmg: Math.round(st.maxDmg),
+        survived: st.survives, fav: this._favoriteOf(f),
+      }
+    })
+  }
+
+  _rankOf(f) {
+    if (f.stocks > 0) return 1000 + f.stocks * 20 - Math.min(19, f.dmg * 0.05)
+    return this._stats.get(f).elim // later elimination places higher
+  }
+
+  /** Player: most-cast art. AI warriors: their most-landed strike. */
+  _favoriteOf(f) {
+    if (f.isPlayer) {
+      let bi = -1, bc = 0
+      this._artCasts.forEach((c, i) => { if (c > bc) { bc = c; bi = i } })
+      return bi >= 0 ? this.skillDefs[bi].name : '—'
+    }
+    const st = this._stats.get(f)
+    if (!st.jab && !st.smash) return '—'
+    return st.smash >= st.jab ? 'SMASH' : 'JAB FLURRY'
   }
 
   _clearBanners() {
@@ -453,6 +604,7 @@ export default class BrawlScene {
     const fn = this._casters[def.archetype]
     if (!fn) return
     this.cds[i] = def.cd
+    this._artCasts[i]++
     this.abilityUi.flash(i)
     this.player.hero.cast()
     this.ctx.audio.play('cast', { vol: 0.5 })
@@ -830,16 +982,24 @@ export default class BrawlScene {
     const midX = (minX + maxX) / 2
     const midY = (minY + maxY) / 2
     const spread = Math.max(maxX - minX, (maxY - minY) * 1.35)
-    const dist = clamp(spread * 0.95 + 8.5, 14, 34)
+
+    // drama modifiers: KO punch (toward the blast), showdown zoom, final-KO orbit
+    this.punch = damp(this.punch, 0, 1.5, dt)
+    this.zoomPulse = damp(this.zoomPulse, 0, 1.2, dt)
+    this.orbit = damp(this.orbit, this.orbitTarget, 2.6, dt)
+    const dist = clamp(spread * 0.95 + 8.5, 14, this._maxDist)
+      * (1 - this.punch * 0.28 - this.zoomPulse * 0.3)
+    const cx = lerp(midX * 0.9, clamp(this._punchPos.x, -16, 16), this.punch * 0.55)
+    const cy = lerp(midY * 0.55, clamp(this._punchPos.y, -6, 12) * 0.55, this.punch * 0.55)
 
     const k = 1 - Math.exp(-5 * dt)
     _v1.set(
-      midX * 0.9 + Math.sin(t * 0.31) * 0.35,
-      midY * 0.55 + 3.6 + Math.sin(t * 0.43) * 0.3,
-      dist,
+      cx + Math.sin(t * 0.31) * 0.35 + Math.sin(this.orbit) * dist,
+      cy + 3.6 + Math.sin(t * 0.43) * 0.3,
+      Math.cos(this.orbit) * dist,
     )
     this.camera.position.lerp(_v1, k)
-    _v2.set(midX * 0.9, midY * 0.55 + 2, 0)
+    _v2.set(cx, cy + 2, 0)
     this._look.lerp(_v2, k)
     this.camera.lookAt(this._look)
   }

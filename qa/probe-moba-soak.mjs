@@ -10,7 +10,9 @@ page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 
 await page.goto(`http://localhost:${port}/?scene=moba&mute=1`, { waitUntil: 'load' })
-await page.waitForTimeout(4000)
+await page.waitForTimeout(1500)
+await page.keyboard.press('Space') // any key skips the intro cinematic
+await page.waitForTimeout(2500)
 
 // park the hero mid-lane so towers/waves/champ all engage over time
 await page.evaluate(() => {

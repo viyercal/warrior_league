@@ -40,6 +40,12 @@ console.log('--- WIN flow ---')
   assert(win.over === 'won', 'debug.win sets won state')
   assert(win.banner.some(t => /ARENA CHAMPION/i.test(t)), `ARENA CHAMPION banner (${win.banner})`)
   assert(win.wins === 1, `stats.wins.arena saved (${win.wins})`)
+  const winPanel = await page.evaluate(() => ({
+    rows: [...document.querySelectorAll('.arena-stat-label')].map(e => e.textContent),
+    buttons: [...document.querySelectorAll('.arena-end button')].map(b => b.textContent),
+  }))
+  assert(winPanel.rows.length >= 5, `victory stat tablet rows (${winPanel.rows.join(', ')})`)
+  assert(winPanel.buttons.includes('HUB'), `victory tablet HUB button (${winPanel.buttons})`)
   await page.screenshot({ path: 'qa/screens/arena-win.png' })
   await page.waitForTimeout(8300) // auto return to hub after 8s
   const scene = await page.evaluate(() => window.__ipl.sm.currentName)
@@ -64,6 +70,10 @@ console.log('--- LOSE flow ---')
   assert(lose.banner.some(t => /DEFEATED/i.test(t)), `DEFEATED banner (${lose.banner})`)
   assert(lose.sub.some(t => /WAVE \d+ — SCORE \d+/.test(t)), `wave+score subline (${lose.sub})`)
   assert(lose.buttons.includes('RETRY') && lose.buttons.includes('HUB'), `RETRY + HUB buttons (${lose.buttons})`)
+  const losePanel = await page.evaluate(() => ({
+    rows: [...document.querySelectorAll('.arena-stat-label')].map(e => e.textContent),
+  }))
+  assert(losePanel.rows.length >= 5, `death stat tablet rows (${losePanel.rows.join(', ')})`)
   await page.screenshot({ path: 'qa/screens/arena-lose.png' })
 
   // RETRY re-inits arena

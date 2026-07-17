@@ -16,7 +16,11 @@ const check = (name, ok, detail = '') => {
 }
 
 await page.goto(`http://localhost:${port}/?scene=kart&mute=1`, { waitUntil: 'load' })
-await page.waitForTimeout(5600)
+// boot -> intro flyover (any key skips) -> countdown -> race
+await page.waitForFunction(() => window.__scene?.state === 'intro', null, { timeout: 15000 })
+await page.keyboard.press('x')
+await page.waitForFunction(() => window.__scene?.state === 'race', null, { timeout: 12000 })
+await page.waitForTimeout(300)
 
 // warp the player to just before the line, driving forward on the centerline
 const warp = lapFrac => page.evaluate(f => {

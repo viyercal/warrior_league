@@ -24,6 +24,9 @@ async function boot(loadout) {
     localStorage.setItem('ipl-profile-v2', JSON.stringify(p))
   }, loadout)
   await page.goto(`http://localhost:${process.env.IPL_PORT || '5187'}/?scene=brawl&mute=1`, { waitUntil: 'load' })
+  // skip the entrance cinematic (any key skips)
+  await page.waitForFunction(() => !!window.__scene?.phase, null, { timeout: 15000 })
+  await page.keyboard.press('x')
   await page.waitForFunction(() => window.__scene?.phase === 'fight', null, { timeout: 15000 })
   // freeze the AIs so checks are deterministic (probe-only patch)
   await page.evaluate(() => {

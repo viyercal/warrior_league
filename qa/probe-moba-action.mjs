@@ -10,7 +10,9 @@ page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 
 await page.goto(`http://localhost:${port}/?scene=moba&mute=1`, { waitUntil: 'load' })
-await page.waitForTimeout(4500)
+await page.waitForTimeout(1500)
+await page.keyboard.press('Space') // any key skips the intro cinematic
+await page.waitForTimeout(3000)
 
 const state = () => page.evaluate(() => {
   const s = window.__scene

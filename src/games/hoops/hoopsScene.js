@@ -9,12 +9,15 @@ import { HoopsBall } from './ball.js'
 import { HoopsHud } from './hoopsHud.js'
 import { Abilities } from './abilities.js'
 import { CpuBrain } from './ai.js'
-import { COURT, RULES, isThree } from './constants.js'
+import { AI_NAME, COURT, RULES, isThree } from './constants.js'
 
 const _tmp = new THREE.Vector3()
 const _tmp2 = new THREE.Vector3()
 const _fwd = new THREE.Vector3()
 const _look = new THREE.Vector3()
+const smooth = k => k * k * (3 - 2 * k)
+const INTRO_DUR = 4.2   // cinematic intro length (must stay ≤ 4.5s, any key skips)
+const CHECK_DUR = 0.95  // check-up face-off beat (unchanged game timing)
 
 const mkEntity = hero => ({
   hero,
@@ -84,7 +87,8 @@ export default class HoopsScene {
 
     // HUD + abilities
     this.hud = new HoopsHud(audio)
-    const bar = this.hud.hud.abilityBar(profile.loadout.map(getSkill), { game: 'hoops', keys: WASD_KEY_LABELS })
+    this.skillDefs = profile.loadout.map(getSkill)
+    const bar = this.hud.hud.abilityBar(this.skillDefs, { game: 'hoops', keys: WASD_KEY_LABELS })
     this.abilities = new Abilities({
       scene: this.scene, game: this.game, vfx: this.vfx, audio, engine,
       appearance: profile.appearance,
@@ -92,6 +96,7 @@ export default class HoopsScene {
         toast: m => this.hud.toast(m),
         banner: (t, o) => this.hud.announce(t, o),
         cometSlam: v => this._cometSlam(v),
+        onCast: i => { this.match.casts[i]++ },
       },
     }, profile, bar)
 
@@ -118,10 +123,38 @@ export default class HoopsScene {
     this._dunk = null
     this._madeT = 0
     this._checkT = 0
-    this._countdownStarted = false
     this._doubleTap = { KeyA: -9, KeyD: -9 }
     this._stealCd = 0
     this._starfireFlight = false
+
+    // ---------- drama / presentation state (mechanics untouched) ----------
+    this.timeScale = 1
+    this._slowmoT = 0
+    this._slowmoScale = 0.35
+    this._nudge = 0          // camera drift toward the rim during slow-mo
+    this._nudgeT = 0
+    this._punch = 0          // dunk rim-hang punch-in
+    this._checkCamT = 0
+    this._matchPoint = false
+    this._mpAnnounce = false
+    this._runAnnounce = null
+    this._dramaticEnd = false
+    this._run = { side: null, pts: 0, tier: 0 }
+    this.match = {
+      pts2: 0, pts3: 0, dunks: 0, dunkPts: 0,
+      attempts: 0, makes: 0, steals: 0, blocks: 0,
+      longestRun: 0, casts: [0, 0, 0, 0],
+    }
+
+    // cinematic intro: letterboxed orbit of the torchlit court, any key skips
+    this._introT = 0
+    this.hud.cine(true)
+    this._introUi = this.hud.showIntro({
+      player: (profile.name || 'WARLORD').toUpperCase(),
+      foe: AI_NAME,
+    })
+    audio.play('crowd', { vol: 0.45 })
+    this.arena.crowd.hype(0.7)
 
     profile.stats.plays.hoops = (profile.stats.plays.hoops || 0) + 1
     this.ctx.saveProfile()
@@ -146,6 +179,10 @@ export default class HoopsScene {
     const { input, audio } = this.ctx
     input.onKey((code, down) => {
       const g = this.game
+      if (g.phase === 'intro') {           // ANY key skips the cinematic
+        if (down) this._endIntro()
+        return
+      }
       if (down && code === 'KeyH') this.hud.toggleHints()
       if (g.phase === 'end') return
       const ki = this.abilities.keyIndex(code)
@@ -211,6 +248,7 @@ export default class HoopsScene {
     this.ctx.audio.play('zap', { vol: 0.35 })
     const d = distXZ(p.hero.group.position, g.ai.hero.group.position)
     if (d < 1.75 && Math.random() < (g.ai.windup ? 0.2 : 0.55)) {
+      this.match.steals++
       this.vfx.impact(this.ball.pos, { color: '#ffb84d', size: 0.8 })
       this.hud.announce('STEAL!', { color: '#ffb84d', duration: 1.1 })
       this.ctx.audio.play('kill', { vol: 0.4 })
@@ -258,7 +296,11 @@ export default class HoopsScene {
     const val = isThree(p.hero.group.position) ? 3 : 2
     const quality = perfect ? 'perfect' : good ? 'good' : 'bad'
     this.hud.meterResult(quality)
-    if (g.onFire && val === 3 && dist > 7.6) this.hud.announce('HEAT CHECK', { color: '#ff8c3b', duration: 1.2 })
+    this.match.attempts++
+    // release read: micro-labels off the existing contest calc
+    if (g.onFire && val === 3 && dist > 7.6) this.hud.microLabel('HEAT CHECK', 'heat')
+    else if (contest >= 0.4) this.hud.microLabel('CONTESTED!', 'contested')
+    else if (contest <= 0.05 && dist > 3.4) this.hud.microLabel('OPEN LOOK', 'open')
     this._starfireFlight = g.eff.starfire
     g.eff.starfire = false
     this._startJump(p, 0.62, 1.0)
@@ -287,7 +329,20 @@ export default class HoopsScene {
     const T = clamp(0.8 + shot.dist * 0.052, 0.9, 1.5)
     if (this._starfireFlight && shot.shooter === 'player') this.ball.setFire(true)
     this.ball.shoot({ from, target, time: T, lateralError, onArrive: () => this._arrive(shot) })
-    void g
+
+    // ---- flight drama (outcome is already locked; presentation only) ----
+    const winning = shot.make &&
+      g.score[shot.shooter === 'player' ? 'you' : 'cpu'] + shot.val >= RULES.TARGET
+    if (winning) {                       // game winner: long slow-mo ride to the rim
+      this._dramaticEnd = true
+      this._slowmoScale = 0.3
+      this._slowmoT = 1.8
+      this._nudgeT = 1
+    } else if (shot.make && shot.val === 3) {   // made three: brief slow-mo + rim nudge
+      this._slowmoScale = 0.35
+      this._slowmoT = 0.5
+      this._nudgeT = 1
+    }
   }
 
   _arrive(shot) {
@@ -296,6 +351,7 @@ export default class HoopsScene {
     this._starfireFlight = false
     if (shot.make) {
       this.arena.netFlare()
+      if (shot.shooter === 'player') this.match.makes++
       if (starfire) {
         this.vfx.impact(COURT.RIM, { color: '#ffb454', size: 1.6 })
         this.vfx.shockwave(COURT.RIM_FLOOR, { color: '#ffb454', radius: 3.5 })
@@ -344,6 +400,7 @@ export default class HoopsScene {
     if (p.jumpT > 0 && dp < 2.35) {
       const k = 1 - p.jumpT / p.jumpDur
       if (k > 0.05 && k < 0.72) {
+        this.match.blocks++
         this.hud.announce('DENIED!', { color: '#ffb84d', duration: 1.4 })
         this.ctx.audio.play('hit')
         this.ctx.audio.play('crowd', { vol: 0.4 })
@@ -384,7 +441,7 @@ export default class HoopsScene {
     if (Math.random() < 0.42) {
       this.ctx.audio.play('zap', { vol: 0.4 })
       this.hud.announce('STOLEN!', { color: '#c23b2e', duration: 1.2 })
-      this._resetCheck('ai', 'CPU BALL')
+      this._resetCheck('ai', `${AI_NAME} BALL`)
     }
   }
 
@@ -417,7 +474,14 @@ export default class HoopsScene {
         this.ball.setFire(true)
         g.player.hero.ring.visible = true
       }
+      // stat ledger: points by type
+      if (dunk || comet) { this.match.dunks++; this.match.dunkPts += val }
+      else if (val === 3) this.match.pts3 += val
+      else this.match.pts2 += val
     }
+
+    this._trackRun(side, val, you)
+    this._checkMatchPoint()
 
     if (g.score.you >= RULES.TARGET || g.score.cpu >= RULES.TARGET) {
       return this._finish(g.score.you >= RULES.TARGET)
@@ -426,6 +490,35 @@ export default class HoopsScene {
     g.phase = 'made'
     this._madeT = 1.15
     this._nextOffense = you ? 'player' : 'ai'
+  }
+
+  /** Momentum: unanswered-points runs -> banner + jumbotron flash + louder crowd. */
+  _trackRun(side, val, you) {
+    const run = this._run
+    if (run.side === side) run.pts += val
+    else { run.side = side; run.pts = val; run.tier = 0 }
+    if (you) this.match.longestRun = Math.max(this.match.longestRun, run.pts)
+    const tier = run.pts >= 8 ? 2 : run.pts >= 5 ? 1 : 0
+    if (tier <= run.tier) return
+    run.tier = tier
+    const msg = `${run.pts}-0 RUN`
+    this.arena.jumbo.flash(msg, you ? '#ffb84d' : '#c9432f')
+    this.arena.crowd.hype(you ? 1.4 + tier * 0.4 : 0.9)
+    this.ctx.audio.play('crowd', { vol: 0.4 + tier * 0.2 })
+    this._runAnnounce = { msg, you }   // shown at the next check-up (no banner stomping)
+  }
+
+  /** MATCH POINT: one basket from the win — braziers flare, camera tightens. */
+  _checkMatchPoint() {
+    if (this._matchPoint) return
+    const g = this.game
+    const lead = Math.max(g.score.you, g.score.cpu)
+    if (lead < RULES.TARGET - 1 || lead >= RULES.TARGET) return
+    this._matchPoint = true
+    this._mpAnnounce = true   // the next check-up announces MATCH POINT instead
+    this.arena.setMatchPoint(true)
+    this.arena.jumbo.flash('MATCH POINT', '#ff5a26')
+    this.ctx.audio.play('tower', { vol: 0.5 })
   }
 
   _cometSlam(value) {
@@ -445,7 +538,7 @@ export default class HoopsScene {
     this.hud.meterHide()
     g.phase = 'dunk'
     this._dunk = {
-      t: 0, dur: 0.62, kind,
+      t: 0, dur: 0.62, kind, hangT: 0, hung: false,
       from: p.hero.group.position.clone(),
       to: v3(COURT.RIM_FLOOR.x, 0, COURT.RIM_FLOOR.z + 0.5),
     }
@@ -460,9 +553,11 @@ export default class HoopsScene {
     if (titan) g.eff.titanT = 0
     this.ctx.engine.shake(titan ? 0.85 : 0.5, 0.5)
     this.ctx.audio.play('explode', { vol: 0.7 })
-    this.ctx.audio.play('crowd', { vol: 0.7, delay: 0.05 })
+    // crowd eruption tier: titan slams bring the whole colosseum to its feet
+    this.ctx.audio.play('crowd', { vol: titan ? 0.95 : 0.8, delay: 0.05 })
+    if (titan) this._later(() => { if (!this._disposed) this.ctx.audio.play('crowd', { vol: 0.7 }) }, 380)
     this.arena.netFlare()
-    this.arena.crowd.hype(1.4)
+    this.arena.crowd.hype(titan ? 2.6 : 1.9)
     this.vfx.shockwave(COURT.RIM_FLOOR, { color: titan ? '#ff5a26' : '#ffb84d', radius: 5.5 })
     this.vfx.impact(COURT.RIM, { color: '#ffb84d', size: 1.8 })
     this.ball.dropThrough()
@@ -479,7 +574,9 @@ export default class HoopsScene {
     const g = this.game
     if (g.phase === 'end') return
     g.phase = 'check'
-    this._checkT = 0.95
+    this._checkT = CHECK_DUR
+    this._nudgeT = 0
+    this._slowmoT = Math.min(this._slowmoT, 0.2)
     g.offense = offense
     g.clock = RULES.SHOT_CLOCK
     g.eff.novaArmed = false
@@ -501,10 +598,25 @@ export default class HoopsScene {
     this.ball.give(offense)
     this.hud.setPossession(offense)
     this.arena.jumbo.set({ you: g.score.you, cpu: g.score.cpu, clock: g.clock, poss: offense })
-    this.hud.announce('CHECK', {
-      color: offense === 'player' ? '#ffb84d' : '#c23b2e',
-      sub: msg || (offense === 'player' ? 'YOUR BALL' : 'CPU BALL'), duration: 0.85,
-    })
+    if (this._mpAnnounce) {          // match point owns the check-up moment
+      this._mpAnnounce = false
+      this._runAnnounce = null
+      this.hud.announce('MATCH POINT', {
+        color: '#ff5a26', sub: 'NEXT BLOOD TAKES THE COURT', duration: 1.8,
+      })
+    } else if (this._runAnnounce) {  // momentum banner rides the check-up
+      const { msg: runMsg, you } = this._runAnnounce
+      this._runAnnounce = null
+      this.hud.announce(runMsg, {
+        color: you ? '#ffb84d' : '#c23b2e',
+        sub: you ? 'THE CROWD RISES' : 'THE CROWD TURNS ON YOU', duration: 1.4,
+      })
+    } else {
+      this.hud.announce('CHECK UP', {
+        color: offense === 'player' ? '#ffb84d' : '#c23b2e',
+        sub: msg || (offense === 'player' ? 'YOUR BALL' : `${AI_NAME} BALL`), duration: 0.85,
+      })
+    }
     this.ctx.audio.play('whistle', { vol: 0.35 })
   }
 
@@ -513,26 +625,59 @@ export default class HoopsScene {
   _debugEnd(won) {
     const g = this.game
     if (g.phase === 'end') return
+    this._dramaticEnd = false   // QA hooks end instantly, no cinematic delay
     g.score[won ? 'you' : 'cpu'] = RULES.TARGET
     this.hud.setScore(g.score.you, g.score.cpu)
     this._finish(won)
+  }
+
+  /** Most-cast equipped art this match (for the stats panel). */
+  _favoriteArt() {
+    const c = this.match.casts
+    const max = Math.max(...c)
+    return max > 0 ? this.skillDefs[c.indexOf(max)].name : null
   }
 
   _finish(won) {
     const g = this.game
     if (g.phase === 'end') return
     g.phase = 'end'
+    const dramatic = this._dramaticEnd
+    this._dramaticEnd = false
     const { profile, audio } = this.ctx
     if (won) profile.stats.wins.hoops = (profile.stats.wins.hoops || 0) + 1
     this.ctx.saveProfile()
-    audio.play(won ? 'victory' : 'defeat')
+    this._introUi?.()            // safety: debug end during the intro
+    this._introUi = null
+    this.hud.cine(false)
+    this.hud.meterHide()
+    this.arena.setMatchPoint(won)   // victors keep the braziers roaring
+    audio.play(won ? 'victory' : 'defeat', dramatic ? { delay: 0.6 } : {})
     audio.play('crowd', { vol: won ? 0.8 : 0.25, delay: 0.15 })
     this.arena.crowd.hype(won ? 2 : 0.5)
     g.player.hero.setMoveSpeed(0)
     g.ai.hero.setMoveSpeed(0)
     g.player.hero.setState(won ? 'dance' : 'ko')
     g.ai.hero.setState(won ? 'ko' : 'dance')
-    this.hud.endScreen(won, () => this.ctx.goTo('hub'))
+
+    const showEnd = () => {
+      if (this._disposed) return
+      this.hud.announce(won ? 'VICTORY' : 'DEFEAT', {
+        color: won ? '#ffb84d' : '#c23b2e',
+        sub: won ? 'THE BLOOD COURT IS YOURS' : 'RISE AND FIGHT AGAIN',
+        duration: 0,
+      })
+      this.hud.statsPanel({
+        won, score: g.score, match: this.match, favorite: this._favoriteArt(),
+        onHub: () => { this.ctx.audio.play('click'); this.ctx.goTo('hub') },
+      })
+    }
+    if (dramatic) {   // game-winner: ember burst at the rim, victory lands a beat later
+      this._confetti(COURT.RIM)
+      this.ctx.engine.shake(0.35, 0.4)
+      this._later(showEnd, 900)
+    } else showEnd()
+
     if (won) {
       for (let i = 0; i < 7; i++) {
         this._later(() => {
@@ -558,21 +703,27 @@ export default class HoopsScene {
     const g = this.game
     g.t += dt
 
-    if (!this._countdownStarted) {
-      this._countdownStarted = true
-      this.hud.hud.countdown(this.ctx.audio).then(() => {
-        if (!this._disposed && g.phase === 'intro') this._resetCheck('player', 'FIRST TO 11')
-      })
-    }
+    // cinematic intro: world breathes, game state frozen
+    if (g.phase === 'intro') { this._updateIntro(dt); return }
 
-    // ambience swells
+    // ambience swells (louder while a run is alive)
     this._crowdAmbT -= dt
     if (this._crowdAmbT <= 0) {
       this._crowdAmbT = rand(16, 30)
-      this.ctx.audio.play('crowd', { vol: 0.14 })
+      this.ctx.audio.play('crowd', { vol: 0.14 + this._run.tier * 0.07 })
     }
 
-    this._stealCd = Math.max(0, this._stealCd - dt)
+    // drama slow-mo: real-time countdown, quick ramp back to full speed
+    if (this._slowmoT > 0) {
+      this._slowmoT -= dt
+      this.timeScale = this._slowmoT > 0.22
+        ? this._slowmoScale
+        : lerp(this._slowmoScale, 1, 1 - Math.max(0, this._slowmoT) / 0.22)
+      if (this._slowmoT <= 0) this._nudgeT = 0
+    } else this.timeScale = 1
+    const gdt = dt * this.timeScale
+
+    this._stealCd = Math.max(0, this._stealCd - gdt)
 
     if (g.phase === 'check') {
       this._checkT -= dt
@@ -584,28 +735,87 @@ export default class HoopsScene {
       this._madeT -= dt
       if (this._madeT <= 0) this._resetCheck(this._nextOffense)
     } else if (g.phase === 'dunk') {
-      this._updateDunk(dt)
+      this._updateDunk(gdt)
     }
 
-    if (g.phase === 'live') this._updateLive(dt)
+    if (g.phase === 'live') this._updateLive(gdt)
 
-    // shared entity updates
-    this._updatePlayerControl(dt)
-    this.brain.update(dt)
-    this._integrate(g.player, dt, 5.3, true)
-    this._integrate(g.ai, dt, 5.0, false)
-    this._collide(dt)
+    // shared entity updates (game-time; slow-mo dilates both sides equally)
+    this._updatePlayerControl(gdt)
+    this.brain.update(gdt)
+    this._integrate(g.player, gdt, 5.3, true)
+    this._integrate(g.ai, gdt, 5.0, false)
+    this._collide(gdt)
     this._facing(dt)
 
-    g.player.hero.update(dt)
-    g.ai.hero.update(dt)
-    this.ball.update(dt)
-    this.abilities.tick(dt)
+    g.player.hero.update(gdt)
+    g.ai.hero.update(gdt)
+    this.ball.update(gdt)
+    this.abilities.tick(gdt)
     this.vfx.update(dt)
     this.arena.tick(dt)
     this._updateHudFrame(dt)
     this._updateCamera(dt)
     void t
+  }
+
+  /* ------------------------------ intro cinematic ------------------------------ */
+
+  /** Letterboxed orbit: low past the hoop -> along the crowd -> rise to gameplay. */
+  _updateIntro(dt) {
+    const g = this.game
+    const k = (this._introT += dt)
+
+    // idle life: the two square up while the court breathes
+    g.player.hero.faceTowards(g.ai.hero.group.position, dt)
+    g.ai.hero.faceTowards(g.player.hero.group.position, dt)
+    g.player.hero.update(dt)
+    g.ai.hero.update(dt)
+    this.ball.update(dt)
+    this.vfx.update(dt)
+    this.arena.tick(dt)
+
+    const cam = this.camera
+    if (k < 1.5) {                       // beat 1: low sweep under the burning hoop
+      const s = smooth(k / 1.5)
+      cam.position.set(lerp(-3.4, 3.2, s), lerp(1.05, 1.5, s), lerp(-8.3, -7.2, s))
+      _look.set(0, lerp(3.0, 2.4, s), COURT.RIM.z)
+    } else if (k < 3.0) {                // beat 2: tracking shot past the crowd tiers
+      const s = smooth((k - 1.5) / 1.5)
+      cam.position.set(lerp(3.2, 8.8, s), lerp(1.5, 2.7, s), lerp(-7.2, 2.6, s))
+      _look.set(0, lerp(2.4, 1.3, s), lerp(COURT.RIM.z, 2.2, s))
+    } else {                             // beat 3: rise and settle into the game camera
+      const s = smooth(Math.min(1, (k - 3.0) / 1.15))
+      cam.position.set(lerp(8.8, 0, s), lerp(2.7, 4.6, s), lerp(2.6, 12.2, s))
+      _look.set(0, lerp(1.3, 1.4, s), lerp(2.2, -0.11, s))
+    }
+    cam.lookAt(_look)
+    this._camLook.copy(_look)
+
+    if (k >= INTRO_DUR) this._endIntro()
+  }
+
+  /** Snap out of the cinematic into the first check-up. Any key lands here too. */
+  _endIntro() {
+    const g = this.game
+    if (g.phase !== 'intro') return
+    this._introUi?.()
+    this._introUi = null
+    this.hud.cine(false)
+    this._resetCheck('player', 'FIRST TO 11')
+    this._snapCamera()
+  }
+
+  /** Hard-set the camera to the live follow pose (no drift after the cut). */
+  _snapCamera() {
+    const P = this.game.player.hero.group.position
+    this.camera.position.set(P.x * 0.72, 4.6, clamp(P.z, -6, 8.5) + 6.8)
+    this._camLook.set(
+      P.x * 0.55 + COURT.RIM_FLOOR.x * 0.45,
+      1.4,
+      P.z * 0.5 + COURT.RIM_FLOOR.z * 0.5,
+    )
+    this.camera.lookAt(this._camLook)
   }
 
   _updateLive(dt) {
@@ -650,10 +860,10 @@ export default class HoopsScene {
           if (side === g.offense) {
             this.ball.give(side)
             g.clock = RULES.SHOT_CLOCK
-            this.hud.toast(side === 'player' ? 'OFFENSIVE BOARD!' : 'CPU BOARD')
+            this.hud.toast(side === 'player' ? 'OFFENSIVE BOARD!' : `${AI_NAME} BOARD`)
           } else {
             this.ball.give(side)
-            this._resetCheck(side, side === 'player' ? 'REBOUND — YOUR BALL' : 'CPU REBOUND')
+            this._resetCheck(side, side === 'player' ? 'REBOUND — YOUR BALL' : `${AI_NAME} REBOUND`)
           }
           break
         }
@@ -673,14 +883,21 @@ export default class HoopsScene {
     const g = this.game
     const d = this._dunk
     if (!d) { g.phase = 'live'; return }
-    d.t += dt
+    if (d.hangT > 0) d.hangT -= dt   // rim-hang beat: frozen at the iron
+    else d.t += dt
     const k = Math.min(1, d.t / d.dur)
+    if (!d.hung && k >= 0.6) {       // catch the rim: hold + camera punch-in
+      d.hung = true
+      d.hangT = 0.3
+      this._punch = 0.55
+      this.ctx.audio.play('rim', { vol: 0.45 })
+    }
     const e = k * k * (3 - 2 * k)
     const P = g.player.hero.group.position
     P.x = lerp(d.from.x, d.to.x, e)
     P.z = lerp(d.from.z, d.to.z, e)
     P.y = Math.sin(Math.PI * Math.min(k, 0.999)) * 2.0
-    g.player.hero.setMoveSpeed(8)
+    g.player.hero.setMoveSpeed(d.hangT > 0 ? 0 : 8)
     if (k >= 1) { P.y = 0; this._finishDunk() }
   }
 
@@ -797,6 +1014,11 @@ export default class HoopsScene {
     const ai = g.ai
     const P = p.hero.group.position
     const A = ai.hero.group.position
+    if (g.phase === 'check') {   // check-up ritual: square up eye to eye
+      p.hero.faceTowards(A, dt, 10)
+      ai.hero.faceTowards(P, dt, 10)
+      return
+    }
     if (this.ball.state === 'loose' || this.ball.state === 'drop') {
       p.hero.faceTowards(this.ball.pos, dt)
       ai.hero.faceTowards(this.ball.pos, dt)
@@ -827,11 +1049,31 @@ export default class HoopsScene {
       this.camera.lookAt(this._camLook)
       return
     }
+    this._punch = damp(this._punch, 0, 1.6, dt)
+    this._nudge = damp(this._nudge, this._nudgeT, 4, dt)
+
+    if (g.phase === 'check') {   // face-off frame: low push-in on the pair at the top
+      const k = smooth(1 - Math.max(0, this._checkT) / CHECK_DUR)
+      _tmp.set(lerp(3.0, 2.45, k), lerp(2.15, 1.85, k), lerp(9.3, 8.5, k))
+      this.camera.position.x = damp(this.camera.position.x, _tmp.x, 6, dt)
+      this.camera.position.y = damp(this.camera.position.y, _tmp.y, 6, dt)
+      this.camera.position.z = damp(this.camera.position.z, _tmp.z, 6, dt)
+      this._camLook.x = damp(this._camLook.x, 0, 6, dt)
+      this._camLook.y = damp(this._camLook.y, 1.25, 6, dt)
+      this._camLook.z = damp(this._camLook.z, 3.9, 6, dt)
+      this.camera.lookAt(this._camLook)
+      return
+    }
+
     const P = g.player.hero.group.position
     const bz = this.ball.pos.z
-    const tx = P.x * 0.72
-    const tz = clamp(Math.max(P.z, bz), -6, 8.5) + 6.8
-    const ty = 4.6
+    // match point tightens the frame; slow-mo drifts it toward the rim
+    let tx = P.x * 0.72
+    let tz = clamp(Math.max(P.z, bz), -6, 8.5) + (this._matchPoint ? 6.1 : 6.8)
+    let ty = this._matchPoint ? 4.25 : 4.6
+    tx = lerp(tx, COURT.RIM_FLOOR.x, this._nudge * 0.5)
+    tz = lerp(tz, COURT.RIM_FLOOR.z + 7.6, this._nudge * 0.5)
+    ty = lerp(ty, 3.5, this._nudge * 0.6)
     this.camera.position.x = damp(this.camera.position.x, tx, 3.2, dt)
     this.camera.position.y = damp(this.camera.position.y, ty, 3.2, dt)
     this.camera.position.z = damp(this.camera.position.z, tz, 3.2, dt)
@@ -840,9 +1082,15 @@ export default class HoopsScene {
       1.4,
       P.z * 0.5 + COURT.RIM_FLOOR.z * 0.5,
     )
+    // slow-mo eyes on the iron
+    _look.x = lerp(_look.x, COURT.RIM.x, this._nudge * 0.7)
+    _look.y = lerp(_look.y, COURT.RIM.y * 0.8, this._nudge * 0.7)
+    _look.z = lerp(_look.z, COURT.RIM.z, this._nudge * 0.7)
     this._camLook.x = damp(this._camLook.x, _look.x, 4, dt)
     this._camLook.y = damp(this._camLook.y, _look.y, 4, dt)
     this._camLook.z = damp(this._camLook.z, _look.z, 4, dt)
+    // dunk punch-in: bite toward the look point while the hero hangs on the rim
+    if (this._punch > 0.005) this.camera.position.lerp(this._camLook, this._punch * 0.2)
     this.camera.lookAt(this._camLook)
   }
 
@@ -870,6 +1118,7 @@ export default class HoopsScene {
     this._disposed = true
     for (const id of this._timers) clearTimeout(id)
     this._timers.length = 0
+    this.hud.hud.root.classList.remove('hoops-cine-mode')   // never leak into other scenes
     this.abilities.dispose()
     this.vfx.dispose()
   }

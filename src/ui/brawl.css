@@ -7,6 +7,7 @@
 }
 .brawl-chip {
   --fc: #ffb84d;
+  position: relative;
   min-width: 118px;
   padding: 8px 14px 10px;
   text-align: center;
@@ -54,6 +55,47 @@
   55% { transform: scale(1.2) rotate(2.5deg); }
   100% { transform: scale(1); }
 }
+/* 100%+: the number gains a heartbeat */
+.brawl-pct.hot:not(.pop) { animation: brawlHeartbeat 1.25s ease-in-out infinite; }
+@keyframes brawlHeartbeat {
+  0%, 46%, 100% { transform: scale(1); }
+  10% { transform: scale(1.1); }
+  20% { transform: scale(1); }
+  30% { transform: scale(1.06); }
+}
+/* 200%+: the plaque face reads as cracked stone */
+.brawl-chip-crit::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 6px; pointer-events: none;
+  background:
+    linear-gradient(102deg, transparent 42.7%, rgba(8, 5, 3, 0.75) 43.4%, rgba(88, 70, 48, 0.35) 44%, transparent 44.8%),
+    linear-gradient(155deg, transparent 57.7%, rgba(8, 5, 3, 0.7) 58.5%, transparent 59.3%),
+    linear-gradient(38deg, transparent 68.9%, rgba(8, 5, 3, 0.65) 69.5%, transparent 70.2%),
+    radial-gradient(ellipse 70% 50% at 32% 72%, rgba(0, 0, 0, 0.3), transparent 70%);
+}
+.brawl-chip-crit .brawl-pct { text-shadow: 0 0 18px rgba(255, 84, 56, 0.55), 0 2px 3px #000; }
+/* stock-loss cracks: one seam per fallen stock, plus a slam on impact */
+.brawl-crack1::after, .brawl-crack2::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: 6px; pointer-events: none;
+  background:
+    linear-gradient(116deg, transparent 30.7%, rgba(6, 4, 2, 0.9) 31.5%, rgba(88, 70, 48, 0.4) 32.1%, transparent 32.9%),
+    linear-gradient(74deg, transparent 55%, rgba(6, 4, 2, 0.85) 55.8%, transparent 56.6%);
+}
+.brawl-crack2::after {
+  background:
+    linear-gradient(116deg, transparent 30.7%, rgba(6, 4, 2, 0.9) 31.5%, rgba(88, 70, 48, 0.4) 32.1%, transparent 32.9%),
+    linear-gradient(74deg, transparent 55%, rgba(6, 4, 2, 0.85) 55.8%, transparent 56.6%),
+    linear-gradient(142deg, transparent 44%, rgba(6, 4, 2, 0.9) 44.8%, rgba(88, 70, 48, 0.4) 45.4%, transparent 46.2%),
+    linear-gradient(24deg, transparent 66%, rgba(6, 4, 2, 0.8) 66.8%, transparent 67.6%);
+}
+.brawl-chip-hit { animation: brawlChipHit 0.45s ease; }
+@keyframes brawlChipHit {
+  0% { transform: translateY(0); filter: brightness(1); }
+  18% { transform: translateY(4px) rotate(-1.4deg); filter: brightness(1.9); }
+  45% { transform: translateY(-2px) rotate(0.8deg); }
+  100% { transform: translateY(0); filter: brightness(1); }
+}
 /* stock studs: ember gems set into the stone */
 .brawl-pips { display: flex; justify-content: center; gap: 6px; margin-top: 3px; }
 .brawl-pip {
@@ -99,10 +141,66 @@
   100% { opacity: 1; transform: translateX(0); }
 }
 
+/* ---------- cinematic kit: letterbox, HUD dimming, intro name plates ---------- */
+.brawl-cine {
+  position: absolute; left: 0; right: 0; height: 0;
+  background: #050302; z-index: 18;
+  transition: height 0.45s ease;
+}
+.brawl-cine-top { top: 0; }
+.brawl-cine-bot { bottom: 0; }
+.brawl-cine.on { height: 9vh; }
+.brawl-chips, .brawl-feed { transition: opacity 0.35s; }
+.brawl-hidden { opacity: 0 !important; }
+.brawl-ui-hide { opacity: 0 !important; pointer-events: none; transition: opacity 0.3s; }
+
+/* entrance name plates: bronze-seamed stone slabs slamming in per landing */
+.brawl-plate {
+  --fc: #ffb84d;
+  position: absolute; left: 50%; bottom: 17vh;
+  transform: translateX(-50%);
+  min-width: 300px;
+  padding: 14px 44px 16px;
+  text-align: center;
+  z-index: 26; pointer-events: none;
+  background:
+    linear-gradient(170deg, rgba(80, 68, 52, 0.55), rgba(14, 10, 7, 0.55) 55%, rgba(0, 0, 0, 0.6)),
+    rgba(24, 19, 14, 0.94);
+  border: 1px solid color-mix(in srgb, var(--fc) 45%, #4a3416);
+  border-top-color: color-mix(in srgb, var(--fc) 60%, #a88a4a);
+  border-radius: 6px;
+  box-shadow:
+    0 0 34px color-mix(in srgb, var(--fc) 20%, transparent),
+    inset 0 1px 0 rgba(232, 220, 196, 0.14),
+    inset 0 0 44px rgba(0, 0, 0, 0.55),
+    0 16px 44px rgba(0, 0, 0, 0.7);
+  animation: brawlPlateSlam 0.34s cubic-bezier(0.16, 1.4, 0.4, 1);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.brawl-plate.out { opacity: 0; transform: translateX(-50%) scale(0.94); }
+@keyframes brawlPlateSlam {
+  from { transform: translateX(-50%) scale(2.5); opacity: 0; }
+}
+.brawl-plate-name {
+  font-family: var(--font-display);
+  font-size: 38px; font-weight: 800; letter-spacing: 0.12em;
+  font-variant: small-caps;
+  color: color-mix(in srgb, var(--fc) 80%, #ffe9c4);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--fc) 45%, transparent), 0 3px 0 rgba(16, 8, 3, 0.8);
+  line-height: 1.05;
+}
+.brawl-plate-title {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.34em;
+  font-variant: small-caps;
+  color: var(--ink-dim);
+}
+
 /* results panel: a stone tablet */
 .brawl-results {
   position: absolute; left: 50%; top: 54%; transform: translateX(-50%);
-  width: 380px;
+  width: 470px;
   background:
     linear-gradient(180deg, rgba(84, 74, 60, 0.4), rgba(0, 0, 0, 0.25) 26%, rgba(0, 0, 0, 0.4)),
     rgba(28, 23, 18, 0.92);
@@ -133,19 +231,49 @@
 .brawl-results-table { margin-bottom: 14px; }
 .brawl-results-row {
   --fc: #ffb84d;
-  display: grid; grid-template-columns: 1fr 56px 56px;
+  display: grid; grid-template-columns: 1fr 36px 44px 54px 44px 92px;
   align-items: center;
   padding: 6px 8px;
   font-family: var(--font-display);
-  font-size: 14px; font-weight: 700; letter-spacing: 0.08em;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
   color: var(--ink);
   border-bottom: 1px solid rgba(176, 121, 58, 0.18);
 }
 .brawl-results-head {
-  font-size: 10px; letter-spacing: 0.3em; font-variant: small-caps;
+  font-size: 9px; letter-spacing: 0.18em; font-variant: small-caps;
   color: var(--ink-dim);
 }
-.brawl-results-name { display: flex; align-items: center; gap: 8px; text-align: left; }
+.brawl-results-name { display: flex; align-items: center; gap: 8px; text-align: left; min-width: 0; }
+.brawl-results-fav {
+  font-size: 10px; letter-spacing: 0.08em; font-variant: small-caps;
+  color: var(--ink-dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* podium markers + the winner's glowing plaque row */
+.brawl-place {
+  width: 17px; height: 17px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 3px;
+  background: linear-gradient(160deg, rgba(60, 50, 38, 0.9), rgba(18, 13, 9, 0.9));
+  border: 1px solid rgba(176, 121, 58, 0.45);
+  font-size: 10px; font-style: normal; font-weight: 800; line-height: 1;
+  color: var(--ink-dim);
+}
+.brawl-results-winner .brawl-place {
+  background: linear-gradient(160deg, #e0aa5e, #8a5a26);
+  border-color: #f0cf9a;
+  color: #1c1108;
+}
+.brawl-results-winner {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--fc) 16%, transparent), transparent 72%);
+  border: 1px solid color-mix(in srgb, var(--fc) 40%, transparent);
+  border-radius: 5px;
+  animation: brawlWinnerGlow 1.6s ease-in-out infinite;
+}
+@keyframes brawlWinnerGlow {
+  0%, 100% { box-shadow: 0 0 10px color-mix(in srgb, var(--fc) 25%, transparent), inset 0 0 10px color-mix(in srgb, var(--fc) 8%, transparent); }
+  50% { box-shadow: 0 0 24px color-mix(in srgb, var(--fc) 45%, transparent), inset 0 0 16px color-mix(in srgb, var(--fc) 14%, transparent); }
+}
 /* forged bronze plaque button */
 .brawl-hub-btn {
   font-family: var(--font-display);

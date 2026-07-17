@@ -7,6 +7,9 @@ const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 await page.goto(`http://localhost:${process.env.IPL_PORT || '5187'}/?scene=brawl&mute=1`, { waitUntil: 'load' })
+// skip the entrance cinematic (any key skips)
+await page.waitForFunction(() => !!window.__scene?.phase, null, { timeout: 15000 })
+await page.keyboard.press('x')
 await page.waitForFunction(() => window.__scene?.phase === 'fight', null, { timeout: 15000 })
 
 // stir the pot: skills + movement while AIs brawl

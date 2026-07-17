@@ -28,6 +28,8 @@ export class Citadel {
     this.hp = CITADEL_HP
     this.maxHp = CITADEL_HP
     this.hitFlash = 0
+    this.flare = 0        // presentation-only golden beacon surge (perfect wave)
+    this.victory = false  // dawn ceremony: the beacon burns gold and steady
     this.sparkT = 1
     this.dead = false
     this.deadT = 0
@@ -311,6 +313,24 @@ export class Citadel {
     this.deadT = 0
   }
 
+  /** PERFECT WAVE: brief golden surge off the beacon (visual only). */
+  beaconFlare() {
+    this.flare = 1
+    _v.copy(this.group.position)
+    _v.y = 7.6
+    this.vfx.flash(_v, { color: '#ffd166', size: 5, life: 0.4 })
+    this.vfx.burst(_v, { color: '#ffd166', count: 26, speed: 6, size: 0.3, life: 0.9, up: 5, gravity: 2 })
+    this.vfx.ring(this.group.position, { color: '#ffd166', radius: 9.6, life: 0.6 })
+  }
+
+  /** Dawn ceremony: the beacon flares gold and holds it. */
+  setVictory() {
+    this.victory = true
+    this.flare = 1
+    this.halo.material.color.setStyle('#ffd166')
+    this.light.color.setStyle('#ffc75e')
+  }
+
   _tickSmoke(dt, dying) {
     for (const p of this.smokePuffs) {
       p.k += dt * 0.11
@@ -344,11 +364,14 @@ export class Citadel {
     }
 
     // beacon life: tall + steady when healthy, guttering when low
+    // golden flare: perfect-wave surge decays, victory dawn holds it lit
+    this.flare = this.victory ? Math.max(0.7, this.flare - dt * 0.4) : Math.max(0, this.flare - dt * 0.9)
+    const flare = this.flare
     this.flame.rotation.y += dt * 0.9
     const gutter = 1 + Math.sin(t * 6.2) * 0.05 + Math.sin(t * 11.7) * 0.03
-    this.flame.scale.set(1, (0.55 + 0.45 * f) * gutter, 1)
+    this.flame.scale.set(1 + 0.18 * flare, (0.55 + 0.45 * f) * gutter * (1 + 0.5 * flare), 1 + 0.18 * flare)
     this.flame.position.y = 6.35 + Math.sin(t * 1.3) * 0.08
-    this.sparks.rotation.y -= dt * 1.1
+    this.sparks.rotation.y -= dt * (1.1 + 2.4 * flare)
     this.sparks.position.y = 7.4 + Math.sin(t * 1.7) * 0.3
     this.hitFlash = Math.max(0, this.hitFlash - dt * 2.2)
     this._tickSmoke(dt, false)
@@ -356,14 +379,14 @@ export class Citadel {
     const low = f < 0.25
     let inten = 0.85 + 0.95 * f
     if (low) inten *= 0.72 + 0.28 * Math.abs(Math.sin(t * 9) * Math.sin(t * 2.3)) // dying stutter
-    inten += this.hitFlash * 1.4
+    inten += this.hitFlash * 1.4 + flare * 1.2
     this.flameMat.uniforms.uIntensity.value = inten
-    this.halo.material.opacity = (0.07 + 0.1 * f) * (low ? 0.6 + 0.4 * Math.sin(t * 11) ** 2 : 1)
-    this.light.intensity = 10 + 20 * f + this.hitFlash * 22
-    this.coalsMat.color.setStyle('#ff7a2c').multiplyScalar(0.7 + 0.9 * f + this.hitFlash)
-    this.trimMat.color.setStyle('#ffb46a').multiplyScalar(0.35 + 0.5 * f + this.hitFlash)
-    this.wallGlowMat.color.setStyle(this.hitFlash > 0.4 ? '#ff6a3c' : '#d89a5c')
-      .multiplyScalar(0.4 + 0.4 * f + this.hitFlash * 1.3)
+    this.halo.material.opacity = (0.07 + 0.1 * f) * (low ? 0.6 + 0.4 * Math.sin(t * 11) ** 2 : 1) + 0.14 * flare
+    this.light.intensity = 10 + 20 * f + this.hitFlash * 22 + flare * 16
+    this.coalsMat.color.setStyle(flare > 0.3 ? '#ffc75e' : '#ff7a2c').multiplyScalar(0.7 + 0.9 * f + this.hitFlash + flare * 0.8)
+    this.trimMat.color.setStyle(flare > 0.3 ? '#ffd166' : '#ffb46a').multiplyScalar(0.35 + 0.5 * f + this.hitFlash + flare * 0.7)
+    this.wallGlowMat.color.setStyle(this.hitFlash > 0.4 ? '#ff6a3c' : flare > 0.3 ? '#ffd166' : '#d89a5c')
+      .multiplyScalar(0.4 + 0.4 * f + this.hitFlash * 1.3 + flare * 0.9)
 
     if (low) {
       this.sparkT -= dt

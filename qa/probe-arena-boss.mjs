@@ -1,5 +1,6 @@
-// probe-arena-boss.mjs — WARDEN NOVA flow: spawn at wave 5, HUD boss bar,
-// telegraphed slam, half-HP summons, death slow-mo + chain, wave advance.
+// probe-arena-boss.mjs — WARDEN NOVA flow: spawn at wave 5, entrance
+// cinematic (letterbox + name slam), HUD boss bar, telegraphed slam, half-HP
+// summons, death slow-mo + chain, wave advance.
 // Usage: node qa/probe-arena-boss.mjs [port]
 import { chromium } from 'playwright-core'
 
@@ -21,11 +22,31 @@ await page.evaluate(() => window.__scene.debug.wave(5))
 await page.waitForTimeout(1200)
 const spawned = await page.evaluate(() => {
   const s = window.__scene
-  return { wave: s.wave, boss: !!s.boss, hp: s.boss?.hp, bossBar: s.bossBox.style.display !== 'none' }
+  return {
+    wave: s.wave, boss: !!s.boss, hp: s.boss?.hp, bossBar: s.bossBox.style.display !== 'none',
+    cine: s.cine.mode, bars: document.querySelectorAll('.arena-cine.on').length,
+    surge: s.env.fissureSurge.k, exposureT: s.exposureT,
+  }
 })
 assert(spawned.wave === 5 && spawned.boss, `boss spawned on wave 5 (hp=${spawned.hp})`)
 assert(spawned.hp === 400, `boss HP 400 (${spawned.hp})`)
 assert(spawned.bossBar, 'boss HP bar visible in HUD')
+assert(spawned.cine === 'boss' && spawned.bars === 2, 'entrance cinematic playing (letterboxed)')
+assert(spawned.surge > 0.2, `floor ember fissures surging (${spawned.surge.toFixed(2)})`)
+assert(spawned.exposureT < 1, `lights dimmed for the entrance (exposureT=${spawned.exposureT})`)
+
+// name slam appears mid-cinematic
+let slam = false
+for (let i = 0; i < 12 && !slam; i++) {
+  await page.waitForTimeout(200)
+  slam = await page.evaluate(() =>
+    [...document.querySelectorAll('.big-banner')].some(b =>
+      /PIT WARDEN/.test(b.textContent) && /CRUCIBLE.S SHADOW/i.test(b.textContent)))
+}
+assert(slam, 'PIT WARDEN — KEEPER OF THE CRUCIBLE\'S SHADOW name slam')
+if (slam) await page.screenshot({ path: 'qa/screens/arena-boss-entrance.png' })
+await page.waitForFunction(() => !window.__scene.cine.active, null, { timeout: 6000 })
+assert(true, 'entrance cinematic ended, fight begins')
 
 // wait for a telegraphed slam (boss stalks in, slams when close)
 let sawTele = false

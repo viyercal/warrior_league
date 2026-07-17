@@ -7,12 +7,15 @@ import { buildMap } from './map.js'
 import { MinionArmy, Structures, EnemyChampion, HealthBar } from './units.js'
 import { makeCasters, updateSkillEffects } from './combat.js'
 import { buildMobaHud, endPanel } from './mobaHud.js'
-import { HERO, MINION, GOLD, XP, ENERGY_COST, SPAWN_X, BOUNDS } from './constants.js'
+import { HERO, MINION, GOLD, XP, ENERGY_COST, SPAWN_X, BOUNDS, TEAMS, LANE_HALF } from './constants.js'
+import { MobaIntro } from './intro.js'
+import { Drama } from './drama.js'
 import '../../ui/moba.css'
 
 const _v1 = new THREE.Vector3()
 const _v2 = new THREE.Vector3()
 const _v3 = new THREE.Vector3()
+const smoothK = k => k * k * (3 - 2 * k)
 
 /**
  * WAR RIFT — single-lane 1v1 MOBA vs an AI warlord.
@@ -66,6 +69,7 @@ export default class MobaScene {
     this.hero.group.add(this.bubble)
 
     // ---------- player state ----------
+    this.playerName = (profile.name || 'RAVAGER').toUpperCase()
     this.maxHp = HERO.hp
     this.hp = HERO.hp
     this.energy = HERO.energy
@@ -122,6 +126,21 @@ export default class MobaScene {
     this._timeouts = []
     this._txt = 11
 
+    // ---------- flow / drama state (presentation only) ----------
+    this.phase = 'intro'          // 'intro' → 'play'
+    this.timeScale = 1            // slow-mo money moments (duel/brawl pattern)
+    this.slowmoT = 0
+    this.slowmoScale = 0.22
+    this.punchT = 0               // camera punch-in toward a felled tower
+    this.punchDur = 1
+    this.punchPos = new THREE.Vector3()
+    this.nexusCine = null         // beacon-fall orbit override
+    this.satT = null              // defeat desaturation target
+    this.towersFelled = 0         // end-panel stats
+    this.dmgDealt = 0
+    this.castCounts = [0, 0, 0, 0]
+    this._camLook = new THREE.Vector3(-SPAWN_X, 0.4, 0)
+
     // ---------- click markers ----------
     this.markers = {}
     for (const [key, color] of [['move', '#ffb84d'], ['atk', '#c23b2e']]) {
@@ -145,6 +164,7 @@ export default class MobaScene {
     // ---------- input ----------
     input.onKey((code, down) => {
       if (!down) return
+      if (this.phase === 'intro') { this.intro?.skip(); return } // ANY key skips the opening
       const i = KEY_CODES.indexOf(code)
       if (i >= 0) this._castSkill(i)
       else if (code === 'KeyB') this._startRecall()
@@ -156,15 +176,33 @@ export default class MobaScene {
         this.ui.hintBox.style.display = this.ui.hintBox.style.display === 'none' ? '' : 'none'
       }
     })
-    input.onMouse((btn, down) => { if (btn === 2 && down) this._command() })
+    input.onMouse((btn, down) => {
+      if (!down) return
+      if (this.phase === 'intro') {
+        this.intro?.skip() // snaps to the gameplay camera synchronously
+        // the right-click that broke the reverie still lands as a move order,
+        // clamped onto the lane — the click was aimed through the cine camera
+        if (btn === 2 && this.ctx.input.groundPoint(this.camera, 0, _v1)) {
+          _v1.x = clamp(_v1.x, -BOUNDS.x, BOUNDS.x)
+          _v1.z = clamp(_v1.z, -LANE_HALF, LANE_HALF)
+          this.moveTarget = this.moveTarget || new THREE.Vector3()
+          this.moveTarget.copy(_v1)
+          this.chaseTgt = null
+          this._showMarker('move', _v1)
+        }
+        return
+      }
+      if (btn === 2) this._command()
+    })
     input.onWheel(dy => { this.zoomT = clamp(this.zoomT + dy * 0.012, 16, 32) })
 
     audio.music('battle')
     profile.stats.plays.moba = (profile.stats.plays.moba || 0) + 1
     this.ctx.saveProfile()
-    this._timeout(() => {
-      if (!this.over) this.ui.hud.banner('WAR RIFT', { color: '#ffb84d', sub: 'SHATTER THE ENEMY WAR CRYSTAL', duration: 2.6 })
-    }, 600)
+
+    // ---------- opening cinematic + drama director ----------
+    this.drama = new Drama(this)
+    this.intro = new MobaIntro(this)
 
     this.debug = {
       win: () => this._victory(),
@@ -179,6 +217,12 @@ export default class MobaScene {
   dmgMul() { return (1 + 0.1 * (this.level - 1)) * this.itemDmg * (this.giantT > 0 ? 1.5 : 1) }
   moveSpeed() { return HERO.speed * this.itemSpd * (this.buffT > 0 ? 1.6 : 1) }
   cancelOrders() { this.moveTarget = null; this.chaseTgt = null }
+
+  /** One announcer slot: a new proclamation replaces whatever is up. */
+  banner(text, opts) {
+    this._clearBanners()
+    return this.ui.hud.banner(text, opts)
+  }
 
   dmgNum(pos, str, { color = '#e8dcc4', size = 0.62 } = {}) {
     if (this._txt <= 0) return
@@ -237,6 +281,7 @@ export default class MobaScene {
   hitMinion(e, base, { color = '#e8dcc4', kx = 0, kz = 0 } = {}) {
     if (!e.alive) return
     const dmg = Math.round(base * this.dmgMul())
+    this.dmgDealt += dmg
     if (kx || kz) { e.kx += kx; e.kz += kz }
     _v1.copy(e.minion.group.position)
     _v1.y += 1.2
@@ -248,6 +293,7 @@ export default class MobaScene {
   hitEnemyChamp(base, { color = '#e8dcc4' } = {}) {
     if (!this.enemy.alive) return
     const dmg = Math.round(base * this.dmgMul())
+    this.dmgDealt += dmg
     _v1.copy(this.enemy.group.position)
     _v1.y += 2.2
     this.dmgNum(_v1, String(dmg), { color, size: 0.7 })
@@ -300,21 +346,24 @@ export default class MobaScene {
 
   onEnemySlain(byPlayer) {
     this.kills++
-    this.ui.hud.banner('ENEMY SLAIN', { color: '#ffb84d', duration: 2, sub: byPlayer ? `+${GOLD.kill} GOLD` : '' })
     this.ctx.audio.play('kill', { vol: 0.9 })
+    // announcer drama: FIRST BLOOD / SHUTDOWN / streaks (returns bounty gold)
+    const bonus = this.drama.onEnemySlain(byPlayer)
     if (byPlayer) {
       _v1.copy(this.enemy.group.position)
       _v1.y = 2.6
-      this.vfx.text(_v1, `+${GOLD.kill}g`, { color: '#ffb84d', size: 1, life: 1.2 })
-      this._addGold(GOLD.kill)
+      this.vfx.text(_v1, `+${GOLD.kill + bonus}g`, { color: '#ffb84d', size: 1, life: 1.2 })
+      this._addGold(GOLD.kill + bonus)
       this._addXp(XP.kill)
     }
   }
 
   onStructureDestroyed(s, byTeam) {
     if (s.kind === 'tower') {
+      this._towerMoment(s)
       if (s.team === 'red') {
-        this.ui.hud.banner('WATCHTOWER FELLED', { color: '#ffb84d', duration: 2.2, sub: 'THE LANE IS OPEN' })
+        this.towersFelled++
+        this.banner('WATCHTOWER FELLED', { color: '#ffb84d', duration: 2.2, sub: 'THE LANE IS OPEN' })
         if (byTeam === 'blue') {
           _v1.copy(s.pos)
           _v1.y = 4
@@ -322,24 +371,79 @@ export default class MobaScene {
           this._addGold(GOLD.tower)
         }
       } else {
-        this.ui.hud.banner('YOUR WATCHTOWER HAS FALLEN', { color: '#c23b2e', duration: 2.2 })
+        this.banner('YOUR WATCHTOWER HAS FALLEN', { color: '#c23b2e', duration: 2.2 })
       }
       return
     }
-    // war crystal down — cinematic chain, then the end state
-    const posC = s.pos.clone()
-    for (const [delay, r, color] of [[150, 7, '#ffe6c8'], [420, 11, s.team === 'red' ? '#ffb84d' : '#c23b2e'], [720, 15, '#ffe6c8']]) {
+    this._nexusMoment(s)
+  }
+
+  /** Tower-fall money moment: 0.9s slow-mo, camera punch-in, debris burst. */
+  _towerMoment(s) {
+    this.slowmoT = 0.9
+    this.slowmoScale = 0.22
+    this.punchT = this.punchDur = 0.95
+    this.punchPos.set(s.pos.x, 0, s.pos.z)
+    const px = s.pos.x, pz = s.pos.z
+    _v1.set(px, 3, pz)
+    this.vfx.burst(_v1, { color: '#8a7d6a', count: 32, speed: 11, size: 0.36, life: 0.9, up: 5, gravity: -18 })
+    this.vfx.burst(_v1, { color: '#ff8c3b', count: 22, speed: 7, size: 0.28, life: 1.2, up: 9, gravity: 2 })
+    this._timeout(() => {
+      _v1.set(px, 1.4, pz)
+      this.vfx.burst(_v1, { color: '#5e5648', count: 18, speed: 6, size: 0.3, life: 0.8, up: 4, gravity: -14 })
+      this.vfx.flash(_v1, { color: '#ffd9a0', size: 3, life: 0.25 })
+    }, 240)
+    this.ctx.engine.shake(0.55, 0.5)
+    this.ctx.audio.play('explode', { vol: 0.7 })
+  }
+
+  /** Beacon-fall money moment: 2.2s slow-mo orbit, shatter chain, delayed end state. */
+  _nexusMoment(s) {
+    const won = s.team === 'red'
+    const pos = s.pos.clone()
+    const col = TEAMS[s.team].color
+    this.slowmoT = 2.2
+    this.slowmoScale = 0.16
+    this.punchT = 0 // the orbit owns the camera now
+    this.nexusCine = {
+      x: pos.x, z: pos.z, t: 0, dur: 2.3,
+      a0: Math.atan2(this.camera.position.z - pos.z, this.camera.position.x - pos.x),
+    }
+    this.ui.setCine(true)
+    this.cancelOrders()
+    this._cancelRecall()
+    this.banner(won ? 'THE BEACON SHATTERS' : 'YOUR BEACON SHATTERS', {
+      color: won ? '#ffb84d' : '#c23b2e', duration: 2, sub: won ? '' : 'THE FIRE GOES OUT',
+    })
+    if (!won && !this.playerDead) {
+      // mirror for defeat: the color drains out as the champion slowly falls
+      this.satT = 0.3
+      this.hero.setState('ko')
+      this.hero.setMoveSpeed(0)
+    }
+    // crystal-shatter chain rippling off the beacon
+    for (const [delay, r, color] of [[120, 6, '#ffe6c8'], [400, 10, col], [700, 14, '#ffe6c8'], [1050, 17, col]]) {
       this._timeout(() => {
-        posC.y = 0
-        this.vfx.shockwave(posC, { color, radius: r })
-        _v1.copy(posC)
+        _v1.set(pos.x, 0, pos.z)
+        this.vfx.shockwave(_v1, { color, radius: r })
         _v1.y = 3
-        this.vfx.burst(_v1, { color, count: 30, speed: 12, size: 0.4, up: 6 })
+        this.vfx.burst(_v1, { color, count: 26, speed: 12, size: 0.38, up: 6 })
+        this.vfx.burst(_v1, { color: '#8a7d6a', count: 20, speed: 9, size: 0.32, life: 0.9, up: 4, gravity: -16 })
         this.ctx.engine.shake(0.5, 0.4)
         this.ctx.audio.play('explode', { vol: 0.7 })
       }, delay)
     }
-    this._timeout(() => (s.team === 'red' ? this._victory() : this._defeat()), 1100)
+    for (const d of [300, 850]) {
+      this._timeout(() => {
+        _v1.set(pos.x + rand(-3, 3), 9, pos.z + rand(-2, 2))
+        _v2.set(pos.x, 2, pos.z)
+        this.vfx.lightning(_v1, _v2, { color: '#ffd9a0', life: 0.3 })
+      }, d)
+    }
+    this._timeout(() => {
+      this.ui.setCine(false)
+      won ? this._victory() : this._defeat()
+    }, 2300)
   }
 
   _addGold(amount) {
@@ -348,11 +452,17 @@ export default class MobaScene {
       this.nextItemAt += GOLD.itemEvery
       this.itemDmg *= 1.06
       this.itemSpd *= 1.04
+      // ITEM FORGE moment: anvil-spark flash + levelup sting over a metallic hit
       this.ui.hud.toast('FORGED AT THE WAR CAMP: +DMG +SPD')
-      this.ctx.audio.play('coin', { vol: 0.8 })
-      _v1.copy(this.hero.group.position)
+      this.ctx.audio.play('levelup', { vol: 0.55 })
+      this.ctx.audio.play('rim', { vol: 0.7 })
+      this.ctx.audio.play('rim', { delay: 0.12, vol: 0.4 })
+      const pos = this.hero.group.position
+      this.vfx.ring(pos, { color: '#ffb84d', radius: 1.8, life: 0.45 })
+      _v1.copy(pos)
       _v1.y = 1.4
-      this.vfx.flash(_v1, { color: '#ffb84d', size: 2.2 })
+      this.vfx.flash(_v1, { color: '#fff2c4', size: 2.6, life: 0.25 })
+      this.vfx.burst(_v1, { color: '#ffb84d', count: 22, speed: 6, size: 0.22, life: 0.6, up: 7, gravity: -4 })
     }
   }
 
@@ -386,6 +496,7 @@ export default class MobaScene {
     this.hero.setState('ko')
     this.hero.setMoveSpeed(0)
     this.playerBar.hide()
+    this.drama.onPlayerDeath()
     this.ui.death.show()
     this.ui.death.set(this.respawnT)
     this.ctx.audio.play('kill', { vol: 1 })
@@ -398,6 +509,7 @@ export default class MobaScene {
 
   _respawnPlayer() {
     this.playerDead = false
+    this.drama.onRespawn()
     this.hp = this.maxHp
     this.energy = HERO.energy
     this.hero.setState('normal')
@@ -425,7 +537,7 @@ export default class MobaScene {
   }
 
   _command() {
-    if (this.over || this.playerDead) return
+    if (this.phase !== 'play' || this.over || this.playerDead || this.nexusCine) return
     const input = this.ctx.input
     const hits = input.pick(this.camera, this._pickList(), true)
     let ent = null
@@ -485,7 +597,7 @@ export default class MobaScene {
   }
 
   _castSkill(i) {
-    if (this.over || this.playerDead || this.cds[i] > 0.001) return
+    if (this.phase !== 'play' || this.over || this.playerDead || this.nexusCine || this.cds[i] > 0.001) return
     const def = this.skillDefs[i]
     const fn = this.casters[def.archetype]
     if (!fn) return
@@ -501,6 +613,7 @@ export default class MobaScene {
     if (this.ctx.input.groundPoint(this.camera, 0, _v1)) this.aim.copy(_v1)
     this.energy -= cost
     this.cds[i] = def.cd
+    this.castCounts[i]++
     this.ui.abilityUi.flash(i)
     this.hero.cast()
     this.ctx.audio.play('cast', { vol: 0.5 })
@@ -508,12 +621,13 @@ export default class MobaScene {
   }
 
   _startRecall() {
-    if (this.over || this.playerDead || this.recallT >= 0) return
+    if (this.phase !== 'play' || this.over || this.playerDead || this.nexusCine || this.recallT >= 0) return
     this.cancelOrders()
     this.recallT = 0
     this.recallPulseT = 0
     this.ui.recall.show()
     this.ctx.audio.play('shield', { vol: 0.4 })
+    this.drama.onRecallStart()
   }
 
   _cancelRecall() {
@@ -524,25 +638,61 @@ export default class MobaScene {
 
   // ============================== main loop ==============================
 
+  /** Intro over (or skipped): snap to the gameplay camera and sound the horn. */
+  _beginPlay() {
+    if (this.phase === 'play') return
+    this.phase = 'play'
+    this.intro = null
+    const f = this.camFocus
+    f.set(this.hero.group.position.x, 0, this.hero.group.position.z)
+    const oz = this.zoom * (14 / 24)
+    this.camera.position.set(f.x, this.zoom, f.z + oz)
+    this._camLook.set(f.x, 0.4, f.z)
+    this.camera.lookAt(this._camLook)
+    if (!this.over) {
+      this.banner('DESTROY THE ENEMY BEACON', { color: '#ffb84d', sub: 'THE WARLORD FALLS WITH IT', duration: 2.6 })
+    }
+  }
+
   update(dt) {
-    if (!this.over) this.gameT += dt
     this._txt = 11
     for (const tk of this.env.tickables) tk.tick(dt)
-    this.vfx.update(dt)
 
+    // ---- opening cinematic: presentation only, the war stays frozen ----
+    if (this.phase === 'intro') {
+      this.vfx.update(dt)
+      this.intro?.update(dt)
+      return
+    }
+
+    // ---- slow-mo money moments (duel/brawl timeScale pattern) ----
+    if (this.slowmoT > 0) {
+      this.slowmoT -= dt
+      this.timeScale = this.slowmoT > 0.35 ? this.slowmoScale : lerp(this.slowmoScale, 1, 1 - Math.max(0, this.slowmoT) / 0.35)
+    } else this.timeScale = 1
+    const gdt = dt * this.timeScale
+
+    this.vfx.update(gdt)
     if (!this.over) {
-      this._updatePlayer(dt)
-      this._updateWaves(dt)
+      this.gameT += gdt
+      this._updatePlayer(gdt)
+      this._updateWaves(gdt)
     } else {
       this.hero.setMoveSpeed(0)
       this.hero.update(dt)
     }
-    updateSkillEffects(this, dt)
-    this.army.update(dt, this)
-    this.enemy.update(dt, this)
-    this.structures.update(dt, this)
+    updateSkillEffects(this, gdt)
+    this.army.update(gdt, this)
+    this.enemy.update(gdt, this)
+    this.structures.update(gdt, this)
     this._updateAutoBolts()
     this._updateMarkers(dt)
+    this.drama.update(dt)
+    // defeat grade: the color drains out of the world
+    if (this.satT != null) {
+      const gp = this.ctx.engine.composer?.gradePass
+      if (gp) gp.uniforms.uSat.value = damp(gp.uniforms.uSat.value, this.satT, 2.2, dt)
+    }
     this._updateHudFrame(dt)
     this._updateCamera(dt)
   }
@@ -679,6 +829,7 @@ export default class MobaScene {
         else if (b.tgt.type === 'echamp') this.hitEnemyChamp(HERO.atkDmg)
         else {
           const dmg = Math.round(HERO.atkDmg * this.dmgMul())
+          this.dmgDealt += dmg
           _v1.y = 4
           this.dmgNum(_v1, String(dmg), { color: '#e8dcc4', size: 0.6 })
           this.structures.damage(b.tgt.s, dmg, 'blue')
@@ -731,6 +882,22 @@ export default class MobaScene {
   }
 
   _updateCamera(dt) {
+    // beacon-fall orbit: full cinematic override
+    if (this.nexusCine) {
+      const c = this.nexusCine
+      c.t += dt
+      const e = smoothK(Math.min(1, c.t / c.dur))
+      const ang = c.a0 + c.t * 0.55
+      const r = lerp(17, 11.5, e)
+      const k = 1 - Math.exp(-8 * dt)
+      _v1.set(c.x + Math.cos(ang) * r, lerp(9, 5.5, e), c.z + Math.sin(ang) * r)
+      this.camera.position.lerp(_v1, k)
+      this._camLook.lerp(_v2.set(c.x, 2.2, c.z), k)
+      this.camera.lookAt(this._camLook)
+      if (c.t >= c.dur) this.nexusCine = null
+      return
+    }
+
     this.zoom = damp(this.zoom, this.zoomT, 8, dt)
     const f = this.camFocus
     if (this.camLock) {
@@ -747,26 +914,61 @@ export default class MobaScene {
       f.x = clamp(f.x, -BOUNDS.x, BOUNDS.x)
       f.z = clamp(f.z, -BOUNDS.z + 2, BOUNDS.z - 2)
     }
-    const oz = this.zoom * (14 / 24)
-    this.camera.position.set(f.x, this.zoom, f.z + oz)
-    this.camera.lookAt(f.x, 0.4, f.z)
+
+    // tower-fall punch-in: lean toward the felled tower, tighten the zoom
+    let px = f.x, pz = f.z, zoom = this.zoom
+    if (this.punchT > 0) {
+      this.punchT -= dt
+      const k = clamp(Math.min((this.punchDur - this.punchT) / 0.12, this.punchT / 0.3), 0, 1)
+      px = lerp(f.x, this.punchPos.x, 0.55 * k)
+      pz = lerp(f.z, this.punchPos.z, 0.55 * k)
+      zoom *= 1 - 0.3 * k
+    }
+    const oz = zoom * (14 / 24)
+    const k = 1 - Math.exp(-11 * dt)
+    _v1.set(px, zoom, pz + oz)
+    this.camera.position.lerp(_v1, k)
+    this._camLook.lerp(_v2.set(px, 0.4, pz), k)
+    this.camera.lookAt(this._camLook)
   }
 
   // ============================== end states ==============================
 
+  /** End-panel tallies: K/D, CS, gold, towers, damage, most-cast art. */
+  _gameStats() {
+    let fav = '—', best = 0
+    for (let i = 0; i < 4; i++) {
+      if (this.castCounts[i] > best) { best = this.castCounts[i]; fav = this.skillDefs[i].name.toUpperCase() }
+    }
+    return {
+      kills: this.kills, deaths: this.deaths, cs: this.cs, gold: this.goldEarned,
+      towers: this.towersFelled, dmg: Math.round(this.dmgDealt),
+      fav: best ? `${fav} ×${best}` : '—',
+    }
+  }
+
+  _clearBanners() {
+    for (const b of this.ui.hud.root.querySelectorAll('.big-banner')) b.remove()
+  }
+
   _victory() {
     if (this.over) return
+    if (this.phase === 'intro') this.intro?.skip()
     this.over = 'won'
     this._cancelRecall()
     this.ui.death.hide()
     this.ui.recall.hide()
+    this.ui.lowHp(false)
+    this.ui.setCine(false)
+    this._clearBanners()
     this.ctx.audio.play('victory')
+    this.ctx.audio.play('crowd', { vol: 0.8 })
     if (!this.playerDead) this.hero.setState('dance')
     const profile = this.ctx.profile
     profile.stats.wins.moba = (profile.stats.wins.moba || 0) + 1
     this.ctx.saveProfile()
-    this.ui.hud.banner('VICTORY', { color: '#ffb84d', duration: 0, sub: 'THE WAR RIFT IS YOURS' })
-    endPanel(this.ui.hud, this.ctx)
+    this.banner('VICTORY', { color: '#ffb84d', duration: 0, sub: 'THE WAR RIFT IS YOURS' })
+    endPanel(this.ui.hud, this.ctx, { won: true, ...this._gameStats() })
     for (let i = 0; i < 8; i++) {
       this._timeout(() => {
         _v1.copy(this.hero.group.position)
@@ -782,13 +984,18 @@ export default class MobaScene {
 
   _defeat() {
     if (this.over) return
+    if (this.phase === 'intro') this.intro?.skip()
     this.over = 'lost'
     this._cancelRecall()
     this.ui.death.hide()
+    this.ui.lowHp(false)
+    this.ui.setCine(false)
+    this._clearBanners()
+    this.satT = 0.3 // ashen defeat grade
     this.ctx.audio.play('defeat')
     this.hero.setState('ko')
-    this.ui.hud.banner('DEFEAT', { color: '#c23b2e', duration: 0, sub: 'YOUR WAR CRYSTAL LIES SHATTERED' })
-    endPanel(this.ui.hud, this.ctx)
+    this.banner('DEFEAT', { color: '#c23b2e', duration: 0, sub: 'YOUR WAR CRYSTAL LIES SHATTERED' })
+    endPanel(this.ui.hud, this.ctx, { won: false, ...this._gameStats() })
     this._timeout(() => this.ctx.goTo('hub'), 8000)
   }
 
@@ -801,6 +1008,7 @@ export default class MobaScene {
   dispose() {
     this.disposed = true
     for (const id of this._timeouts) clearTimeout(id)
+    this.ui?.cineMode(false) // #ui is shared across scenes — never leak the class
     this.buffTrail?.stop()
     this.heroTrail?.stop()
     this.enemy?.dashTrail?.stop()

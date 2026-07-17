@@ -1,17 +1,43 @@
 import * as THREE from 'three'
 import { createMinion, createHero } from '../../art/characterFactory.js'
+import { emberGlowMaterial, glowSpriteMaterial } from '../../art/materials.js'
 import { rand, TAU, distXZ } from '../../core/utils.js'
 
 /**
  * Enemy archetypes — bone / ash / ember / magma raider tints.
  * Minion instances are pooled per-type (color/scale baked into the pooled
  * instance) so waves never re-create geometry.
+ *
+ * ELITE variant (spawn(type, x, z, true)): same archetype at 1.4x scale with
+ * an ember crown + warm skin pulse, 2x HP. Purely additive — base defs and
+ * all non-elite behavior are untouched.
  */
 export const ENEMY_TYPES = {
   grunt:    { color: '#a3967d', scale: 1.0, hp: 20, speed: 3.4,  dmg: 5,  reach: 1.15 }, // bone
   sprinter: { color: '#a8703c', scale: 0.8, hp: 10, speed: 6.15, dmg: 4,  reach: 1.0 },  // ember
   brute:    { color: '#4e4238', scale: 1.9, hp: 60, speed: 1.85, dmg: 12, reach: 1.8 },  // ash
   exploder: { color: '#96311e', scale: 1.0, hp: 14, speed: 4.7,  dmg: 15, reach: 1.5 },  // magma
+}
+
+// ---------- elite ember crown (shared geo/mat; one group per pooled minion) ----------
+let _crownGeo = null
+let _crownMat = null
+function makeCrown() {
+  _crownGeo ??= new THREE.ConeGeometry(0.05, 0.17, 5)
+  _crownMat ??= emberGlowMaterial(2.2, '#ff7a26')
+  const g = new THREE.Group()
+  for (let i = 0; i < 5; i++) {
+    const a = (i * TAU) / 5
+    const spike = new THREE.Mesh(_crownGeo, _crownMat)
+    spike.position.set(Math.cos(a) * 0.2, 0.88, Math.sin(a) * 0.2)
+    spike.rotation.set(Math.sin(a) * 0.42, 0, -Math.cos(a) * 0.42) // lean outward
+    g.add(spike)
+  }
+  const halo = new THREE.Sprite(glowSpriteMaterial('#ff7a26', 0.3))
+  halo.scale.setScalar(0.7)
+  halo.position.y = 0.95
+  g.add(halo)
+  return g
 }
 
 export class Horde {
@@ -22,15 +48,17 @@ export class Horde {
     this.active = []
   }
 
-  spawn(type, x, z) {
+  spawn(type, x, z, elite = false) {
     const def = ENEMY_TYPES[type]
     let e = this.pools[type].pop()
     if (!e) {
       e = { type, def, minion: createMinion({ color: def.color, evil: true, scale: def.scale }) }
       this.scene.add(e.minion.group)
     }
-    e.hp = def.hp
-    e.maxHp = def.hp
+    e.elite = elite
+    e.scale = def.scale * (elite ? 1.4 : 1) // drives visuals + hit radii
+    e.hp = def.hp * (elite ? 2 : 1)
+    e.maxHp = e.hp
     e.alive = true
     e.dying = 0
     e.attackCd = rand(0.5, 1.1)
@@ -41,10 +69,17 @@ export class Horde {
     const g = e.minion.group
     g.visible = true
     g.position.set(x, 0, z)
-    g.scale.setScalar(def.scale)
+    g.scale.setScalar(e.scale)
     g.rotation.y = rand(TAU)
     e.minion.bodyMat.emissive.setScalar(0)
     e.minion._flash = 0
+    if (elite) {
+      if (!e.minion.crown) {
+        e.minion.crown = makeCrown()
+        g.add(e.minion.crown)
+      }
+      e.minion.crown.visible = true
+    } else if (e.minion.crown) e.minion.crown.visible = false
     this.active.push(e)
     return e
   }
@@ -98,7 +133,7 @@ export class Horde {
         // squash-out death anim, then release to pool
         e.dying += dt
         const k = Math.min(1, e.dying / 0.26)
-        const s = e.def.scale
+        const s = e.scale
         g.scale.set(s * (1 + 0.8 * k), s * Math.max(0.04, 1 - 1.15 * k), s * (1 + 0.8 * k))
         if (e.dying >= 0.3) {
           g.visible = false
@@ -163,8 +198,12 @@ export class Horde {
       // exploder menace pulse (scale + magma emissive)
       if (e.type === 'exploder') {
         const pu = 0.5 + 0.5 * Math.sin(e.minion.t * 9)
-        g.scale.setScalar(def.scale * (1 + 0.09 * pu))
+        g.scale.setScalar(e.scale * (1 + 0.09 * pu))
         if (e.minion._flash <= 0) e.minion.bodyMat.emissive.setRGB(0.7 * pu, 0.22 * pu, 0.04 * pu)
+      } else if (e.elite && e.minion._flash <= 0) {
+        // elite menace: warm ember skin pulse under the crown
+        const pu = 0.55 + 0.45 * Math.sin(e.minion.t * 6)
+        e.minion.bodyMat.emissive.setRGB(0.34 * pu, 0.12 * pu, 0.02 * pu)
       }
     }
 
@@ -173,13 +212,13 @@ export class Horde {
       const a = act[i]
       if (!a.alive) continue
       const pa = a.minion.group.position
-      const ra = 0.42 * a.def.scale
+      const ra = 0.42 * a.scale
       for (let j = i + 1; j < act.length; j++) {
         const b = act[j]
         if (!b.alive) continue
         const pb = b.minion.group.position
         const dx2 = pb.x - pa.x, dz2 = pb.z - pa.z
-        const rr = ra + 0.42 * b.def.scale
+        const rr = ra + 0.42 * b.scale
         const d2 = dx2 * dx2 + dz2 * dz2
         if (d2 > rr * rr || d2 < 1e-6) continue
         const d = Math.sqrt(d2)

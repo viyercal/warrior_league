@@ -23,6 +23,8 @@ export const LANES = {
 }
 export const PAD_POSITIONS = [[-14, -13], [14, -13], [-8, -1], [8, -1], [-4.6, 8.6], [4.6, 8.6]]
 export const PORTAL_POS = [{ x: -20, z: -26 }, { x: 20, z: -26 }]
+/** Burning-camp world positions the intro cinematic frames on the horizon. */
+export const WAR_CAMPS = [[-70, -128, 1.5], [38, -140, 2.1], [110, -100, 1.2], [-120, -60, 1]]
 const FIRE_PITS = [[-25, -5, 2.3], [24, -9, 2.0], [13, -23, 1.8], [-26, 13, 1.9]]
 
 const W2C = (x, w) => ((x / GROUND_R) + 1) * 0.5 * w
@@ -438,10 +440,11 @@ export function buildSiegeWorld(scene) {
 
   // ---------- sky: moonless umber night, burning camps staining the horizon ----------
   scene.fog = new THREE.FogExp2('#150e12', 0.0085)
-  scene.add(skyDome({
+  const sky = skyDome({
     top: '#07060e', mid: '#171017', bottom: '#2c1a1c',
     sunDir: new THREE.Vector3(-0.3, 0.12, -0.9), sunColor: '#b23c16', sunSize: 14,
-  }))
+  })
+  scene.add(sky)
   const starsWarm = starField({ count: 150, size: 1.7, color: '#ffd9b8' })
   const starsCool = starField({ count: 110, size: 1.4, color: '#c8d4ee' })
   starsWarm.material.opacity = 0.4
@@ -454,7 +457,8 @@ export function buildSiegeWorld(scene) {
   tickables.push(smokeLow, smokeHigh)
 
   // burning siege camps on the horizon — aerial-perspective glow spots
-  for (const camp of [warCamp(-70, -128, 1.5), warCamp(38, -140, 2.1), warCamp(110, -100, 1.2), warCamp(-120, -60, 1)]) {
+  for (const [cx, cz, cs] of WAR_CAMPS) {
+    const camp = warCamp(cx, cz, cs)
     scene.add(camp)
     tickables.push(camp)
   }
@@ -674,7 +678,8 @@ export function buildSiegeWorld(scene) {
   }
 
   // ---------- lighting: cool moon key vs warm fire fill, blacks stay black ----------
-  scene.add(new THREE.HemisphereLight('#252e45', '#150e0b', 0.22))
+  const hemi = new THREE.HemisphereLight('#252e45', '#150e0b', 0.22)
+  scene.add(hemi)
   const moon = new THREE.DirectionalLight('#7f97d8', 0.4)
   moon.position.set(16, 30, -14)
   moon.castShadow = true
@@ -689,5 +694,48 @@ export function buildSiegeWorld(scene) {
   moon.shadow.normalBias = 0.02
   scene.add(moon)
 
-  return { tickables, portals }
+  const dawn = buildDawnRig(scene, { sky, hemi, moon, stars: [starsWarm, starsCool] })
+
+  return { tickables, portals, dawn }
+}
+
+/**
+ * Victory-dawn rig — presentation only. `set(k)` lerps the night grade
+ * (sky uniforms, fog, hemisphere, key light, stars) toward a warm daybreak
+ * and fades a rising-sun glow in over the burned-out camps on the horizon.
+ */
+function buildDawnRig(scene, { sky, hemi, moon, stars }) {
+  const sun = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture(), color: '#ffbe6d', transparent: true, opacity: 0,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  }))
+  sun.scale.set(180, 105, 1)
+  sun.position.set(46, 10, -185)
+  sun.visible = false // a near-fullscreen transparent quad — never pay for it at night
+  scene.add(sun)
+  const C = (a, b) => [new THREE.Color(a), new THREE.Color(b)]
+  const ramp = {
+    top: C('#07060e', '#2e3557'), mid: C('#171017', '#8a4e38'), bottom: C('#2c1a1c', '#ff9a55'),
+    sunCol: C('#b23c16', '#ffcf8a'), fog: C('#150e12', '#553427'),
+    hemiSky: C('#252e45', '#8a6851'), hemiGnd: C('#150e0b', '#3a2a1e'), key: C('#7f97d8', '#ffc27f'),
+  }
+  const starOp = stars.map(s => s.material.opacity)
+  const u = sky.material.uniforms
+  return {
+    set(k) {
+      u.uTop.value.lerpColors(...ramp.top, k)
+      u.uMid.value.lerpColors(...ramp.mid, k)
+      u.uBottom.value.lerpColors(...ramp.bottom, k)
+      u.uSunColor.value.lerpColors(...ramp.sunCol, k)
+      scene.fog.color.lerpColors(...ramp.fog, k)
+      hemi.color.lerpColors(...ramp.hemiSky, k)
+      hemi.groundColor.lerpColors(...ramp.hemiGnd, k)
+      hemi.intensity = 0.22 + 0.55 * k
+      moon.color.lerpColors(...ramp.key, k)
+      moon.intensity = 0.4 + 0.85 * k
+      stars.forEach((s, i) => { s.material.opacity = starOp[i] * (1 - k) })
+      sun.visible = k > 0.01
+      sun.material.opacity = 0.85 * k
+    },
+  }
 }

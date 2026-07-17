@@ -5,7 +5,7 @@ import {
   boneMaterial, fireMaterial, emberGlowMaterial, glowSpriteMaterial,
 } from '../../art/materials.js'
 import { skyDome, cloudLayer, starField, fireflies } from '../../art/environment.js'
-import { rand, TAU, clamp } from '../../core/utils.js'
+import { rand, TAU, clamp, damp } from '../../core/utils.js'
 
 export const TRACK_HALF_W = 5.5
 export const WALL_DIST = 26 // soft invisible wall, lateral distance from center line
@@ -505,6 +505,10 @@ export function buildTrack(scene) {
     curve, length, halfW: TRACK_HALF_W, N, pos, tan, left, curv: curvArr,
     tickables: [], pads: [], rings: [],
     minimapPts: pos.filter((_, i) => i % 8 === 0).map(p => [p.x, p.z]),
+    // final-lap torch flare (presentation): scene sets flareTarget, torches ease to it
+    flare: 1, flareTarget: 1,
+    // badlands scatter registries so the podium ceremony can clear its stage
+    mesas: [], clutter: [],
   }
 
   track.posAt = (s, out) => {
@@ -915,6 +919,7 @@ function buildEnvironment(scene, track, distToTrack) {
     mesa.castShadow = distToTrack(p) < 70
     mesa.receiveShadow = true
     scene.add(mesa)
+    track.mesas.push({ mesh: mesa, x: p.x, z: p.z, r: w * 1.3 })
   }
   const rockMat = stoneMaterial('#8a6a52')
   rockMat.flatShading = true
@@ -924,6 +929,7 @@ function buildEnvironment(scene, track, distToTrack) {
     const b = boulder(rockMat, rand(1.2, 5))
     b.position.x = p.x; b.position.z = p.z
     scene.add(b)
+    track.clutter.push({ mesh: b, x: p.x, z: p.z, r: 2.5 })
   }
 
   // dead trees silhouetted across the wastes
@@ -938,6 +944,7 @@ function buildEnvironment(scene, track, distToTrack) {
     const t = deadTree(treeShared, rand(1.2, 2.6))
     t.position.x = p.x; t.position.z = p.z
     scene.add(t)
+    track.clutter.push({ mesh: t, x: p.x, z: p.z, r: 2 })
   }
 
   // bone — giant rib arches over the road + scattered rib spurs
@@ -959,6 +966,7 @@ function buildEnvironment(scene, track, distToTrack) {
     cluster.position.set(p.x, 0, p.z)
     cluster.rotation.y = rand(TAU)
     scene.add(cluster)
+    track.clutter.push({ mesh: cluster, x: p.x, z: p.z, r: 2.5 })
   }
 
   // ground clutter: pebbles, charred splinters, bone shards (instanced, shared mats)
@@ -996,6 +1004,8 @@ function buildEnvironment(scene, track, distToTrack) {
     strip.translateZ(0.42)
     scene.add(strip)
     runeStrips.push({ strip, ph: rand(TAU) })
+    track.clutter.push({ mesh: ob, x: ob.position.x, z: ob.position.z, r: 1.2 })
+    track.clutter.push({ mesh: strip, x: ob.position.x, z: ob.position.z, r: 1.2 })
   }
   let rt = 0
   track.tickables.push({ tick: dt => {
@@ -1044,11 +1054,18 @@ function buildEnvironment(scene, track, distToTrack) {
   let tt = 0
   track.tickables.push({ tick: dt => {
     tt += dt
+    // final-lap flare: torches burn taller and brighter while the ending nears
+    track.flare = damp(track.flare, track.flareTarget, 1.6, dt)
+    const fl = track.flare
     for (const { flame, halo, light, ph } of torchFlames) {
       const s = 1 + 0.18 * Math.sin(tt * 12 + ph) + 0.09 * Math.sin(tt * 27 + ph * 2)
-      flame.scale.set(s, 1 + 0.26 * Math.abs(Math.sin(tt * 8 + ph)), s)
-      halo.material.opacity = 0.15 + 0.06 * Math.sin(tt * 10 + ph)
-      if (light) light.intensity = 5.5 * (0.85 + 0.2 * Math.sin(tt * 14 + ph) + 0.08 * Math.sin(tt * 31 + ph * 2))
+      flame.scale.set(
+        s * (1 + (fl - 1) * 0.35),
+        (1 + 0.26 * Math.abs(Math.sin(tt * 8 + ph))) * (1 + (fl - 1) * 0.55),
+        s * (1 + (fl - 1) * 0.35),
+      )
+      halo.material.opacity = (0.15 + 0.06 * Math.sin(tt * 10 + ph)) * fl
+      if (light) light.intensity = 5.5 * fl * (0.85 + 0.2 * Math.sin(tt * 14 + ph) + 0.08 * Math.sin(tt * 31 + ph * 2))
     }
   } })
 

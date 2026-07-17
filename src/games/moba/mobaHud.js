@@ -25,6 +25,17 @@ export function buildMobaHud(g) {
   const csEl = stats.querySelector('.moba-cs')
   const kdEl = stats.querySelector('.moba-kd')
 
+  // ---- enemy warlord portrait plate + taunt spot ----
+  const foePlate = hud.el('div', 'moba-foeplate',
+    '<span class="moba-foe-sigil"><i>W</i></span><span class="moba-foe-name">THE WARLORD</span>')
+  void foePlate
+  let tauntEl = null
+
+  // ---- cinematic letterbox + low-HP vignette ----
+  const cineTop = hud.el('div', 'moba-cine moba-cine-top')
+  const cineBot = hud.el('div', 'moba-cine moba-cine-bot')
+  const lowEl = hud.el('div', 'moba-lowhp')
+
   // ---- recall channel ----
   const recallEl = hud.el('div', 'moba-recall', '<span>RECALLING</span><div class="moba-recall-track"><div class="moba-recall-fill"></div></div>')
   const recallFill = recallEl.querySelector('.moba-recall-fill')
@@ -151,15 +162,69 @@ export function buildMobaHud(g) {
       vgEl.classList.add('moba-vg-on')
     },
     drawMinimap,
+
+    // ---- cinematic controls ----
+    setCine: on => {
+      cineTop.classList.toggle('on', on)
+      cineBot.classList.toggle('on', on)
+    },
+    /** Hide the whole HUD behind the letterbox (intro). NEVER leak the class. */
+    cineMode: on => hud.root.classList.toggle('moba-cinemode', on),
+    lowHp: on => lowEl.classList.toggle('on', on),
+
+    /** "WAR RIFT" title card. Returns { out }. */
+    showTitle: () => {
+      const el = hud.el('div', 'moba-title',
+        '<div class="moba-title-main">WAR RIFT</div><div class="moba-title-sub">1V1 LANE WARFARE</div>')
+      return { out: () => { el.classList.add('out'); setTimeout(() => el.remove(), 450) } }
+    },
+
+    /** "RAVAGER vs THE WARLORD" plates. Returns { out }. */
+    showVs: pName => {
+      const v = hud.el('div', 'moba-vs')
+      const plate = (cls, name, title, fc) => {
+        const p = hud.el('div', `moba-vs-plate ${cls}`, '', v)
+        p.style.setProperty('--fc', fc)
+        hud.el('div', 'moba-vs-name', name, p)
+        hud.el('div', 'moba-vs-title', title, p)
+      }
+      plate('moba-vsl', pName, 'CHAMPION OF THE WEST GATE', '#ffb84d')
+      hud.el('div', 'moba-vs-mid', 'VS', v)
+      plate('moba-vsr', 'THE WARLORD', 'TYRANT OF THE EAST', '#ff5a26')
+      return { out: () => { v.classList.add('out'); setTimeout(() => v.remove(), 450) } }
+    },
+
+    /** Short warlord taunt plate beside his portrait. */
+    taunt: text => {
+      tauntEl?.remove()
+      const el = tauntEl = hud.el('div', 'moba-taunt', `“${text}”`)
+      setTimeout(() => el.classList.add('out'), 2400)
+      setTimeout(() => { el.remove(); if (tauntEl === el) tauntEl = null }, 2850)
+    },
   }
 }
 
-/** End-of-game panel with a RETURN TO HUB button. */
-export function endPanel(hud, ctx) {
+/** Duel-style end-of-war tally under VICTORY/DEFEAT + RETURN TO HUB. */
+export function endPanel(hud, ctx, stats) {
   const panel = hud.el('div', 'moba-end ui-interactive')
+  hud.el('div', `moba-end-title${stats.won ? '' : ' lose'}`,
+    stats.won ? 'THE RIFT STANDS CONQUERED' : 'THE RIFT LIES IN ASHES', panel)
+  const grid = hud.el('div', 'moba-end-grid', '', panel)
+  const stat = (label, val, cls = '') => {
+    const cell = hud.el('div', `moba-end-stat ${cls}`, '', grid)
+    hud.el('span', '', label, cell)
+    hud.el('b', '', String(val), cell)
+  }
+  stat('K / D', `${stats.kills} / ${stats.deaths}`)
+  stat('CS', stats.cs)
+  stat('GOLD', stats.gold)
+  stat('TOWERS', stats.towers)
+  stat('DAMAGE DEALT', stats.dmg)
+  stat('FAVORITE ART', stats.fav, 'fav')
   const btn = document.createElement('button')
   btn.textContent = 'RETURN TO HUB'
   btn.onclick = () => { ctx.audio.play('click'); ctx.goTo('hub') }
   panel.appendChild(btn)
+  hud.el('div', 'moba-end-auto', 'returning to the halls shortly…', panel)
   return panel
 }

@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { createMinion, createHero } from '../../art/characterFactory.js'
-import { glowMaterial, glowSpriteMaterial, toonMaterial } from '../../art/materials.js'
+import { ironMaterial, pbrMaterial, emberGlowMaterial } from '../../art/materials.js'
 import { rand, TAU, distXZ } from '../../core/utils.js'
 import { LANES, FIELD_R } from './siegeEnv.js'
 
@@ -8,17 +8,21 @@ export const WAVE_COUNT = 10
 export const BOSS_WAVE = 10
 
 /**
- * Horde raider archetypes — ember, bone, iron and blood-crimson warbands
- * (palettes distinct from arena's horde).
+ * Horde raider archetypes — ash, bone, iron and dried-blood warbands
+ * (desaturated natural albedos; the only glow left is ember eyes/crowns).
  * cdmg = damage per swing vs the bastion, dmg = vs player/decoy/turret.
  */
 export const RAIDER_TYPES = {
-  grunt:    { color: '#ff6a26', glow: '#ff8a3c', scale: 1.0,  hp: 22, speed: 3.1,  dmg: 6,  cdmg: 6,  reach: 1.15, aggroP: 0.7 },
-  sprinter: { color: '#b9b3ae', glow: '#e8ddd0', scale: 0.8,  hp: 12, speed: 5.7,  dmg: 4,  cdmg: 5,  reach: 1.0,  aggroP: 0.4 },
-  brute:    { color: '#3a2430', glow: '#c23b2e', scale: 1.9,  hp: 78, speed: 1.75, dmg: 14, cdmg: 13, reach: 1.85, aggroP: 0.95, knock: 6 },
-  exploder: { color: '#ff3c14', glow: '#ffd166', scale: 1.05, hp: 16, speed: 4.6,  dmg: 16, cdmg: 22, reach: 1.5,  aggroP: 0.55 },
-  shieldbearer: { color: '#6b6f78', glow: '#b8c8d8', scale: 1.3, hp: 48, speed: 1.7, dmg: 8, cdmg: 9, reach: 1.35, aggroP: 0.35 },
+  grunt:    { color: '#8a5f46', glow: '#ff8a3c', scale: 1.0,  hp: 22, speed: 3.1,  dmg: 6,  cdmg: 6,  reach: 1.15, aggroP: 0.7 },
+  sprinter: { color: '#a89a86', glow: '#dcc296', scale: 0.8,  hp: 12, speed: 5.7,  dmg: 4,  cdmg: 5,  reach: 1.0,  aggroP: 0.4 },
+  brute:    { color: '#42302e', glow: '#c23b2e', scale: 1.9,  hp: 78, speed: 1.75, dmg: 14, cdmg: 13, reach: 1.85, aggroP: 0.95, knock: 6 },
+  exploder: { color: '#94452c', glow: '#ffb84d', scale: 1.05, hp: 16, speed: 4.6,  dmg: 16, cdmg: 22, reach: 1.5,  aggroP: 0.55 },
+  shieldbearer: { color: '#5e6068', glow: '#b8c8d8', scale: 1.3, hp: 48, speed: 1.7, dmg: 8, cdmg: 9, reach: 1.35, aggroP: 0.35 },
 }
+
+// painted warband sigil pigment — shared across every shield (never animated)
+let _sigilMat = null
+const sigilMat = () => (_sigilMat ??= pbrMaterial({ color: '#7e211c', roughness: 0.88, metalness: 0, envMapIntensity: 0.2 }))
 
 const MIXES = {
   1: { grunt: 10 },
@@ -62,42 +66,48 @@ export class RaiderArmy {
     const def = RAIDER_TYPES[type]
     let e = this.pools[type].pop()
     if (!e) {
-      e = { type, def, minion: createMinion({ color: def.color, evil: true, scale: def.scale }) }
-      // molten crown gem + under-glow so raiders read from the top-down camera
-      const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), glowMaterial(def.glow || def.color, 2.0))
+      e = { type, def }
+      // scene-graph references are kept NON-ENUMERABLE: QA drives raiders via
+      // page.evaluate, and returning a raider whose enumerable `minion` chains
+      // through .group.parent to the whole THREE.Scene costs ~800ms of
+      // playwright serialization — long enough that aimed test shots miss.
+      // Property access is completely unchanged.
+      Object.defineProperty(e, 'minion', {
+        value: createMinion({ color: def.color, evil: true, scale: def.scale }),
+        enumerable: false, writable: true, configurable: true,
+      })
+      // ember crown so raiders still read from the top-down camera (no halo —
+      // the factory's contact-shadow blob grounds them instead)
+      const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), emberGlowMaterial(1.15, def.glow || def.color))
       gem.position.y = 0.88
       e.minion.group.add(gem)
-      const halo = new THREE.Sprite(glowSpriteMaterial(def.glow || def.color, 0.3))
-      halo.scale.setScalar(1.5)
-      halo.position.y = 0.22
-      e.minion.group.add(halo)
       if (type === 'shieldbearer') {
-        // iron tower shield held out front — 50% resist from the front arc
+        // iron tower shield held out front — 50% resist from the front arc.
+        // Per-pooled-raider material: emissiveIntensity animates per shield.
         const sh = new THREE.Group()
-        const plate = new THREE.Mesh(
-          new THREE.BoxGeometry(1.05, 1.3, 0.08),
-          toonMaterial({
-            color: '#4a4e57', rim: '#d4dae4', rimStrength: 0.5,
-            emissive: '#8fa5c0', emissiveIntensity: 0,
-          }),
-        )
+        const plateMat = ironMaterial('#575b63')
+        plateMat.emissive = new THREE.Color('#9db4d0')
+        plateMat.emissiveIntensity = 0
+        const plate = new THREE.Mesh(new THREE.BoxGeometry(1.05, 1.3, 0.08), plateMat)
         plate.position.y = 0.62
         plate.castShadow = true
         sh.add(plate)
         const top = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.08), plate.material)
         top.position.y = 1.36
         sh.add(top)
-        // central boss + crimson warband sigil
+        // central boss + painted crimson warband sigil (pigment, not glow)
         const boss = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), plate.material)
         boss.scale.z = 0.6
         boss.position.set(0, 0.72, 0.07)
         sh.add(boss)
-        const sigil = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.02), glowMaterial('#c23b2e', 1.5))
+        const sigil = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.02), sigilMat())
         sigil.position.set(0, 0.34, 0.055)
         sh.add(sigil)
         sh.position.z = 0.5
         e.minion.group.add(sh)
-        e.shield = plate
+        Object.defineProperty(e, 'shield', {
+          value: plate, enumerable: false, writable: true, configurable: true,
+        })
       }
       this.scene.add(e.minion.group)
     }

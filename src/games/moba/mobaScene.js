@@ -22,7 +22,10 @@ const _v3 = new THREE.Vector3()
 export default class MobaScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.84, bloomThreshold: 0.8, bloomRadius: 0.5, vignette: 0.52, saturation: 1.16, grain: 0.025 }
+    // realism grade: bloom reserved for true fire/embers, near-neutral saturation, filmic vignette
+    // ssao tested (fps fine) but SAO's normal pass treats the transparent fire
+    // cones/cloth as solid and leaves pale box artifacts — painted contact AO instead.
+    this.postOpts = { bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.45, vignette: 0.55, saturation: 1.02, grain: 0.035, exposure: 0.96 }
   }
 
   async init() {
@@ -125,7 +128,7 @@ export default class MobaScene {
       const m = new THREE.Mesh(
         new THREE.RingGeometry(0.72, 0.95, 36),
         new THREE.MeshBasicMaterial({
-          color: new THREE.Color(color).multiplyScalar(1.7), transparent: true, opacity: 0,
+          color: new THREE.Color(color).multiplyScalar(1.2), transparent: true, opacity: 0,
           blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
         }),
       )
@@ -583,20 +586,20 @@ export default class MobaScene {
       this.ui.recall.set(this.recallT / HERO.recallTime)
       if (this.recallPulseT <= 0) {
         this.recallPulseT = 0.55
-        this.vfx.ring(pos, { color: '#b8d4e8', radius: 2.3, life: 0.55 })
+        this.vfx.ring(pos, { color: '#ffd9a0', radius: 2.3, life: 0.55 })
       }
       if (this.recallT >= HERO.recallTime) {
         this._cancelRecall()
         _v1.copy(pos)
         _v1.y = 1
-        this.vfx.flash(_v1, { color: '#b8d4e8', size: 2.6 })
+        this.vfx.flash(_v1, { color: '#ffd9a0', size: 2.6 })
         pos.set(-SPAWN_X, 0, 0)
         this.hp = this.maxHp
         this.energy = HERO.energy
         this.playerBar.hide()
         if (this.camLock) this.camFocus.copy(pos)
         _v1.set(-SPAWN_X, 1, 0)
-        this.vfx.flash(_v1, { color: '#b8d4e8', size: 3 })
+        this.vfx.flash(_v1, { color: '#ffd9a0', size: 3 })
         this.ctx.audio.play('heal')
       }
     }

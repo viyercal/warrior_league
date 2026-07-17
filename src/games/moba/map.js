@@ -1,151 +1,213 @@
 import * as THREE from 'three'
-import { skyDome, starField, cloudLayer, crystal, fireflies } from '../../art/environment.js'
-import { canvasTexture } from '../../core/assets.js'
-import { toonMaterial, glowMaterial, waterMaterial, glowSpriteMaterial } from '../../art/materials.js'
-import { rand, TAU } from '../../core/utils.js'
+import { skyDome, starField, cloudLayer, fireflies } from '../../art/environment.js'
+import {
+  canvasTexture, glowTexture, noiseField, normalMapFromHeight, dirtOverlay,
+  crackedStoneTexture, woodPlankTexture, packedEarthTexture, fabricGrainTexture,
+} from '../../core/assets.js'
+import {
+  pbrMaterial, ironMaterial, leatherMaterial, boneMaterial, clothMaterial,
+  fireMaterial, emberGlowMaterial, contactShadow, waterMaterial,
+} from '../../art/materials.js'
+import { rand, TAU, clamp } from '../../core/utils.js'
 import { NEXUS_X, TOWER_XS, TOWER_Z, RIVER_ANGLE, TEAMS } from './constants.js'
 
 /* ============================================================
- * WAR RIFT — a war-torn battlefield lane at storm-dusk.
- * Mud + trampled grass, wooden palisades, stone watchtowers,
- * war-crystal shrines, torch posts, banners, tents, ember air.
+ * WAR RIFT — realism pass. A war-torn battlefield lane at
+ * storm-dusk: packed-earth lane with wheel ruts, dead-patched
+ * grass field, cracked-stone watchtowers with wooden hoardings,
+ * real nexus fires, dark reflective river, contact-grounded props.
+ * All PBR (shared texture sets), one warm key light, FogExp2 haze.
  * ============================================================ */
 
-// banner cloth: deep dyed fabric per team
-const CLOTH = { blue: '#3d6a94', red: '#8f1f26' }
+// banner cloth: deep dyed fabric per team (pigment, not glow)
+const CLOTH = { blue: '#26425c', red: '#5e181c' }
 
-// team flame tints (firelight, not neon): red = ember, blue = cold blue-white
+// team flame ramps — BOTH blackbody firelight (contract: no cyan/neon).
+// West burns pale torch-gold, east deep forge-orange; team identity lives in
+// cloth/banners/healthbars, not flame hue.
 const FLAME = {
-  red: { outer: '#ff8c3b', inner: '#ffd9a0', halo: '#ff8c3b' },
-  blue: { outer: '#7fb2dc', inner: '#cfe8f8', halo: '#8fbcd8' },
+  red: { edge: '#7a1a08', mid: '#ff8c2e', core: '#ffe9bd', halo: '#ff9440', spark: '#ffa050' },
+  blue: { edge: '#6e3a10', mid: '#ffb84d', core: '#fff3d6', halo: '#ffc06a', spark: '#ffd08a' },
 }
 
-// shared materials for repeated props
-const WOOD = toonMaterial({ color: '#3a2c20', rim: '#c9a578', rimStrength: 0.25 })
-const WOOD_DK = toonMaterial({ color: '#2e211a', rim: '#a8886a', rimStrength: 0.2 })
-const IRON = toonMaterial({ color: '#3f4148', rim: '#b9b2a2', rimStrength: 0.35 })
-const STONE = toonMaterial({ color: '#4f4a40', rim: '#d8c8a0', rimStrength: 0.3 })
-const STONE_DK = toonMaterial({ color: '#3a352c', rim: '#b8a888', rimStrength: 0.28 })
-
-/** Bake flat facet normals (toonMaterial's rim shader breaks with material.flatShading). */
+/** Bake flat facet normals for hewn-stone silhouettes. */
 function facet(geo) {
   const g = geo.toNonIndexed()
   g.computeVertexNormals()
   return g
 }
-const LEATHER = toonMaterial({ color: '#4a352a', rim: '#c9a578', rimStrength: 0.3 })
-const LEATHER_DK = toonMaterial({ color: '#3b2a20', rim: '#a8886a', rimStrength: 0.25 })
-const BONE = toonMaterial({ color: '#e8dcc4', rimStrength: 0.3 })
 
-/** Low-poly rock with baked flat normals (shared rock() flatShading fights the rim shader). */
-function flatRock(color, scale) {
-  let geo = new THREE.IcosahedronGeometry(0.55, 0)
-  const p = geo.attributes.position
-  const seed = rand(100)
-  for (let i = 0; i < p.count; i++) {
-    const k = 0.75 + 0.5 * Math.abs(Math.sin(p.getX(i) * 12.9 + p.getY(i) * 7.1 + p.getZ(i) * 3.7 + seed))
-    p.setXYZ(i, p.getX(i) * k, p.getY(i) * k * 0.8, p.getZ(i) * k)
+// ============================== shared PBR materials ==============================
+// Private texture sets (NOT the module-cached preset sets — we dirty ours).
+
+let M = null
+function mats() {
+  if (M) return M
+  const stoneSet = crackedStoneTexture()
+  dirtOverlay(stoneSet.map, { amount: 0.5, edge: 0, speckle: 0.55, seed: 9 })
+  const woodSet = woodPlankTexture()
+  dirtOverlay(woodSet.map, { amount: 0.45, edge: 0, speckle: 0.45, color: '#1c1208', seed: 17 })
+  const earthSet = packedEarthTexture()
+  const barkSet = fabricGrainTexture({ scale: 26, contrast: 0.3, lum: 0.8 })
+
+  M = {
+    stoneSet, woodSet, earthSet,
+    STONE: pbrMaterial({ color: '#b5aea0', maps: stoneSet, roughness: 1, metalness: 0, normalScale: 1.1, envMapIntensity: 0.28 }),
+    STONE_DK: pbrMaterial({ color: '#7b7266', maps: stoneSet, roughness: 1, metalness: 0, normalScale: 1.2, envMapIntensity: 0.22 }),
+    WOOD: pbrMaterial({ color: '#a89a88', maps: woodSet, roughness: 0.92, metalness: 0, normalScale: 1, envMapIntensity: 0.22 }),
+    WOOD_DK: pbrMaterial({ color: '#6e6255', maps: woodSet, roughness: 0.95, metalness: 0, normalScale: 1, envMapIntensity: 0.18 }),
+    IRON: ironMaterial('#4e5158'),
+    LEATHER: leatherMaterial('#4a352a'),
+    LEATHER_DK: leatherMaterial('#382a20'),
+    BONE: boneMaterial(),
+    BARK: pbrMaterial({ color: '#3a2e22', maps: barkSet, roughness: 1, metalness: 0, normalScale: 1.2, envMapIntensity: 0.15 }),
+    PINE_A: pbrMaterial({ color: '#2a3626', maps: barkSet, roughness: 1, metalness: 0, normalScale: 0.7, envMapIntensity: 0.12 }),
+    PINE_B: pbrMaterial({ color: '#222d1f', maps: barkSet, roughness: 1, metalness: 0, normalScale: 0.7, envMapIntensity: 0.12 }),
+    CLOTH_BLUE: clothMaterial(CLOTH.blue),
+    CLOTH_RED: clothMaterial(CLOTH.red),
+    // aged bronze trim — template; towers clone it (flash tint pokes color)
+    bronzeTrim: () => pbrMaterial({
+      color: '#6b4a26', roughness: 0.6, metalness: 1,
+      maps: { map: null, normalMap: stoneSet.normalMap, roughnessMap: null }, normalScale: 0.3, envMapIntensity: 0.5,
+    }),
   }
-  geo = geo.toNonIndexed()
-  geo.computeVertexNormals()
-  const m = new THREE.Mesh(geo, toonMaterial({ color, rim: '#d8c8a0', rimStrength: 0.3 }))
-  m.scale.setScalar(scale)
-  m.position.y = 0.28 * scale
-  m.rotation.y = rand(TAU)
-  m.castShadow = true
-  return m
+  return M
 }
 
-/** Wrap-safe painterly churned-battlefield texture (mud + trampled dead grass). */
-function battlegroundTexture() {
-  const tex = canvasTexture(1024, 1024, (ctx, w, h) => {
-    ctx.fillStyle = '#38301f'
-    ctx.fillRect(0, 0, w, h)
-    const blotch = (x, y, r, col, a) => {
-      const xs = [0]
-      const ys = [0]
-      if (x < r) xs.push(w); else if (x > w - r) xs.push(-w)
-      if (y < r) ys.push(h); else if (y > h - r) ys.push(-h)
-      for (const ox of xs) {
-        for (const oy of ys) {
-          const g = ctx.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r)
-          g.addColorStop(0, col)
-          g.addColorStop(1, 'rgba(0,0,0,0)')
-          ctx.globalAlpha = a
-          ctx.fillStyle = g
-          ctx.beginPath()
-          ctx.arc(x + ox, y + oy, r, 0, TAU)
-          ctx.fill()
-        }
-      }
+const cloth = team => (team === 'blue' ? mats().CLOTH_BLUE : mats().CLOTH_RED)
+
+// ============================== ground textures ==============================
+
+const hexRGB = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255] }
+const mixRGB = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]
+
+/** Trampled grass field with dead patches + scorch — {map, normalMap, roughnessMap}, tileable. */
+function grassFieldTexture() {
+  const size = 512
+  const coarse = noiseField(size, { octaves: 4, scale: 5, seed: 61 })
+  const fine = noiseField(size, { octaves: 3, scale: 34, seed: 87 })
+  const patch = noiseField(size, { octaves: 3, scale: 3, seed: 43 })
+  const DARK = hexRGB('#20260f'), BASE = hexRGB('#37391c'), LIGHT = hexRGB('#4a4722')
+  const DEAD = hexRGB('#5c4c2e'), SCORCH = hexRGB('#2a2318')
+  const map = canvasTexture(size, size, (ctx, w, h) => {
+    const img = ctx.createImageData(w, h), d = img.data
+    for (let i = 0; i < w * h; i++) {
+      const t = clamp(coarse[i] * 0.55 + fine[i] * 0.45, 0, 1)
+      let c = t < 0.5 ? mixRGB(DARK, BASE, t * 2) : mixRGB(BASE, LIGHT, (t - 0.5) * 2)
+      const p = patch[i]
+      if (p < 0.48) c = mixRGB(c, DEAD, Math.min(1, (0.48 - p) * 2.4) * (0.6 + fine[i] * 0.5)) // dried-out patches
+      if (p > 0.7) c = mixRGB(c, SCORCH, Math.min(1, (p - 0.7) * 2.6)) // scorched ground
+      d[i * 4] = c[0]; d[i * 4 + 1] = c[1]; d[i * 4 + 2] = c[2]; d[i * 4 + 3] = 255
     }
-    // muddy earth + surviving olive grass + scorched patches
-    const cols = ['#4a4028', '#2f281c', '#55492c', '#4a352a', '#5c5432', '#262117', '#403626']
-    for (let i = 0; i < 90; i++) blotch(rand(1024), rand(1024), rand(60, 170), cols[Math.floor(rand(cols.length))], rand(0.12, 0.24))
-    for (let i = 0; i < 420; i++) blotch(rand(1024), rand(1024), rand(9, 42), cols[Math.floor(rand(cols.length))], rand(0.12, 0.3))
-    // dead-grass flecks
-    ctx.globalAlpha = 1
-    for (let i = 0; i < 900; i++) {
-      const x = rand(1024), y = rand(1024)
-      ctx.strokeStyle = Math.random() < 0.5 ? 'rgba(168,148,94,0.15)' : 'rgba(24,18,12,0.2)'
-      ctx.lineWidth = rand(1, 2.2)
+    ctx.putImageData(img, 0, 0)
+    // trampled blade strokes
+    for (let i = 0; i < 1400; i++) {
+      const x = rand(size), y = rand(size)
+      ctx.strokeStyle = Math.random() < 0.5 ? 'rgba(122,116,66,0.14)' : 'rgba(20,18,10,0.18)'
+      ctx.lineWidth = rand(0.8, 1.8)
       ctx.beginPath()
       ctx.moveTo(x, y)
-      ctx.lineTo(x + rand(-3, 3), y - rand(3, 7))
+      ctx.lineTo(x + rand(-3, 3), y - rand(2, 6))
       ctx.stroke()
     }
   })
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping
-  return tex
+  map.wrapS = map.wrapT = THREE.RepeatWrapping
+  dirtOverlay(map, { amount: 0.32, edge: 0, speckle: 0.35, seed: 5 })
+  const height = new Float32Array(size * size)
+  for (let i = 0; i < height.length; i++) height[i] = clamp(coarse[i] * 0.35 + fine[i] * 0.65 - (patch[i] < 0.44 ? 0.12 : 0), 0, 1)
+  const normalMap = normalMapFromHeight(height, { strength: 1.5 })
+  const roughnessMap = canvasTexture(size / 2, size / 2, (ctx, w, h) => {
+    const img = ctx.createImageData(w, h), d = img.data
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const v = Math.round(255 * clamp(0.95 + (fine[(y * 2) * size + x * 2] - 0.5) * 0.1, 0, 1))
+        const i = (y * w + x) * 4
+        d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255
+      }
+    }
+    ctx.putImageData(img, 0, 0)
+  })
+  roughnessMap.colorSpace = THREE.NoColorSpace
+  roughnessMap.wrapS = roughnessMap.wrapT = THREE.RepeatWrapping
+  return { map, normalMap, roughnessMap }
 }
 
-/** Churned mud lane strip with soft alpha edges, wheel ruts and boot scars. */
-function laneTexture() {
-  return canvasTexture(1024, 256, (ctx, w, h) => {
-    const g = ctx.createLinearGradient(0, 0, 0, h)
-    g.addColorStop(0, 'rgba(66,48,34,0)')
-    g.addColorStop(0.18, 'rgba(66,48,34,0.92)')
-    g.addColorStop(0.5, 'rgba(78,58,40,0.96)')
-    g.addColorStop(0.82, 'rgba(66,48,34,0.92)')
-    g.addColorStop(1, 'rgba(66,48,34,0)')
-    ctx.fillStyle = g
-    ctx.fillRect(0, 0, w, h)
-    for (let i = 0; i < 260; i++) {
-      const x = rand(w), y = rand(h * 0.14, h * 0.86), r = rand(6, 26)
-      const dark = Math.random() < 0.55
-      const rg = ctx.createRadialGradient(x, y, 0, x, y, r)
-      rg.addColorStop(0, dark ? 'rgba(34,24,16,0.4)' : 'rgba(110,84,56,0.3)')
-      rg.addColorStop(1, 'rgba(0,0,0,0)')
-      ctx.fillStyle = rg
+/** Packed-earth lane albedo: tiled earth set + painted wheel ruts, boot scars, mud spatter, alpha edges. */
+function laneAlbedo(earthSet) {
+  const w = 1024, h = 256
+  const tex = canvasTexture(w, h, ctx => {
+    const src = earthSet.map.image
+    for (let i = 0; i < 4; i++) ctx.drawImage(src, i * 256, 0, 256, 256)
+    // churn blotches
+    for (let i = 0; i < 240; i++) {
+      const x = rand(w), y = rand(h * 0.1, h * 0.9), r = rand(6, 24)
+      const dark = Math.random() < 0.58
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r)
+      g.addColorStop(0, dark ? 'rgba(30,20,12,0.38)' : 'rgba(112,90,60,0.26)')
+      g.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = g
       ctx.beginPath()
       ctx.arc(x, y, r, 0, TAU)
       ctx.fill()
     }
-    // deep chariot ruts
-    ctx.strokeStyle = 'rgba(24,16,10,0.4)'
-    ctx.lineWidth = 7
-    for (const off of [-22, 22]) {
-      ctx.beginPath()
-      for (let x = 0; x <= w; x += 32) {
-        const y = h / 2 + off + Math.sin(x * 0.02) * 6
-        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+    // wheel ruts: dark groove + displaced-earth highlight ridge (two ages of tracks)
+    const rut = (off, alpha, lw) => {
+      for (const s of [-1, 1]) {
+        ctx.strokeStyle = `rgba(20,13,8,${alpha})`
+        ctx.lineWidth = lw
+        ctx.beginPath()
+        for (let x = 0; x <= w; x += 24) {
+          const y = h / 2 + s * off + Math.sin(x * 0.019 + off) * 7 + Math.sin(x * 0.041) * 3
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+        }
+        ctx.stroke()
+        ctx.strokeStyle = `rgba(138,110,74,${alpha * 0.55})`
+        ctx.lineWidth = lw * 0.55
+        ctx.beginPath()
+        for (let x = 0; x <= w; x += 24) {
+          const y = h / 2 + s * off + Math.sin(x * 0.019 + off) * 7 + Math.sin(x * 0.041) * 3 + lw * 0.75
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+        }
+        ctx.stroke()
       }
-      ctx.stroke()
     }
+    rut(22, 0.5, 8)
+    rut(50, 0.24, 6)
     // boot scars
-    ctx.fillStyle = 'rgba(20,14,9,0.3)'
-    for (let i = 0; i < 130; i++) {
-      const x = rand(w), y = rand(h * 0.2, h * 0.8)
+    ctx.fillStyle = 'rgba(18,12,8,0.3)'
+    for (let i = 0; i < 150; i++) {
+      const x = rand(w), y = rand(h * 0.15, h * 0.85)
       ctx.save()
       ctx.translate(x, y)
       ctx.rotate(rand(TAU))
       ctx.fillRect(-3, -1.4, 6, 2.8)
       ctx.restore()
     }
+    // soft alpha edges so packed earth blends into the field
+    ctx.globalCompositeOperation = 'destination-out'
+    for (const [y0, y1] of [[0, h * 0.2], [h, h * 0.8]]) {
+      const g = ctx.createLinearGradient(0, y0, 0, y1)
+      g.addColorStop(0, 'rgba(0,0,0,1)')
+      g.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = g
+      ctx.fillRect(0, Math.min(y0, y1), w, Math.abs(y1 - y0))
+    }
+    // mud spatter thrown past the lane edge (drawn after the mask, keeps its own alpha)
+    ctx.globalCompositeOperation = 'source-over'
+    for (let i = 0; i < 130; i++) {
+      const nearTop = Math.random() < 0.5
+      const y = nearTop ? rand(2, h * 0.24) : rand(h * 0.76, h - 2)
+      const x = rand(w), r = rand(1.5, 6)
+      ctx.fillStyle = `rgba(38,26,16,${rand(0.25, 0.6)})`
+      ctx.beginPath()
+      ctx.arc(x, y, r, 0, TAU)
+      ctx.fill()
+    }
   })
+  return tex
 }
 
-/** Soft radial team-tint decal. */
+/** Muted painted team-stain decal (pigment ground into the dirt, not glow). */
 function tintDecal(color, radius) {
   const tex = canvasTexture(256, 256, (ctx, w, h) => {
     const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2)
@@ -156,31 +218,83 @@ function tintDecal(color, radius) {
   })
   const m = new THREE.Mesh(
     new THREE.CircleGeometry(radius, 32),
-    new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.3, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.16, depthWrite: false }),
   )
   m.rotation.x = -Math.PI / 2
   return m
 }
 
+/** Dark mud/AO skirt hugging a structure's foot (grounding + splash grime). */
+let _skirtTex = null
+function mudSkirt(radius, height = 0.85) {
+  _skirtTex ??= canvasTexture(64, 64, (ctx, w, h) => {
+    const g = ctx.createLinearGradient(0, 0, 0, h)
+    g.addColorStop(0, 'rgba(16,11,7,0)')
+    g.addColorStop(0.55, 'rgba(16,11,7,0.28)')
+    g.addColorStop(1, 'rgba(14,10,6,0.62)')
+    ctx.clearRect(0, 0, w, h)
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, w, h)
+    for (let i = 0; i < 40; i++) { // splash flecks climbing the wall
+      ctx.fillStyle = `rgba(20,14,9,${rand(0.2, 0.5)})`
+      ctx.beginPath()
+      ctx.arc(rand(w), rand(h * 0.2, h), rand(1, 3), 0, TAU)
+      ctx.fill()
+    }
+  })
+  const m = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius * 1.04, height, 12, 1, true),
+    new THREE.MeshBasicMaterial({ map: _skirtTex, transparent: true, depthWrite: false, side: THREE.DoubleSide }),
+  )
+  m.position.y = height / 2
+  m.renderOrder = 2
+  return m
+}
+
 // ============================== fire ==============================
 
+// Per-buildMap cache (NOT module-lifetime): scene teardown disposes materials,
+// which untracks them from the kit's animation ticker — reuse would freeze flames.
+let FIRE_MATS = {}
+function fireMat(team) {
+  const F = FLAME[team] || FLAME.red
+  if (!FIRE_MATS[team]) {
+    const fm = fireMaterial({
+      intensity: team === 'blue' ? 0.72 : 0.95, // blue witchfire burns dimmer
+      speed: 1.6, edgeColor: F.edge, midColor: F.mid, coreColor: F.core,
+    })
+    fm.side = THREE.FrontSide // stop back-face additive doubling — keeps the core hot, not blown white
+    FIRE_MATS[team] = fm
+  }
+  return FIRE_MATS[team]
+}
+
+function haloSprite(color, opacity) {
+  return new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture(), color, transparent: true, opacity,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  }))
+}
+
 /**
- * Twin-cone torch flame + halo sprite. Returns { group, flick } —
- * push flick into a shared flicker tickable list.
+ * Real layered flame: two fire-shader cones + warm halo sprite.
+ * Returns { group, flick } — push flick into the shared flicker ticker.
  */
 function flame(team, scale = 1) {
   const F = FLAME[team] || FLAME.red
   const group = new THREE.Group()
-  const outer = new THREE.Mesh(new THREE.ConeGeometry(0.19, 0.68, 8), glowMaterial(F.outer, 1.4))
-  outer.position.y = 0.26
-  const inner = new THREE.Mesh(new THREE.ConeGeometry(0.095, 0.4, 8), glowMaterial(F.inner, 1.55))
-  inner.position.y = 0.18
-  const halo = new THREE.Sprite(glowSpriteMaterial(F.halo, 0.3))
-  halo.scale.setScalar(1.1)
-  halo.position.y = 0.3
+  const fm = fireMat(team)
+  const outer = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.82, 8, 3, true), fm)
+  outer.position.y = 0.34
+  const inner = new THREE.Mesh(new THREE.ConeGeometry(0.085, 0.5, 8, 2, true), fm)
+  inner.position.y = 0.22
+  inner.rotation.y = 1.2
+  const halo = haloSprite(F.halo, 0.1)
+  halo.scale.setScalar(0.92)
+  halo.position.y = 0.34
   group.add(outer, inner, halo)
   group.scale.setScalar(scale)
-  return { group, flick: { outer, inner, halo, phase: rand(TAU), baseOp: 0.3 } }
+  return { group, flick: { outer, inner, halo, phase: rand(TAU), baseOp: 0.1 } }
 }
 
 /** One tickable animating every flame in the scene (cheap flicker). */
@@ -190,44 +304,166 @@ function flameTicker(flicks) {
     tick: dt => {
       t += dt
       for (const f of flicks) {
-        const k = 0.82 + 0.18 * Math.sin(t * 11 + f.phase) * Math.sin(t * 5.3 + f.phase * 2)
+        const k = 0.84 + 0.16 * Math.sin(t * 11 + f.phase) * Math.sin(t * 5.3 + f.phase * 2)
         f.outer.scale.set(1, k, 1)
-        f.inner.scale.set(1, 0.7 + 0.3 * k, 1)
-        f.halo.material.opacity = f.baseOp * (0.75 + 0.35 * k)
+        f.inner.scale.set(1, 0.72 + 0.28 * k, 1)
+        f.halo.material.opacity = f.baseOp * (0.7 + 0.4 * k)
       }
     },
   }
 }
 
+/** Rising ember sparks — Points cycling upward with sway. Call .tick(dt). */
+function emberSparks({ count = 22, radius = 0.55, height = 3.4, color = '#ffa050', size = 0.17 } = {}) {
+  const pos = new Float32Array(count * 3)
+  const seed = new Float32Array(count * 3)
+  for (let i = 0; i < count; i++) {
+    seed[i * 3] = rand(TAU)               // phase
+    seed[i * 3 + 1] = rand(0.7, 1.6)      // speed
+    seed[i * 3 + 2] = rand(0.2, 1)        // radial
+    pos[i * 3 + 1] = rand(height)
+  }
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+  const mat = new THREE.PointsMaterial({
+    map: glowTexture(), color: new THREE.Color(color).multiplyScalar(1.25), size,
+    transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending,
+  })
+  const pts = new THREE.Points(geo, mat)
+  let t = rand(20)
+  pts.tick = dt => {
+    t += dt
+    const p = pts.geometry.attributes.position
+    for (let i = 0; i < count; i++) {
+      const ph = seed[i * 3], sp = seed[i * 3 + 1], rr = seed[i * 3 + 2]
+      const y = ((t * sp + ph) % 1.6) / 1.6 * height
+      const spread = radius * rr * (0.4 + y / height)
+      p.setXYZ(i, Math.sin(t * 1.7 + ph * 7) * spread, y, Math.cos(t * 1.3 + ph * 5) * spread)
+    }
+    p.needsUpdate = true
+  }
+  return pts
+}
+
+/**
+ * The war-fire that replaces the old nexus crystal: iron cauldron, ember coals,
+ * layered flame cones, spark column, drifting smoke. Group has .tick(dt).
+ */
+function nexusFlame(team) {
+  const F = FLAME[team] || FLAME.red
+  const { IRON } = mats()
+  const group = new THREE.Group()
+  const fm = fireMat(team)
+
+  const bowl = new THREE.Mesh(facet(new THREE.CylinderGeometry(1.05, 0.7, 0.62, 10)), IRON)
+  bowl.position.y = 0.3
+  bowl.castShadow = true
+  const coals = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.88, 0.88, 0.1, 10),
+    emberGlowMaterial(1.4, F.mid),
+  )
+  coals.position.y = 0.62
+  group.add(bowl, coals)
+
+  const fOuter = new THREE.Mesh(new THREE.ConeGeometry(0.68, 3.9, 10, 4, true), fm)
+  fOuter.position.y = 2.55
+  const fMid = new THREE.Mesh(new THREE.ConeGeometry(0.46, 2.8, 8, 3, true), fm)
+  fMid.position.y = 2
+  fMid.rotation.y = 1.1
+  const fInner = new THREE.Mesh(new THREE.ConeGeometry(0.26, 1.9, 8, 2, true), fm)
+  fInner.position.y = 1.6
+  fInner.rotation.y = 2.3
+  group.add(fOuter, fMid, fInner)
+
+  const sparks = emberSparks({ count: 26, radius: 0.7, height: 4.6, color: F.spark })
+  sparks.position.y = 0.6
+  group.add(sparks)
+
+  const halo = haloSprite(F.halo, 0.16)
+  halo.scale.setScalar(3)
+  halo.position.y = 2.2
+  group.add(halo)
+
+  // smoke-tinted drift above the fire
+  const smoke = []
+  for (let i = 0; i < 3; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTexture(), color: '#171310', transparent: true, opacity: 0.26, depthWrite: false,
+    }))
+    s.scale.setScalar(1.6)
+    smoke.push({ s, ph: rand(1) })
+    group.add(s)
+  }
+
+  let t = rand(10)
+  group.tick = dt => {
+    if (!group.visible) return
+    t += dt
+    sparks.tick(dt)
+    const k = 0.9 + 0.1 * Math.sin(t * 9.2) * Math.sin(t * 4.1)
+    fOuter.scale.set(1, k, 1)
+    fMid.scale.set(1, 0.85 + 0.15 * k, 1)
+    halo.material.opacity = 0.16 + 0.1 * k
+    for (const sm of smoke) {
+      const y = ((t * 0.35 + sm.ph) % 1)
+      sm.s.position.set(Math.sin(t * 0.8 + sm.ph * 9) * 0.5, 3.2 + y * 3.4, Math.cos(t * 0.6 + sm.ph * 7) * 0.5)
+      sm.s.material.opacity = 0.26 * (1 - y) * (0.4 + 0.6 * Math.min(1, y * 4))
+      sm.s.scale.setScalar(1.2 + y * 2.4)
+    }
+  }
+  return group
+}
+
 /** Wooden torch post with an iron cup and live flame. */
 function torchPost(flicks, team = 'red') {
+  const { WOOD, IRON } = mats()
   const g = new THREE.Group()
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 2.5, 6), WOOD)
   pole.position.y = 1.25
+  pole.rotation.z = rand(-0.05, 0.05)
   pole.castShadow = true
   const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.12, 0.24, 7), IRON)
   cup.position.y = 2.58
   const f = flame(team, 1)
   f.group.position.y = 2.68
   flicks.push(f.flick)
-  g.add(pole, cup, f.group)
+  g.add(pole, cup, f.group, contactShadow(0.42, 0.34))
   return g
 }
 
 // ============================== battlefield props ==============================
 
-/** Stylized pine: dark stacked cones on a bare trunk. */
+/** Cone with a ruffled, irregular silhouette (wind-worn pine tiers). */
+function ruffledCone(r, h, seg = 8, amt = 0.2) {
+  const seed = rand(100)
+  let geo = new THREE.ConeGeometry(r, h, seg, 2)
+  const p = geo.attributes.position
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i)
+    if (y > h * 0.49) continue // keep the tip sharp
+    const a = Math.atan2(z, x)
+    const k = 1 + amt * Math.sin(a * 3.1 + seed + y * 2.7) * (0.55 + 0.45 * Math.sin(seed * 2 + a * 5.3))
+    p.setXYZ(i, x * k, y + Math.sin(a * 2.3 + seed) * 0.05 * h, z * k)
+  }
+  geo = geo.toNonIndexed()
+  geo.computeVertexNormals()
+  return geo
+}
+
+/** Storm-bent pine: bark trunk, ruffled irregular tiers, slight lean. */
 function pine() {
+  const { BARK, PINE_A, PINE_B } = mats()
   const g = new THREE.Group()
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, 1.2, 6), WOOD_DK)
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.22, 1.3, 7), BARK)
   trunk.position.y = 0.6
+  trunk.rotation.z = rand(-0.06, 0.06)
   trunk.castShadow = true
   g.add(trunk)
-  const lm = toonMaterial({ color: '#24402a', rim: '#a8c890', rimStrength: 0.25 })
-  const tiers = [[1.4, 1.05, 1.3], [2.3, 0.8, 1.1], [3.1, 0.55, 0.9]]
+  const tiers = [[1.35, 1.1, 1.45], [2.25, 0.82, 1.15], [3.05, 0.55, 0.95]]
   for (const [y, r, h] of tiers) {
-    const c = new THREE.Mesh(facet(new THREE.ConeGeometry(r, h, 7)), lm)
-    c.position.y = y
+    const c = new THREE.Mesh(ruffledCone(r, h, 8, rand(0.16, 0.3)), Math.random() < 0.5 ? PINE_A : PINE_B)
+    c.position.set(rand(-0.07, 0.07), y, rand(-0.07, 0.07))
+    c.rotation.y = rand(TAU)
     c.castShadow = true
     g.add(c)
   }
@@ -236,9 +472,9 @@ function pine() {
 
 /** Dead oak: bare trunk with clawed branches — a burnt battlefield silhouette. */
 function deadOak() {
+  const { BARK } = mats()
   const g = new THREE.Group()
-  const bark = toonMaterial({ color: '#392e22', rim: '#b89878', rimStrength: 0.3 })
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.3, 2, 6), bark)
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.3, 2, 6), BARK)
   trunk.position.y = 1
   trunk.rotation.z = rand(-0.08, 0.08)
   trunk.castShadow = true
@@ -246,7 +482,7 @@ function deadOak() {
   const nb = 3 + Math.floor(rand(3))
   for (let i = 0; i < nb; i++) {
     const len = rand(0.9, 1.7)
-    const b = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.085, len, 5), bark)
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.085, len, 5), BARK)
     const a = (i / nb) * TAU + rand(0.6)
     b.position.set(Math.cos(a) * 0.16, rand(1.5, 2), Math.sin(a) * 0.16)
     b.rotation.set(Math.sin(a) * rand(0.6, 1.1), 0, Math.cos(a) * rand(0.6, 1.1))
@@ -254,7 +490,7 @@ function deadOak() {
     b.castShadow = true
     g.add(b)
     if (Math.random() < 0.7) {
-      const tw = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.045, len * 0.55, 4), bark)
+      const tw = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.045, len * 0.55, 4), BARK)
       tw.position.copy(b.position)
       tw.rotation.set(b.rotation.x + rand(-0.7, 0.7), rand(TAU), b.rotation.z + rand(-0.7, 0.7))
       tw.translateY(len * 0.28)
@@ -264,8 +500,31 @@ function deadOak() {
   return g
 }
 
+/** Low-poly rock with baked facet normals. */
+function flatRock(scale, dark = false) {
+  const { STONE, STONE_DK } = mats()
+  let geo = new THREE.IcosahedronGeometry(0.55, 0)
+  const p = geo.attributes.position
+  const seed = rand(100)
+  for (let i = 0; i < p.count; i++) {
+    const k = 0.75 + 0.5 * Math.abs(Math.sin(p.getX(i) * 12.9 + p.getY(i) * 7.1 + p.getZ(i) * 3.7 + seed))
+    p.setXYZ(i, p.getX(i) * k, p.getY(i) * k * 0.8, p.getZ(i) * k)
+  }
+  geo = geo.toNonIndexed()
+  geo.computeVertexNormals()
+  const g = new THREE.Group()
+  const m = new THREE.Mesh(geo, dark ? STONE_DK : STONE)
+  m.scale.setScalar(scale)
+  m.position.y = 0.26 * scale
+  m.rotation.y = rand(TAU)
+  m.castShadow = true
+  g.add(m, contactShadow(0.62 * scale, 0.38))
+  return g
+}
+
 /** Sharpened wooden palisade segment (a few leaning stakes lashed together). */
 function palisade(count = 6) {
+  const { WOOD, WOOD_DK } = mats()
   const g = new THREE.Group()
   for (let i = 0; i < count; i++) {
     const h = rand(1.5, 2.1)
@@ -282,17 +541,19 @@ function palisade(count = 6) {
     stake.rotation.x = rand(-0.16, 0.05)
     g.add(stake)
   }
-  // lashing beam
   const beam = new THREE.Mesh(new THREE.BoxGeometry(count * 0.42, 0.09, 0.09), WOOD_DK)
   beam.position.y = 1.1
   beam.rotation.z = rand(-0.04, 0.04)
   g.add(beam)
+  const blob = contactShadow(1, 0.36)
+  blob.scale.set(count * 0.26, 0.7, 1)
+  g.add(blob)
   return g
 }
 
 /** War tent: leather pyramid + pole, with a small pennant. */
 function tent(team) {
-  const T = TEAMS[team]
+  const { LEATHER, LEATHER_DK, WOOD_DK } = mats()
   const g = new THREE.Group()
   const canvas = new THREE.Mesh(facet(new THREE.ConeGeometry(1.5, 1.7, 5)), Math.random() < 0.5 ? LEATHER : LEATHER_DK)
   canvas.position.y = 0.85
@@ -300,66 +561,61 @@ function tent(team) {
   canvas.castShadow = true
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 5), WOOD_DK)
   pole.position.y = 2
-  const pennant = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.55, 0.3),
-    toonMaterial({ color: CLOTH[team], side: THREE.DoubleSide, emissive: CLOTH[team], emissiveIntensity: 0.15 }),
-  )
+  const pennant = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.3), cloth(team))
   pennant.position.set(0.28, 2.28, 0)
-  g.add(canvas, pole, pennant)
+  g.add(canvas, pole, pennant, contactShadow(1.75, 0.42))
   g.userData.pennant = pennant
   return g
 }
 
-/** Tall war banner: wooden pole, crossbar, hanging team cloth. Returns cloth for the sway tick. */
+/** Tall war banner: wooden pole, crossbar, hanging dyed cloth. */
 function warBanner(team, cloths) {
-  const T = TEAMS[team]
+  const { WOOD, WOOD_DK, BONE } = mats()
   const g = new THREE.Group()
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 3.6, 6), WOOD)
   pole.position.y = 1.8
   pole.castShadow = true
   const bar = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.08), WOOD_DK)
   bar.position.y = 3.42
-  const cloth = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.92, 1.7),
-    toonMaterial({ color: CLOTH[team], rim: '#ffe6c8', rimStrength: 0.3, side: THREE.DoubleSide, emissive: CLOTH[team], emissiveIntensity: 0.22 }),
-  )
-  cloth.position.set(0, 2.52, 0)
-  cloth.userData.phase = rand(TAU)
-  cloths.push(cloth)
-  // bone finial
+  const banner = new THREE.Mesh(new THREE.PlaneGeometry(0.92, 1.7), cloth(team))
+  banner.position.set(0, 2.52, 0)
+  banner.userData.phase = rand(TAU)
+  banner.castShadow = true
+  cloths.push(banner)
   const skullish = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), BONE)
   skullish.position.y = 3.68
-  g.add(pole, bar, cloth, skullish)
+  g.add(pole, bar, banner, skullish, contactShadow(0.4, 0.34))
   return g
 }
 
-/** Rune monolith: hewn standing stone with an ember rune-strip in team flame color. */
+/** Rune monolith: hewn standing stone with a faint ember rune-strip. */
 function runeStone(team, h = 2.2) {
   const F = FLAME[team] || FLAME.red
+  const { STONE_DK } = mats()
   const g = new THREE.Group()
-  const stone = new THREE.Mesh(new THREE.BoxGeometry(0.72, h, 0.5), STONE_DK)
+  const stone = new THREE.Mesh(facet(new THREE.BoxGeometry(0.72, h, 0.5)), STONE_DK)
   stone.position.y = h / 2
   stone.rotation.set(rand(-0.06, 0.06), rand(TAU), rand(-0.08, 0.08))
   stone.castShadow = true
-  const rune = new THREE.Mesh(new THREE.PlaneGeometry(0.16, h * 0.62), glowMaterial(F.outer, 1.35))
+  const rune = new THREE.Mesh(new THREE.PlaneGeometry(0.1, h * 0.52), emberGlowMaterial(team === 'blue' ? 0.72 : 0.95, F.mid))
   rune.position.set(0, h * 0.52, 0.26)
   stone.add(rune)
   const rune2 = rune.clone()
   rune2.position.z = -0.26
   rune2.rotation.y = Math.PI
   stone.add(rune2)
-  g.add(stone)
+  g.add(stone, contactShadow(0.66, 0.4))
   return g
 }
 
 /** Cluster of river reeds with cattail heads. */
 function reedClump() {
+  const { LEATHER_DK, PINE_A } = mats()
   const g = new THREE.Group()
-  const reedMat = toonMaterial({ color: '#465532', rim: '#c8d89a', rimStrength: 0.35 })
   const n = 4 + Math.floor(rand(4))
   for (let i = 0; i < n; i++) {
     const h = rand(0.7, 1.35)
-    const blade = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.028, h, 4), reedMat)
+    const blade = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.028, h, 4), PINE_A)
     blade.position.set(rand(-0.22, 0.22), h / 2, rand(-0.22, 0.22))
     blade.rotation.set(rand(-0.18, 0.18), 0, rand(-0.18, 0.18))
     g.add(blade)
@@ -374,11 +630,64 @@ function reedClump() {
   return g
 }
 
+/** Instanced ground clutter: pebbles, wood splinters, bone shards. */
+function scatterClutter(scene) {
+  const { BONE } = mats()
+  const tmp = new THREE.Object3D()
+  const place = (inst, i, x, z, s, y = 0.02) => {
+    tmp.position.set(x, y, z)
+    tmp.rotation.set(rand(TAU), rand(TAU), rand(TAU))
+    tmp.scale.setScalar(s)
+    tmp.updateMatrix()
+    inst.setMatrixAt(i, tmp.matrix)
+  }
+
+  // pebbles along lane edges + riverbanks + scattered field
+  const pebbleGeo = new THREE.IcosahedronGeometry(0.09, 0)
+  const pebbleMat = pbrMaterial({ color: '#867e6e', roughness: 1, metalness: 0, flatShading: true, envMapIntensity: 0.2 })
+  const pebbles = new THREE.InstancedMesh(pebbleGeo, pebbleMat, 150)
+  const col = new THREE.Color()
+  for (let i = 0; i < 150; i++) {
+    const kind = Math.random()
+    let x, z
+    if (kind < 0.55) { x = rand(-48, 48); z = (Math.random() < 0.5 ? -1 : 1) * rand(3.8, 6.6) }
+    else if (kind < 0.8) {
+      const u = (Math.random() < 0.5 ? -1 : 1) * rand(4.4, 6.6), v = rand(-26, 26)
+      x = u * Math.cos(RIVER_ANGLE) + v * Math.sin(RIVER_ANGLE)
+      z = -u * Math.sin(RIVER_ANGLE) + v * Math.cos(RIVER_ANGLE)
+    } else { x = rand(-50, 50); z = rand(-20, 20) }
+    place(pebbles, i, x, z, rand(0.5, 1.7))
+    pebbles.setColorAt(i, col.setHSL(0.09, rand(0.04, 0.12), rand(0.32, 0.5)))
+  }
+  pebbles.receiveShadow = true
+  scene.add(pebbles)
+
+  // splinters near lane + palisades
+  const splinterGeo = new THREE.BoxGeometry(0.36, 0.045, 0.055)
+  const splinterMat = pbrMaterial({ color: '#5c452c', roughness: 1, metalness: 0, envMapIntensity: 0.15 })
+  const splinters = new THREE.InstancedMesh(splinterGeo, splinterMat, 50)
+  for (let i = 0; i < 50; i++) {
+    place(splinters, i, rand(-46, 46), (Math.random() < 0.5 ? -1 : 1) * rand(2.5, 8), rand(0.6, 1.6), 0.03)
+  }
+  splinters.receiveShadow = true
+  scene.add(splinters)
+
+  // bone shards
+  const boneGeo = new THREE.TetrahedronGeometry(0.13)
+  const bones = new THREE.InstancedMesh(boneGeo, BONE, 22)
+  for (let i = 0; i < 22; i++) {
+    place(bones, i, rand(-46, 46), (Math.random() < 0.5 ? -1 : 1) * rand(3, 18), rand(0.6, 1.4), 0.04)
+  }
+  bones.receiveShadow = true
+  scene.add(bones)
+}
+
 // ============================== bases + towers ==============================
 
 function buildBase(scene, tickables, flicks, cloths, team) {
   const T = TEAMS[team]
   const F = FLAME[team]
+  const { STONE, STONE_DK, IRON, WOOD } = mats()
   const x = T.sign * NEXUS_X
   const g = new THREE.Group()
   g.position.set(x, 0, 0)
@@ -396,16 +705,16 @@ function buildBase(scene, tickables, flicks, cloths, team) {
   g.add(plat, step)
 
   // aged-bronze trim ring catching the firelight
-  const trim = new THREE.Mesh(new THREE.TorusGeometry(6.75, 0.09, 8, 48), glowMaterial('#b0793a', 1.05))
+  const trim = new THREE.Mesh(new THREE.TorusGeometry(6.75, 0.09, 8, 48), mats().bronzeTrim())
   trim.rotation.x = Math.PI / 2
   trim.position.y = 0.44
   g.add(trim)
 
-  // ember rune ring around the shrine heart
+  // faint ember ring around the shrine heart (firelight cast onto stone)
   const inner = new THREE.Mesh(
     new THREE.RingGeometry(3.6, 3.95, 48),
     new THREE.MeshBasicMaterial({
-      color: new THREE.Color(F.outer).multiplyScalar(1.1), transparent: true, opacity: 0.26,
+      color: new THREE.Color(F.mid).multiplyScalar(0.85), transparent: true, opacity: 0.16,
       blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
     }),
   )
@@ -413,14 +722,13 @@ function buildBase(scene, tickables, flicks, cloths, team) {
   inner.position.y = 0.86
   g.add(inner)
 
-  // WAR CRYSTAL on a stone plinth
+  // WAR FIRE on a stone plinth — the team's nexus heart
   const plinth = new THREE.Mesh(facet(new THREE.CylinderGeometry(1.25, 1.65, 0.85, 8)), STONE)
   plinth.position.y = 1.2
   plinth.castShadow = true
   g.add(plinth)
-  const nex = crystal({ color1: T.dark, color2: T.color, height: 4.1 })
-  nex.position.y = 1.55
-  nex.scale.setScalar(1.12)
+  const nex = nexusFlame(team)
+  nex.position.y = 1.62
   g.add(nex)
   tickables.push(nex)
 
@@ -440,14 +748,14 @@ function buildBase(scene, tickables, flicks, cloths, team) {
     g.add(f.group)
   }
 
-  // firelight
-  const light = new THREE.PointLight(F.outer, team === 'red' ? 12 : 9, 24, 1.9)
+  // firelight — real falloff
+  const light = new THREE.PointLight(F.mid, team === 'red' ? 16 : 12, 26, 2)
   light.position.set(0, 5, 0)
   g.add(light)
 
   // war banners around the platform rim
   const flags = []
-  const flagMat = toonMaterial({ color: CLOTH[team], rim: '#ffe6c8', rimStrength: 0.35, side: THREE.DoubleSide, emissive: CLOTH[team], emissiveIntensity: 0.22 })
+  const flagMat = cloth(team)
   for (const a of [0.7, 2.44, -0.7, -2.44]) {
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.11, 3.8, 6), WOOD)
     pole.position.set(Math.cos(a) * 6.1, 2.2, Math.sin(a) * 6.1)
@@ -455,6 +763,7 @@ function buildBase(scene, tickables, flicks, cloths, team) {
     g.add(pole)
     const flag = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.9), flagMat)
     flag.position.set(Math.cos(a) * 6.1 + 0.75, 3.6, Math.sin(a) * 6.1)
+    flag.castShadow = true
     flag.userData.baseYaw = rand(TAU)
     g.add(flag)
     flags.push(flag)
@@ -471,9 +780,12 @@ function buildBase(scene, tickables, flicks, cloths, team) {
   })
 
   scene.add(g)
-  const tint = tintDecal(team === 'blue' ? 'rgba(120,160,200,0.45)' : 'rgba(210,80,40,0.5)', 15)
+  const tint = tintDecal(team === 'blue' ? 'rgba(92,116,140,0.5)' : 'rgba(150,66,38,0.5)', 15)
   tint.position.set(x * 0.92, 0.012, 0)
   scene.add(tint)
+  const ao = contactShadow(8.6, 0.4)
+  ao.position.set(x, 0.015, 0)
+  scene.add(ao)
 
   return {
     team, x, group: g, nexGroup: nex,
@@ -485,12 +797,13 @@ function buildBase(scene, tickables, flicks, cloths, team) {
 function buildTower(scene, tickables, flicks, team, tier) {
   const T = TEAMS[team]
   const F = FLAME[team]
+  const { STONE, STONE_DK, WOOD, WOOD_DK, IRON } = mats()
   const x = T.sign * TOWER_XS[tier]
   const z = TOWER_Z[tier]
   const g = new THREE.Group()
   g.position.set(x, 0, z)
 
-  // hewn stone watchtower
+  // hewn cracked-stone watchtower
   const base = new THREE.Mesh(facet(new THREE.CylinderGeometry(2.15, 2.6, 0.7, 8)), STONE_DK)
   base.position.y = 0.35
   base.castShadow = base.receiveShadow = true
@@ -502,6 +815,21 @@ function buildTower(scene, tickables, flicks, team, tier) {
   collar.castShadow = true
   g.add(base, body, collar)
 
+  // wooden hoarding: plank skirt braced below the battlement
+  const hoard = new THREE.Mesh(new THREE.CylinderGeometry(1.52, 1.38, 0.92, 8, 1, true), WOOD)
+  hoard.position.y = 4.28
+  hoard.castShadow = true
+  g.add(hoard)
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * TAU + Math.PI / 8
+    const strut = new THREE.Mesh(new THREE.BoxGeometry(0.09, 1.15, 0.09), WOOD_DK)
+    strut.position.set(Math.cos(a) * 1.32, 3.5, Math.sin(a) * 1.32)
+    strut.rotation.z = Math.cos(a) * 0.34
+    strut.rotation.x = -Math.sin(a) * 0.34
+    strut.castShadow = true
+    g.add(strut)
+  }
+
   // crenellated battlement
   for (let i = 0; i < 6; i++) {
     const a = (i / 6) * TAU
@@ -512,35 +840,37 @@ function buildTower(scene, tickables, flicks, team, tier) {
     g.add(c)
   }
 
-  // bronze trim band
-  const trim = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.09, 8, 28), glowMaterial('#b0793a', 1.05))
+  // bronze trim band (flash-tinted when the tower takes damage)
+  const trim = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.09, 8, 28), mats().bronzeTrim())
   trim.rotation.x = Math.PI / 2
   trim.position.y = 4.62
   g.add(trim)
 
   // signal brazier crowning the tower (the tower's "eye")
   const gem = new THREE.Group()
-  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.4, 0.34, 8), IRON)
+  const bowl = new THREE.Mesh(facet(new THREE.CylinderGeometry(0.62, 0.4, 0.34, 8)), IRON)
+  const coals = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.07, 8), emberGlowMaterial(1.35, F.mid))
+  coals.position.y = 0.15
   const f = flame(team, 2.1)
   f.group.position.y = 0.16
   flicks.push(f.flick)
-  gem.add(bowl, f.group)
+  gem.add(bowl, coals, f.group)
   gem.position.y = 5.85
   g.add(gem)
 
-  const halo = new THREE.Sprite(glowSpriteMaterial(F.halo, 0.24))
-  halo.scale.setScalar(2.6)
-  halo.position.y = 6.1
+  const halo = haloSprite(F.halo, 0.16)
+  halo.scale.setScalar(2.4)
+  halo.position.y = 6.2
   g.add(halo)
 
   // targeting flare (pulses while the tower aims)
-  const aimSpr = new THREE.Sprite(glowSpriteMaterial('#ffffff', 0))
+  const aimSpr = haloSprite('#ffffff', 0)
   aimSpr.scale.setScalar(2.2)
-  aimSpr.position.y = 6.1
+  aimSpr.position.y = 6.2
   g.add(aimSpr)
 
   // invulnerability ward ring — pale bone-gold runes
-  const shield = new THREE.Mesh(new THREE.TorusGeometry(2.15, 0.07, 8, 40), glowMaterial('#d8cfae', 0.95))
+  const shield = new THREE.Mesh(new THREE.TorusGeometry(2.15, 0.07, 8, 40), emberGlowMaterial(0.72, '#c9bd97'))
   shield.rotation.x = Math.PI / 2
   shield.position.y = 0.78
   g.add(shield)
@@ -556,15 +886,9 @@ function buildTower(scene, tickables, flicks, team, tier) {
     g.add(stake)
   }
 
-  let t = rand(10)
-  tickables.push({
-    tick: dt => {
-      t += dt
-      gem.position.y = 5.85 + Math.sin(t * 1.5) * 0.12
-      halo.position.y = gem.position.y + 0.35
-      aimSpr.position.y = gem.position.y + 0.35
-    },
-  })
+  // grounding: mud skirt + contact shadow
+  g.add(mudSkirt(2.62, 0.95))
+  g.add(contactShadow(3.2, 0.46))
 
   scene.add(g)
   return {
@@ -585,52 +909,64 @@ export function riverDist(x, z) {
  * Returns { tickables, towerDefs, nexusDefs } — caller ticks tickables each frame.
  */
 export function buildMap(scene) {
+  FIRE_MATS = {} // fresh tracked fire materials per scene entry
   const tickables = []
   const flicks = [] // every torch/brazier flame, one shared ticker
   const cloths = [] // war-banner cloths, one shared sway ticker
+  mats()
 
-  // ---------- storm-dusk sky in umber + indigo ----------
-  scene.fog = new THREE.Fog('#241a20', 44, 155)
+  // ---------- storm-dusk sky: umber horizon haze under a cold indigo vault ----------
+  scene.fog = new THREE.FogExp2('#221a1c', 0.0085)
   scene.add(skyDome({
-    top: '#1a1420', mid: '#3a2030', bottom: '#8a4022', radius: 470,
-    sunDir: new THREE.Vector3(-0.55, 0.12, -0.4), sunColor: '#ff8c3b', sunSize: 30,
+    top: '#12101a', mid: '#2c1f28', bottom: '#5e3220', radius: 470,
+    sunDir: new THREE.Vector3(-0.55, 0.1, -0.4), sunColor: '#c96a35', sunSize: 22,
   }))
-  scene.add(starField({ count: 240, size: 1.8, radius: 430, color: '#cfc4b0' }))
-  const cl1 = cloudLayer({ count: 9, radius: 250, height: [55, 110], color: '#4a3242', opacity: 0.5, scale: [60, 120] })
-  const cl2 = cloudLayer({ count: 7, radius: 220, height: [35, 80], color: '#2a1e28', opacity: 0.42, scale: [55, 100] })
+  scene.add(starField({ count: 130, size: 1.4, radius: 430, color: '#6e6a60' }))
+  const cl1 = cloudLayer({ count: 9, radius: 250, height: [55, 110], color: '#382731', opacity: 0.44, scale: [60, 120] })
+  const cl2 = cloudLayer({ count: 7, radius: 220, height: [35, 80], color: '#20161c', opacity: 0.38, scale: [55, 100] })
   scene.add(cl1, cl2)
   tickables.push(cl1, cl2)
 
-  // ---------- churned battlefield ground + mud lane + dark river ----------
-  const gtex = battlegroundTexture()
-  gtex.repeat.set(5, 3)
+  // ---------- ground: dead-patched grass field + packed-earth lane + dark river ----------
+  const grass = grassFieldTexture()
+  grass.map.repeat.set(5, 3)
+  grass.normalMap.repeat.set(5, 3)
+  grass.roughnessMap.repeat.set(5, 3)
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(170, 100),
-    new THREE.MeshStandardMaterial({ map: gtex, roughness: 0.98, metalness: 0 }),
+    pbrMaterial({ color: '#ffffff', maps: grass, roughness: 1, metalness: 0, normalScale: 0.9, envMapIntensity: 0.16 }),
   )
   ground.rotation.x = -Math.PI / 2
   ground.receiveShadow = true
   scene.add(ground)
 
-  const lane = new THREE.Mesh(
-    new THREE.PlaneGeometry(102, 11.4),
-    new THREE.MeshStandardMaterial({ map: laneTexture(), transparent: true, roughness: 1, metalness: 0, depthWrite: false }),
-  )
+  const earth = mats().earthSet
+  const laneMat = pbrMaterial({
+    color: '#a8998a', maps: { map: laneAlbedo(earth), normalMap: earth.normalMap, roughnessMap: earth.roughnessMap },
+    roughness: 1, metalness: 0, normalScale: 1.1, envMapIntensity: 0.16, transparent: true,
+  })
+  laneMat.normalMap.repeat.set(4, 1)
+  laneMat.roughnessMap.repeat.set(4, 1)
+  laneMat.depthWrite = false
+  const lane = new THREE.Mesh(new THREE.PlaneGeometry(102, 11.4), laneMat)
   lane.rotation.x = -Math.PI / 2
   lane.position.y = 0.02
   lane.receiveShadow = true
   scene.add(lane)
 
+  // river: dark reflective water over a silt bed
   const riverGeo = new THREE.PlaneGeometry(9, 72)
   riverGeo.rotateX(-Math.PI / 2)
-  const river = new THREE.Mesh(riverGeo, waterMaterial({ shallow: '#3a5c4e', deep: '#0e1a1e', opacity: 0.26, speed: 0.65 }))
+  const riverMat = waterMaterial({ shallow: '#39503f', deep: '#0d1418', opacity: 0.52, speed: 0.5 })
+  // my instance only: mute the hard white sparkle cells into faint moonlit glints
+  riverMat.fragmentShader = riverMat.fragmentShader.replace('col += sp * vec3(1.4);', 'col += sp * vec3(0.05, 0.06, 0.055);')
+  const river = new THREE.Mesh(riverGeo, riverMat)
   river.rotation.y = RIVER_ANGLE
   river.position.y = 0.055
   scene.add(river)
-  // dark silt bed under the water so the mud doesn't glow through
   const bedGeo = new THREE.PlaneGeometry(10.2, 73)
   bedGeo.rotateX(-Math.PI / 2)
-  const bed = new THREE.Mesh(bedGeo, new THREE.MeshStandardMaterial({ color: '#10140f', roughness: 0.95 }))
+  const bed = new THREE.Mesh(bedGeo, pbrMaterial({ color: '#131a12', roughness: 0.85, metalness: 0, envMapIntensity: 0.12 }))
   bed.rotation.y = RIVER_ANGLE
   bed.position.y = 0.035
   bed.receiveShadow = true
@@ -653,18 +989,18 @@ export function buildMap(scene) {
     }
   }
 
-  // pale marsh-motes over the water (cold, faint — not neon)
-  const riverGlow = fireflies({ count: 10, area: [7, 56], height: [0.35, 1.8], color: '#a8c4b8', size: 0.28 })
+  // pale marsh-motes over the water (cold, faint)
+  const riverGlow = fireflies({ count: 8, area: [7, 56], height: [0.35, 1.8], color: '#7a8f84', size: 0.22 })
   riverGlow.rotation.y = RIVER_ANGLE
   scene.add(riverGlow)
   tickables.push(riverGlow)
 
-  const riverLight = new THREE.PointLight('#5a7a72', 5, 18, 1.9)
+  const riverLight = new THREE.PointLight('#46605a', 4, 16, 2)
   riverLight.position.set(0, 2.5, 0)
   scene.add(riverLight)
 
   // drifting embers over the battlefield
-  const embers = fireflies({ count: 32, area: [95, 34], height: [0.6, 5], color: '#ff8c3b', size: 0.42 })
+  const embers = fireflies({ count: 28, area: [95, 34], height: [0.6, 5], color: '#ff8c3b', size: 0.36 })
   scene.add(embers)
   tickables.push(embers)
 
@@ -694,8 +1030,8 @@ export function buildMap(scene) {
 
   // underbrush: moor scrub + dead bracken sharing two materials
   const bushMats = [
-    toonMaterial({ color: '#3f4426', rim: '#c8c890', rimStrength: 0.28 }),
-    toonMaterial({ color: '#4a3222', rim: '#d8a878', rimStrength: 0.28 }),
+    pbrMaterial({ color: '#39401f', roughness: 1, metalness: 0, envMapIntensity: 0.12 }),
+    pbrMaterial({ color: '#41301f', roughness: 1, metalness: 0, envMapIntensity: 0.12 }),
   ]
   const bushGeo = new THREE.SphereGeometry(0.55, 9, 7)
   const bushes = new THREE.Group()
@@ -717,10 +1053,13 @@ export function buildMap(scene) {
     const x = rand(-44, 44)
     const z = (Math.random() < 0.5 ? -1 : 1) * rand(6.8, 9.5)
     if (riverDist(x, z) < 7) continue
-    const rk = flatRock(Math.random() < 0.5 ? '#5c564c' : '#4a4540', rand(0.7, 1.6))
-    rk.position.set(x, 0.2, z)
+    const rk = flatRock(rand(0.7, 1.6), Math.random() < 0.5)
+    rk.position.set(x, 0.12, z)
     scene.add(rk)
   }
+
+  // instanced clutter: pebbles, splinters, bone shards
+  scatterClutter(scene)
 
   // ---------- war-camp dressing: torches, palisades, banners, tents ----------
   for (let x = -46; x <= 46; x += 11.5) {
@@ -785,19 +1124,20 @@ export function buildMap(scene) {
     buildTower(scene, tickables, flicks, 'red', 0), buildTower(scene, tickables, flicks, 'red', 1),
   ]
 
-  // ---------- lighting: low ember sun + cold night bounce ----------
-  scene.add(new THREE.HemisphereLight('#5a4a58', '#241d16', 0.5))
-  const dir = new THREE.DirectionalLight('#ffa055', 1.45)
-  dir.position.set(30, 24, 16)
+  // ---------- lighting: one low ember key + faint cold bounce (let blacks be black) ----------
+  scene.add(new THREE.HemisphereLight('#353a4a', '#151008', 0.2))
+  const dir = new THREE.DirectionalLight('#ff9648', 1.35)
+  dir.position.set(36, 17, 20)
   dir.castShadow = true
   dir.shadow.mapSize.set(2048, 2048)
   dir.shadow.camera.left = -60
   dir.shadow.camera.right = 60
   dir.shadow.camera.top = 34
   dir.shadow.camera.bottom = -34
-  dir.shadow.camera.near = 8
-  dir.shadow.camera.far = 95
+  dir.shadow.camera.near = 4
+  dir.shadow.camera.far = 110
   dir.shadow.bias = -0.0004
+  dir.shadow.normalBias = 0.03
   scene.add(dir)
 
   return { tickables, towerDefs, nexusDefs }

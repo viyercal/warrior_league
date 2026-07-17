@@ -6,7 +6,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 810 } })
 const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
-await page.goto('http://localhost:5173/?scene=arena&mute=1', { waitUntil: 'load' })
+await page.goto('http://localhost:7185/?scene=arena&mute=1', { waitUntil: 'load' })
 await page.waitForTimeout(6000)
 await page.keyboard.down('KeyW')
 await page.mouse.move(900, 250)

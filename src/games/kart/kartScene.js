@@ -25,7 +25,9 @@ const KART_R = 1.05
 export default class KartScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.72, bloomThreshold: 0.82, bloomRadius: 0.48, vignette: 0.48, saturation: 1.14, grain: 0.028 }
+    // realism grade: only true fire crosses the bloom threshold, natural saturation
+    // SSAO benchmarked at -13fps mid-race → left OFF (contact blobs + painted AO instead)
+    this.postOpts = { bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.42, vignette: 0.52, saturation: 1.02, grain: 0.032, exposure: 1.0 }
   }
 
   async init() {
@@ -160,11 +162,11 @@ export default class KartScene {
     this.decoy = null
     this.flames = null
 
-    // rune-ward shield bubble
+    // rune-ward shield bubble — faint heat-shimmer dome, not a neon orb
     this.bubble = new THREE.Mesh(
       new THREE.SphereGeometry(1.7, 22, 16),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#ffb84d').multiplyScalar(1.5), transparent: true, opacity: 0.2,
+        color: new THREE.Color('#ffb84d').multiplyScalar(0.95), transparent: true, opacity: 0.2,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),
     )
@@ -456,6 +458,14 @@ export default class KartScene {
       this.dustT = 0.12
       _v1.copy(p.group.position).setY(0.3)
       this.vfx.burst(_v1, { color: '#9c7c5e', count: 5, speed: 2.5, size: 0.3, gravity: 1.5, up: 2 })
+    } else if (!offroad && this.dustT <= 0 && p.speed > 17) {
+      // packed-earth dust rolling off the rear wheels at pace
+      this.dustT = 0.16
+      for (const wi of [2, 3]) {
+        p.visual.wheelSpins[wi].getWorldPosition(_v1)
+        _v1.y = 0.2
+        this.vfx.burst(_v1, { color: '#8a7258', count: 2, speed: 1.6, size: 0.26, life: 0.55, gravity: 1.2, up: 1.4 })
+      }
     }
     this.dustT -= dt
 
@@ -637,7 +647,8 @@ export default class KartScene {
 
     v.poseDriver(dt, { speed: k.speed, steer })
     if (v.minion) v.minion.setMoving(k.speed > 4)
-    v.under.material.opacity = 0.2 + clamp(k.speed / 45, 0, 0.22)
+    // contact shadow eases off slightly at speed (dust lift under the wheels)
+    v.under.material.opacity = 0.42 - clamp(k.speed / 45, 0, 1) * 0.1
   }
 
   // ============================== collisions / pickups ==============================

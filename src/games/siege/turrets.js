@@ -1,6 +1,9 @@
 import * as THREE from 'three'
-import { toonMaterial, glowMaterial, glowSpriteMaterial, energyMaterial } from '../../art/materials.js'
-import { rand, TAU, clamp, disposeObject3D } from '../../core/utils.js'
+import {
+  woodMaterial, ironMaterial, leatherMaterial,
+  fireMaterial, emberGlowMaterial, glowSpriteMaterial, contactShadow,
+} from '../../art/materials.js'
+import { rand, TAU, clamp } from '../../core/utils.js'
 import { PAD_POSITIONS } from './siegeEnv.js'
 
 export const BUILD_COST = 100
@@ -19,8 +22,9 @@ const _v1 = new THREE.Vector3()
 const _v2 = new THREE.Vector3()
 
 /**
- * Six wooden siege platforms + player-built ballista towers. Tiers stack the
- * timber higher and add bow-arms — same targeting/dps/HP per tier.
+ * Six timber siege platforms + player-built ballista towers — grained wood,
+ * iron banding, rope lashings, fire-lit payloads. Tiers stack the timber
+ * higher and add bow-arms — same targeting/dps/HP per tier.
  * scene hooks: { onFire(fromPos, target, dmg, level), onDestroyed(pad) }
  */
 export class TurretManager {
@@ -29,18 +33,24 @@ export class TurretManager {
     this.vfx = vfx
     this.audio = audio
     this.hooks = hooks
-    this.woodMat = toonMaterial({ color: '#5c4433', rim: '#e8c088', rimStrength: 0.42 })
-    this.woodDark = toonMaterial({ color: '#3a2b20', rim: '#c9925f', rimStrength: 0.32 })
-    this.ironMat = toonMaterial({ color: '#494d55', rim: '#c9c4b4', rimStrength: 0.34 })
+    // shared PBR kit — protected from per-turret teardown
+    this.woodMat = woodMaterial('#948374')
+    this.woodDark = woodMaterial('#544a3f')
+    this.ironMat = ironMaterial('#565a62')
+    this.ropeMat = leatherMaterial('#6e5a3a')
+    this.payloadFire = fireMaterial({ intensity: 1.55, speed: 1.9 })
+    this._shared = new Set([this.woodMat, this.woodDark, this.ironMat, this.ropeMat, this.payloadFire])
+    this._flameGeo = new THREE.ConeGeometry(0.13, 0.42, 7)
+    this._flameGeo.translate(0, 0.21, 0)
     this.pads = PAD_POSITIONS.map(([x, z]) => this._makePad(x, z))
   }
 
   _makePad(x, z) {
     const group = new THREE.Group()
     group.position.set(x, 0, z)
-    // gold ember build-marker ring (pulses while the platform is empty)
-    const ringMat = glowMaterial('#ffb84d', 1.0)
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.06, 8, 36), ringMat)
+    // ember build-marker ring (pulses while the platform is empty)
+    const ringMat = emberGlowMaterial(1.0, '#ffb84d')
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.05, 8, 36), ringMat)
     ring.rotation.x = Math.PI / 2
     ring.position.y = 0.12
     // plank deck
@@ -52,22 +62,24 @@ export class TurretManager {
     for (let i = -1; i <= 1; i++) {
       const plank = new THREE.Mesh(plankGeo, this.woodMat)
       plank.position.set(i * 0.34, 0.18, 0)
+      plank.rotation.y = (i * 7 + 3) * 0.012 // planks never sit perfectly true
       plank.scale.z = 1 - Math.abs(i) * 0.24
       plank.receiveShadow = true
       group.add(plank)
     }
-    const core = new THREE.Sprite(glowSpriteMaterial('#ffb84d', 0.3))
-    core.scale.setScalar(1.1)
+    const core = new THREE.Sprite(glowSpriteMaterial('#ffb84d', 0.16))
+    core.scale.setScalar(1.0)
     core.position.y = 0.3
-    group.add(ring, core)
+    group.add(ring, core, contactShadow(1.55, 0.36))
     // corner stumps lashed with rope
     for (let i = 0; i < 4; i++) {
       const a = (i / 4) * TAU + Math.PI / 4
       const st = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.4, 6), this.woodMat)
       st.position.set(Math.cos(a) * 1.32, 0.2, Math.sin(a) * 1.32)
+      st.rotation.y = rand(TAU)
       st.castShadow = true
       group.add(st)
-      const rope = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.025, 5, 10), this.woodDark)
+      const rope = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.028, 5, 10), this.ropeMat)
       rope.rotation.x = Math.PI / 2
       rope.position.set(Math.cos(a) * 1.32, 0.3, Math.sin(a) * 1.32)
       group.add(rope)
@@ -115,32 +127,45 @@ export class TurretManager {
     this.vfx.burst(_v1.clone().setY(1.6), { color: '#ffd166', count: 24, speed: 7, size: 0.28 })
   }
 
+  /** Dispose per-turret geometries + fresh materials; never the shared kit. */
+  _disposeGroup(g) {
+    this.scene.remove(g)
+    g.traverse(o => {
+      if (o.geometry && o.geometry !== this._flameGeo) o.geometry.dispose()
+      const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : []
+      for (const m of mats) if (!this._shared.has(m)) m.dispose()
+    })
+  }
+
   _buildMeshes(t) {
-    if (t.group) {
-      this.scene.remove(t.group)
-      disposeObject3D(t.group)
-    }
+    if (t.group) this._disposeGroup(t.group)
     const tier = TIER[t.level - 1]
     const g = t.group = new THREE.Group()
     g.position.set(t.pad.x, 0, t.pad.z)
 
-    // stacked timber-framed tower — taller per tier
+    // stacked timber-framed tower — taller per tier, iron-banded, rope-lashed
     const heights = [[1.05, 1.25, 1.1], [0.95, 1.15, 1.0], [0.8, 1.0, 0.85]].slice(0, t.level + 1)
     let y = 0.1
     for (let i = 0; i < t.level + 1 && i < 3; i++) {
       const [rt, rb, h] = heights[i]
       const seg = new THREE.Mesh(new THREE.CylinderGeometry(rt * (1 - i * 0.18), rb * (1 - i * 0.18), h * 0.62, 8), i % 2 ? this.woodDark : this.woodMat)
       seg.position.y = y + h * 0.31
+      seg.rotation.y = i * 0.4 // stagger the facets so the stack reads hand-built
       seg.castShadow = seg.receiveShadow = true
       g.add(seg)
-      // iron corner brackets on each timber tier
-      const band = new THREE.Mesh(new THREE.TorusGeometry(rt * (1 - i * 0.18) * 0.98, 0.045, 6, 8), this.ironMat)
+      // iron banding on each timber tier
+      const band = new THREE.Mesh(new THREE.TorusGeometry(rt * (1 - i * 0.18) * 0.98, 0.045, 6, 12), this.ironMat)
       band.rotation.x = Math.PI / 2
       band.position.y = y + h * 0.55
       g.add(band)
+      // rope lashing under the band
+      const rope = new THREE.Mesh(new THREE.TorusGeometry(rt * (1 - i * 0.18) * 1.0, 0.03, 5, 12), this.ropeMat)
+      rope.rotation.x = Math.PI / 2
+      rope.position.y = y + h * 0.4
+      g.add(rope)
       y += h * 0.62
     }
-    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.045, 8, 20), glowMaterial('#ffb84d', 1.0))
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.045, 8, 20), this.ironMat)
     collar.rotation.x = Math.PI / 2
     collar.position.y = y
     g.add(collar)
@@ -148,20 +173,30 @@ export class TurretManager {
     // rotating ballista head (fires along +z)
     const head = t.head = new THREE.Group()
     head.position.y = tier.headY
-    // stock beam
+    // stock beam with rope whipping
     const stock = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 1.25), this.woodMat)
     stock.position.z = 0.28
     stock.castShadow = true
     head.add(stock)
-    // ember payload-brazier under the stock — bolts are lit here
-    const coreMat = energyMaterial({ color1: '#4a1408', color2: '#ff8c3b', speed: 1.6, intensity: 1.3 })
-    const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), coreMat)
-    core.position.set(0, -0.14, 0)
-    core.castShadow = true
-    head.add(core)
+    const whip = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.025, 5, 10), this.ropeMat)
+    whip.rotation.x = Math.PI / 2
+    whip.position.set(0, 0.0, -0.2)
+    whip.scale.y = 1.4
+    head.add(whip)
+    // iron payload-brazier under the stock — bolts are lit here
+    const basket = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.12, 0.22, 8), this.ironMat)
+    basket.position.set(0, -0.2, 0)
+    basket.castShadow = true
+    head.add(basket)
+    const coal = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), emberGlowMaterial(1.5, '#ff8c3b'))
+    coal.position.set(0, -0.08, 0)
+    head.add(coal)
+    const brazierFlame = new THREE.Mesh(this._flameGeo, this.payloadFire)
+    brazierFlame.position.set(0, -0.08, 0)
+    head.add(brazierFlame)
     // bow-arm pairs — one per tier
     const armGeo = new THREE.BoxGeometry(0.09, 0.09, 0.72)
-    const stringGeo = new THREE.BoxGeometry(0.025, 0.025, 0.68)
+    const stringGeo = new THREE.BoxGeometry(0.02, 0.02, 0.68)
     for (let i = 0; i < tier.crystals; i++) {
       const ay = 0.02 + i * 0.14
       for (const s of [-1, 1]) {
@@ -170,10 +205,10 @@ export class TurretManager {
         arm.rotation.y = 1.05 * s
         arm.castShadow = true
         head.add(arm)
-        const tipGem = new THREE.Mesh(new THREE.OctahedronGeometry(0.055, 0), glowMaterial('#ff8c3b', 2.0))
-        tipGem.position.set(0.58 * s, ay, 0.46)
-        head.add(tipGem)
-        const str = new THREE.Mesh(stringGeo, this.ironMat)
+        const tipEmber = new THREE.Mesh(new THREE.OctahedronGeometry(0.05, 0), emberGlowMaterial(1.5, '#ff8c3b'))
+        tipEmber.position.set(0.58 * s, ay, 0.46)
+        head.add(tipEmber)
+        const str = new THREE.Mesh(stringGeo, this.ropeMat)
         str.position.set(0.31 * s, ay, 0.28)
         str.rotation.y = -0.42 * s
         head.add(str)
@@ -184,12 +219,12 @@ export class TurretManager {
     bolt.rotation.x = Math.PI / 2
     bolt.position.set(0, 0.05, 0.62)
     head.add(bolt)
-    const muzzle = t.muzzle = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.28, 6), glowMaterial('#ffd166', 2.2))
+    const muzzle = t.muzzle = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.28, 6), emberGlowMaterial(1.9, '#ffd166'))
     muzzle.rotation.x = Math.PI / 2
     muzzle.position.set(0, 0.05, 1.06)
     head.add(muzzle)
-    const halo = new THREE.Sprite(glowSpriteMaterial('#ffb84d', 0.2))
-    halo.scale.setScalar(1.05)
+    const halo = new THREE.Sprite(glowSpriteMaterial('#ffb84d', 0.1))
+    halo.scale.setScalar(0.9)
     head.add(halo)
     g.add(head)
 
@@ -223,8 +258,7 @@ export class TurretManager {
     this.vfx.impact(_v1, { color: '#ff5a1e', size: 1.6 })
     this.vfx.ring(_v1, { color: '#ff5a1e', radius: 3, life: 0.45 })
     this.audio.play('explode', { vol: 0.55 })
-    this.scene.remove(t.group)
-    disposeObject3D(t.group)
+    this._disposeGroup(t.group)
     pad.turret = null
     pad.discount = true // rebuild half-price
     this.hooks.onDestroyed?.(pad)
@@ -240,8 +274,8 @@ export class TurretManager {
       pad.t += dt
       const empty = !pad.turret
       pad.ringMat.color.setStyle(pad.discount ? '#ff8a5c' : '#ffb84d')
-        .multiplyScalar(empty ? 0.55 + 0.3 * Math.sin(pad.t * 2.6) : 0.22)
-      pad.core.material.opacity = empty ? 0.2 + 0.1 * Math.sin(pad.t * 2.6) : 0.04
+        .multiplyScalar(empty ? 0.38 + 0.2 * Math.sin(pad.t * 2.6) : 0.16)
+      pad.core.material.opacity = empty ? 0.1 + 0.06 * Math.sin(pad.t * 2.6) : 0.02
 
       const t = pad.turret
       if (!t) continue

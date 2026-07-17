@@ -68,7 +68,7 @@ export function makeCasters(g) {
       disc.rotation.x = -Math.PI / 2
       const rim = new THREE.Mesh(
         new THREE.RingGeometry(r - 0.24, r, 48),
-        new THREE.MeshBasicMaterial({ color: new THREE.Color('#dde5e0').multiplyScalar(1.9), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color('#dde5e0').multiplyScalar(1.25), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
       )
       rim.rotation.x = -Math.PI / 2
       rim.position.y = 0.02
@@ -158,7 +158,7 @@ export function makeCasters(g) {
       const mkRing = (ri, ro, op) => {
         const m = new THREE.Mesh(
           new THREE.RingGeometry(ri, ro, 40),
-          new THREE.MeshBasicMaterial({ color: new THREE.Color(def.color).multiplyScalar(1.7), transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(def.color).multiplyScalar(1.25), transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
         )
         m.rotation.x = -Math.PI / 2
         return m
@@ -206,7 +206,7 @@ export function makeCasters(g) {
       const c = clampMap(g.aim.clone())
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(0.84, 1, 48),
-        new THREE.MeshBasicMaterial({ color: new THREE.Color(def.color).multiplyScalar(1.8), transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color(def.color).multiplyScalar(1.3), transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
       )
       ring.rotation.x = -Math.PI / 2
       ring.position.set(c.x, 0.08, c.z)

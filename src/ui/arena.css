@@ -6,7 +6,7 @@
   font-size: 22px; font-weight: 800; font-style: italic; letter-spacing: 0.28em;
   font-variant: small-caps;
   color: var(--ink);
-  text-shadow: 0 0 18px rgba(255, 140, 59, 0.5), 0 2px 6px #000;
+  text-shadow: 0 0 14px rgba(255, 140, 59, 0.32), 0 2px 6px #000;
   z-index: 12;
 }
 
@@ -23,7 +23,7 @@
   font-family: var(--font-display);
   font-size: 36px; font-weight: 800; font-style: italic;
   color: var(--gold);
-  text-shadow: 0 0 18px rgba(255, 184, 77, 0.5), 0 2px 4px #000;
+  text-shadow: 0 0 14px rgba(255, 184, 77, 0.35), 0 2px 4px #000;
 }
 
 /* damage flash + low HP heartbeat — blood crimson */
@@ -57,7 +57,7 @@
   font-size: 13px; font-weight: 800; letter-spacing: 0.42em; text-align: center;
   font-variant: small-caps;
   color: #d8574a;
-  text-shadow: 0 0 14px rgba(194, 59, 46, 0.7), 0 1px 3px #000;
+  text-shadow: 0 0 12px rgba(194, 59, 46, 0.5), 0 1px 3px #000;
   margin-bottom: 4px;
 }
 .arena-boss-track {

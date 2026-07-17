@@ -32,15 +32,20 @@ const mkEntity = hero => ({
 export default class HoopsScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.72, bloomThreshold: 0.86, bloomRadius: 0.5, vignette: 0.6, saturation: 1.06 }
+    // realism grade: bloom reserved for true fire/embers, neutral saturation,
+    // filmic vignette + grain, slight exposure lift so torch pools carry
+    this.postOpts = {
+      bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.45,
+      vignette: 0.62, saturation: 1.0, grain: 0.032, exposure: 1.04,
+    }
     this._timers = []
   }
 
   async init() {
     const { engine, profile, audio } = this.ctx
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color('#140d12')
-    this.scene.fog = new THREE.Fog('#1a1420', 20, 62)
+    this.scene.background = new THREE.Color('#0e0a0f')
+    this.scene.fog = new THREE.Fog('#151019', 17, 50)   // night haze: distant tiers desaturate + sink
     this.scene.environment = engine.envMap
 
     this.camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.1, 200)

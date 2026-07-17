@@ -9,21 +9,21 @@
   font-family: var(--font-display);
   font-size: 13px; font-weight: 800; letter-spacing: 0.4em; text-align: center;
   color: #e8dcc4;
-  text-shadow: 0 0 14px rgba(191, 224, 255, 0.55), 0 1px 3px #000;
+  text-shadow: 0 0 12px rgba(255, 180, 106, 0.45), 0 1px 3px #000;
   margin-bottom: 4px;
 }
-.siege-cit-icon { color: #cfe4ff; letter-spacing: 0; }
+.siege-cit-icon { color: #ffb46a; letter-spacing: 0; }
 .siege-citadel-track {
   position: relative; height: 18px;
   background: linear-gradient(180deg, rgba(24, 20, 15, 0.9), rgba(12, 10, 8, 0.9));
   border: 1px solid rgba(176, 121, 58, 0.65);
   border-radius: 4px; overflow: hidden;
-  box-shadow: 0 0 18px rgba(191, 224, 255, 0.22), inset 0 0 10px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 14px rgba(255, 180, 106, 0.16), inset 0 0 10px rgba(0, 0, 0, 0.8);
 }
 .siege-citadel-fill {
   height: 100%; width: 100%;
-  background: linear-gradient(180deg, #f2f8ff, #9fc0dd 55%, #5c7a96);
-  box-shadow: 0 0 14px #cfe4ff;
+  background: linear-gradient(180deg, #ffe9c2, #e8a35c 55%, #8a5a24);
+  box-shadow: 0 0 12px rgba(255, 184, 77, 0.55);
   transition: width 0.2s ease;
 }
 .siege-citadel-seg {
@@ -40,7 +40,7 @@
 .siege-citadel.hit .siege-citadel-track { animation: siegeCitHit 0.4s ease-out; }
 @keyframes siegeCitHit {
   0% { box-shadow: 0 0 30px rgba(255, 90, 38, 0.9), inset 0 0 14px rgba(255, 90, 38, 0.5); border-color: #ff8a5c; }
-  100% { box-shadow: 0 0 18px rgba(191, 224, 255, 0.22), inset 0 0 10px rgba(0, 0, 0, 0.8); }
+  100% { box-shadow: 0 0 14px rgba(255, 180, 106, 0.16), inset 0 0 10px rgba(0, 0, 0, 0.8); }
 }
 .siege-citadel.low .siege-citadel-fill {
   background: linear-gradient(180deg, #ffb8a0, #e0553c 55%, #8a1c10);

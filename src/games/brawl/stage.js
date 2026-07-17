@@ -1,6 +1,12 @@
 import * as THREE from 'three'
-import { canvasTexture, cloudTexture, groundTexture, glowTexture } from '../../core/assets.js'
-import { toonMaterial, glowMaterial, glowSpriteMaterial } from '../../art/materials.js'
+import {
+  canvasTexture, cloudTexture, glowTexture,
+  noiseField, normalMapFromHeight, crackedStoneTexture, dirtOverlay,
+} from '../../core/assets.js'
+import {
+  pbrMaterial, stoneMaterial, ironMaterial, bronzeMaterial, boneMaterial,
+  fireMaterial, emberGlowMaterial, contactShadow, glowSpriteMaterial,
+} from '../../art/materials.js'
 import { skyDome, starField, cloudLayer, fireflies } from '../../art/environment.js'
 import { rand, TAU } from '../../core/utils.js'
 
@@ -18,11 +24,15 @@ const EMBER = '#ff8c3b'
 const TORCH_GOLD = '#ffb84d'
 const FORGE = '#ff5a26'
 const CRIMSON = '#a1252c'
-const STONE = '#4a443c'
-const STONE_DARK = '#332d26'
-const BASALT = '#241d17'
 
-/** Jittered cone with baked flat normals (material flatShading fights the toon rim shader). */
+const clamp01 = v => (v < 0 ? 0 : v > 1 ? 1 : v)
+/** Position-keyed hash so coincident box-face verts displace identically (no cracks). */
+const hashv = (x, y, z, s) => {
+  const v = Math.sin(x * 127.1 + y * 311.7 + z * 74.7 + s * 53.13) * 43758.5453
+  return v - Math.floor(v)
+}
+
+/** Jittered cone with baked flat normals — fracture-surface look. */
 function jitterCone(radius, height, seg = 10) {
   let geo = new THREE.ConeGeometry(radius, height, seg, 3)
   const p = geo.attributes.position
@@ -37,8 +47,31 @@ function jitterCone(radius, height, seg = 10) {
   return geo
 }
 
-/** Low-poly rubble rock with baked flat normals. */
-function stageRock({ color = '#57504a', scale = 1 } = {}) {
+/**
+ * Box with chipped/hewn edges: every vert on an outer wall is pulled inward by a
+ * position-keyed hash (faces stay stitched), top rim dips slightly — no perfect
+ * machine edges. Displacement only ever shrinks, so collision stays honest.
+ */
+function chipBox(w, h, d, { sx = 20, sy = 2, sz = 6, amp = 0.12 } = {}) {
+  const geo = new THREE.BoxGeometry(w, h, d, sx, sy, sz)
+  const p = geo.attributes.position
+  const hw = w / 2, hh = h / 2, hd = d / 2
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i)
+    const onX = Math.abs(Math.abs(x) - hw) < 1e-4
+    const onZ = Math.abs(Math.abs(z) - hd) < 1e-4
+    if (!onX && !onZ) continue
+    if (onX) p.setX(i, x - Math.sign(x) * hashv(x, y, z, 1) * amp)
+    if (onZ) p.setZ(i, z - Math.sign(z) * hashv(x, y, z, 2) * amp)
+    if (Math.abs(y - hh) < 1e-4) p.setY(i, y - hashv(x, y, z, 3) * amp * 0.45)
+  }
+  geo.computeVertexNormals()
+  return geo
+}
+
+/** Low-poly rubble rock, flat fracture facets. */
+function stageRock({ tint = '#b3a996', scale = 1 } = {}) {
+  const S = shared()
   let geo = new THREE.IcosahedronGeometry(0.55, 0)
   const p = geo.attributes.position
   for (let i = 0; i < p.count; i++) {
@@ -46,56 +79,132 @@ function stageRock({ color = '#57504a', scale = 1 } = {}) {
   }
   geo = geo.toNonIndexed()
   geo.computeVertexNormals()
-  const m = new THREE.Mesh(geo, toonMaterial({ color, rimStrength: 0.22, rim: '#ffb27a' }))
+  const m = new THREE.Mesh(geo, pbrMaterial({
+    color: tint, roughness: 1, metalness: 0, maps: S.slabSet, normalScale: 0.8,
+    envMapIntensity: 0.05, flatShading: true,
+  }))
   m.scale.setScalar(scale)
   m.position.y = 0.3 * scale
   m.rotation.y = rand(TAU)
   m.castShadow = true
+  m.receiveShadow = true
   return m
 }
 
-/** Angular war-rune glyph strip, carved-then-lit look. */
-function runeTexture() {
-  return canvasTexture(1024, 96, (ctx, w, h) => {
-    ctx.clearRect(0, 0, w, h)
-    ctx.strokeStyle = '#ffd9a0'
-    ctx.lineWidth = 5
-    ctx.lineCap = 'round'
-    for (let i = 0; i < 18; i++) {
-      const cx = 30 + i * 54, cy = h / 2
-      ctx.beginPath()
-      for (let s = 0; s < 4; s++) {
-        ctx.moveTo(cx + rand(-16, 16), cy + rand(-26, 26))
-        ctx.lineTo(cx + rand(-16, 16), cy + rand(-26, 26))
-      }
-      ctx.stroke()
+// ---------- procedural texture work (one-time cost, module cached) ----------
+
+/**
+ * Carved war-rune band, square tile (repeats ~11x along the slab face):
+ * height field -> deep-relief normal map, recessed sooty albedo, faint ember
+ * emissive down in the grooves. Returns { map, normalMap, emissiveMap }.
+ */
+function runeCarvingSet() {
+  const S = 512
+  // stroke mask: 2 glyph columns + chiseled border grooves, drawn squashed (tile is ~2.2:1 in world)
+  const rc = document.createElement('canvas')
+  rc.width = rc.height = S
+  const rctx = rc.getContext('2d')
+  rctx.fillStyle = '#000'
+  rctx.fillRect(0, 0, S, S)
+  rctx.strokeStyle = '#fff'
+  rctx.lineCap = 'round'
+  for (let g = 0; g < 2; g++) {
+    const cx = S * (0.27 + g * 0.48)
+    rctx.lineWidth = 22
+    for (let s = 0; s < 6; s++) {
+      rctx.beginPath()
+      rctx.moveTo(cx + rand(-64, 64), S * rand(0.2, 0.8))
+      rctx.lineTo(cx + rand(-64, 64), S * rand(0.2, 0.8))
+      rctx.stroke()
     }
+  }
+  rctx.lineWidth = 10
+  for (const y of [S * 0.09, S * 0.91]) {
+    rctx.beginPath()
+    rctx.moveTo(0, y)
+    rctx.lineTo(S, y)
+    rctx.stroke()
+  }
+  const rd = rctx.getImageData(0, 0, S, S).data
+  const runes = new Float32Array(S * S)
+  for (let i = 0; i < runes.length; i++) runes[i] = rd[i * 4] / 255
+
+  const grain = noiseField(S, { octaves: 3, scale: 14, seed: 91 })
+  const height = new Float32Array(S * S)
+  for (let i = 0; i < height.length; i++) height[i] = clamp01(0.55 + (grain[i] - 0.5) * 0.3 - runes[i] * 0.55)
+  const normalMap = normalMapFromHeight(height, { strength: 3 })
+
+  const map = canvasTexture(S, S, ctx => {
+    const img = ctx.createImageData(S, S), d = img.data
+    for (let i = 0; i < height.length; i++) {
+      const t = clamp01(0.42 + (grain[i] - 0.5) * 0.5)
+      let r = 42 + t * 30, g = 39 + t * 27, b = 34 + t * 22
+      const k = runes[i] * 0.85 // groove recess: dark soot in the carving
+      r += (16 - r) * k; g += (12 - g) * k; b += (9 - b) * k
+      d[i * 4] = r; d[i * 4 + 1] = g; d[i * 4 + 2] = b; d[i * 4 + 3] = 255
+    }
+    ctx.putImageData(img, 0, 0)
   })
+  map.wrapS = map.wrapT = THREE.RepeatWrapping
+
+  const emissiveMap = canvasTexture(S, S, ctx => {
+    const img = ctx.createImageData(S, S), d = img.data
+    for (let i = 0; i < height.length; i++) {
+      const k = Math.max(0, runes[i] - 0.45) * (0.4 + grain[i] * 0.4)
+      d[i * 4] = 235 * k; d[i * 4 + 1] = 96 * k; d[i * 4 + 2] = 28 * k; d[i * 4 + 3] = 255
+    }
+    ctx.putImageData(img, 0, 0)
+  })
+  emissiveMap.wrapS = emissiveMap.wrapT = THREE.RepeatWrapping
+  return { map, normalMap, emissiveMap }
 }
 
-/** Cooled lava crust: dark basalt plates over glowing cracks. */
+/** Horizontal strata stone (pillar shafts): banded height -> normal + tinted map. */
+function strataSet() {
+  const S = 256
+  const bands = noiseField(S, { octaves: 4, scale: 2, scaleY: 14, seed: 143 })
+  const fine = noiseField(S, { octaves: 2, scale: 22, seed: 77 })
+  const height = new Float32Array(S * S)
+  for (let i = 0; i < height.length; i++) height[i] = clamp01(bands[i] * 0.72 + fine[i] * 0.28)
+  const map = canvasTexture(S, S, ctx => {
+    const img = ctx.createImageData(S, S), d = img.data
+    for (let i = 0; i < height.length; i++) {
+      const t = height[i]
+      d[i * 4] = 74 + t * 52; d[i * 4 + 1] = 68 + t * 47; d[i * 4 + 2] = 58 + t * 40; d[i * 4 + 3] = 255
+    }
+    ctx.putImageData(img, 0, 0)
+  })
+  map.wrapS = map.wrapT = THREE.RepeatWrapping
+  return { map, normalMap: normalMapFromHeight(height, { strength: 2.4 }) }
+}
+
+/**
+ * Cooled magma: near-black crust plates over an emissive crack network.
+ * Bright pixels stay thin so only the hottest veins catch bloom.
+ */
 function lavaTexture() {
   return canvasTexture(512, 512, (ctx, w, h) => {
-    ctx.fillStyle = '#b8481a'
+    // molten base — hot but mostly to be buried under crust
+    ctx.fillStyle = '#993c12'
     ctx.fillRect(0, 0, w, h)
-    // molten hot spots bleeding through
-    for (let i = 0; i < 26; i++) {
-      const x = rand(0, w), y = rand(0, h), r = rand(18, 60)
+    for (let i = 0; i < 20; i++) {
+      const x = rand(0, w), y = rand(0, h), r = rand(20, 70)
       const grad = ctx.createRadialGradient(x, y, 0, x, y, r)
-      grad.addColorStop(0, 'rgba(255, 156, 70, 0.9)')
-      grad.addColorStop(1, 'rgba(255, 156, 70, 0)')
+      grad.addColorStop(0, 'rgba(255, 176, 84, 0.95)')
+      grad.addColorStop(1, 'rgba(255, 176, 84, 0)')
       ctx.fillStyle = grad
       ctx.fillRect(x - r, y - r, r * 2, r * 2)
     }
-    // crust plates — the gaps between them read as ember cracks
-    for (let i = 0; i < 170; i++) {
-      const x = rand(0, w), y = rand(0, h), r = rand(14, 46)
+    // heavy basalt crust — gaps between plates read as glowing veins
+    for (let i = 0; i < 430; i++) {
+      const x = rand(0, w), y = rand(0, h), r = rand(14, 52)
       const n = 5 + Math.floor(rand(0, 4))
-      ctx.fillStyle = `rgb(${Math.round(rand(14, 26))}, ${Math.round(rand(7, 12))}, ${Math.round(rand(4, 8))})`
+      const g = Math.round(rand(8, 18))
+      ctx.fillStyle = `rgb(${g + 4}, ${g - 2}, ${Math.max(2, g - 6)})`
       ctx.beginPath()
       for (let k = 0; k <= n; k++) {
         const a = (k / n) * Math.PI * 2
-        const rr = r * rand(0.65, 1.1)
+        const rr = r * rand(0.68, 1.12)
         const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr
         k ? ctx.lineTo(px, py) : ctx.moveTo(px, py)
       }
@@ -104,19 +213,32 @@ function lavaTexture() {
   })
 }
 
-/** Ragged crimson war banner texture with a bone sigil. */
+/** Ragged crimson war banner — muted pigment, soot hem, bone sigil. */
 function bannerTexture() {
   return canvasTexture(128, 256, (ctx, w, h) => {
-    ctx.fillStyle = '#6e1a1c'
+    ctx.fillStyle = '#451316'
     ctx.fillRect(0, 0, w, h)
+    // cloth shading: dim top light, heavy grime toward the hem
     const grad = ctx.createLinearGradient(0, 0, 0, h)
-    grad.addColorStop(0, 'rgba(255, 140, 60, 0.25)')
-    grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.05)')
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0.55)')
+    grad.addColorStop(0, 'rgba(150, 96, 60, 0.12)')
+    grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.12)')
+    grad.addColorStop(1, 'rgba(10, 6, 4, 0.7)')
     ctx.fillStyle = grad
     ctx.fillRect(0, 0, w, h)
-    // bone sigil: crossed axes glyph
-    ctx.strokeStyle = '#e8dcc4'
+    // weave streaks
+    for (let i = 0; i < 40; i++) {
+      ctx.fillStyle = `rgba(${rand(0, 1) < 0.5 ? '20, 10, 8' : '120, 70, 50'}, ${rand(0.04, 0.1)})`
+      ctx.fillRect(rand(0, w), 0, rand(1, 3), h)
+    }
+    // mud spatter low
+    for (let i = 0; i < 26; i++) {
+      ctx.fillStyle = `rgba(36, 26, 16, ${rand(0.25, 0.5)})`
+      ctx.beginPath()
+      ctx.arc(rand(0, w), h - rand(0, h * 0.3), rand(1.5, 4.5), 0, TAU)
+      ctx.fill()
+    }
+    // bone sigil: crossed axes glyph, faded pigment
+    ctx.strokeStyle = 'rgba(178, 164, 138, 0.6)'
     ctx.lineWidth = 9
     ctx.lineCap = 'round'
     ctx.beginPath()
@@ -136,18 +258,84 @@ function bannerTexture() {
   })
 }
 
+/** Fake contact-AO overlay for the slab top: edge darkening, soot, worn path. */
+function slabAOTexture() {
+  return canvasTexture(512, 256, (ctx, w, h) => {
+    ctx.clearRect(0, 0, w, h)
+    // edge vignette
+    for (const [x0, y0, x1, y1, len] of [
+      [0, 0, 1, 0, 0.1], [1, 0, -1, 0, 0.1], [0, 0, 0, 1, 0.2], [0, 1, 0, -1, 0.2],
+    ]) {
+      const g = ctx.createLinearGradient(x0 * w, y0 * h, (x0 + x1 * len) * w, (y0 + y1 * len) * h)
+      g.addColorStop(0, 'rgba(8, 5, 3, 0.55)')
+      g.addColorStop(1, 'rgba(8, 5, 3, 0)')
+      ctx.fillStyle = g
+      ctx.fillRect(0, 0, w, h)
+    }
+    // soot / grime blotches
+    for (let i = 0; i < 46; i++) {
+      const x = rand(0, w), y = rand(0, h), r = rand(10, 46)
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r)
+      g.addColorStop(0, `rgba(12, 8, 5, ${rand(0.1, 0.28)})`)
+      g.addColorStop(1, 'rgba(12, 8, 5, 0)')
+      ctx.fillStyle = g
+      ctx.fillRect(x - r, y - r, r * 2, r * 2)
+    }
+    // scorch rings under the two braziers (world x ±11.4, back half)
+    for (const u of [0.062, 0.938]) {
+      const x = u * w, y = h * 0.17, r = 34
+      const g = ctx.createRadialGradient(x, y, 4, x, y, r)
+      g.addColorStop(0, 'rgba(6, 3, 2, 0.6)')
+      g.addColorStop(0.6, 'rgba(14, 7, 4, 0.3)')
+      g.addColorStop(1, 'rgba(14, 7, 4, 0)')
+      ctx.fillStyle = g
+      ctx.fillRect(x - r, y - r, r * 2, r * 2)
+    }
+  })
+}
+
 // ---------- shared geometry / materials for repeated props ----------
 const SHARED = {}
 function shared() {
   if (SHARED.ready) return SHARED
   SHARED.ready = true
-  SHARED.stoneMat = toonMaterial({ color: STONE, rim: EMBER, rimStrength: 0.3 })
-  SHARED.stoneDarkMat = toonMaterial({ color: STONE_DARK, rim: '#ff9a5a', rimStrength: 0.35 })
-  SHARED.ironMat = toonMaterial({ color: '#3d4048', rim: '#8a8f9a', rimStrength: 0.3 })
-  SHARED.bronzeMat = toonMaterial({ color: '#b0793a', rim: TORCH_GOLD, rimStrength: 0.5 })
+  // own cracked-stone set (NOT the module-cached preset set — we dirty this one)
+  SHARED.slabSet = crackedStoneTexture({
+    size: 512, seed: 87, dark: '#3b352d', base: '#5d574c', light: '#7a7160', mortar: '#221d17',
+  })
+  dirtOverlay(SHARED.slabSet.map, { amount: 0.5, edge: 0, speckle: 0.7, seed: 19 })
+  SHARED.strata = strataSet()
+  // presets share the module texture cache; env intensities are retuned per
+  // material because the PMREM room env is far too hot for a torchlit night
+  SHARED.stoneMat = stoneMaterial()
+  SHARED.stoneMat.envMapIntensity = 0.06
+  SHARED.stoneDarkMat = stoneMaterial('#8f867a')
+  SHARED.stoneDarkMat.envMapIntensity = 0.05
+  SHARED.ironMat = ironMaterial('#565a63')
+  SHARED.ironMat.envMapIntensity = 0.35
+  SHARED.bronzeMat = bronzeMaterial()
+  SHARED.bronzeMat.envMapIntensity = 0.4
+  SHARED.silhouetteMat = new THREE.MeshBasicMaterial({ color: '#140d11' }) // fog does the aerial fade
   SHARED.linkGeo = new THREE.TorusGeometry(0.16, 0.045, 6, 10)
-  SHARED.flameTex = glowTexture()
+  SHARED.flameGeo = new THREE.PlaneGeometry(0.62, 1.5)
+  SHARED.flameGeo.translate(0, 0.75, 0) // v=0 at flame base
+  SHARED.fireMats = [
+    fireMaterial({ intensity: 1.55, speed: 1.35 }),
+    fireMaterial({ intensity: 1.55, speed: 1.7, midColor: '#ff9a3e' }),
+    fireMaterial({ intensity: 0.85, speed: 1.1, coreColor: '#ffd489' }), // distant, calmer
+  ]
   return SHARED
+}
+
+/** Clone a texture set with its own repeat (images shared, transforms not). */
+function cloneSet(set, rx, ry) {
+  const out = {}
+  for (const k of ['map', 'normalMap', 'roughnessMap']) {
+    if (!set[k]) continue
+    out[k] = set[k].clone()
+    out[k].repeat.set(rx, ry)
+  }
+  return out
 }
 
 const _m4 = new THREE.Matrix4()
@@ -173,56 +361,57 @@ function chain(len, scale = 1) {
   return inst
 }
 
-/** Torch / brazier flame: layered glow sprites + flicker tick. */
-function flame({ size = 1, color = EMBER } = {}) {
+/**
+ * Real fire: two crossed flame-shader planes (hot core where they overlap)
+ * + one faint warm halo sprite. `far` picks the calmer distant material.
+ */
+function flame({ size = 1, far = false } = {}) {
   const S = shared()
   const g = new THREE.Group()
-  const core = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: S.flameTex, color: new THREE.Color('#ffe9c0').multiplyScalar(1.7),
-    transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false,
-  }))
-  core.scale.set(0.55 * size, 0.9 * size, 1)
-  const halo = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: S.flameTex, color, transparent: true, opacity: 0.55,
-    blending: THREE.AdditiveBlending, depthWrite: false,
-  }))
-  halo.scale.set(1.7 * size, 2.1 * size, 1)
-  g.add(halo, core)
+  const mat = far ? S.fireMats[2] : S.fireMats[Math.floor(rand(0, 2))]
+  const a = new THREE.Mesh(S.flameGeo, mat)
+  const b = new THREE.Mesh(S.flameGeo, mat)
+  b.rotation.y = Math.PI / 2
+  const halo = new THREE.Sprite(glowSpriteMaterial('#ff9448', far ? 0.05 : 0.11))
+  halo.scale.set(1.1, 1.5, 1)
+  halo.position.y = 0.6
+  g.add(a, b, halo)
+  g.scale.setScalar(size)
   let t = rand(10)
   g.tick = dt => {
     t += dt
-    const f = 0.82 + 0.18 * Math.sin(t * 9.1) * Math.sin(t * 5.3 + 1.7)
-    core.scale.set(0.55 * size * f, 0.9 * size * (0.85 + 0.3 * f), 1)
-    core.material.opacity = 0.7 + 0.3 * f
-    halo.material.opacity = 0.38 + 0.24 * f
+    const f = 0.86 + 0.14 * Math.sin(t * 8.3) * Math.sin(t * 5.1 + 1.7)
+    g.scale.set(size * (0.92 + 0.1 * f), size * f, size * (0.92 + 0.1 * f))
+    halo.material.opacity = (far ? 0.04 : 0.08) + 0.05 * f
   }
   return g
 }
 
-/** Bronze brazier bowl on a stone base, with fire. */
+/** Bronze brazier bowl on a stone base, real fire + decay-2 torchlight. */
 function brazier(tickables, { light = false } = {}) {
   const S = shared()
   const g = new THREE.Group()
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.44, 0.5, 8), S.stoneDarkMat)
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.44, 0.5, 10), S.stoneDarkMat)
   base.position.y = 0.25
   base.castShadow = true
   const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.7, 8), S.ironMat)
   stem.position.y = 0.85
-  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.24, 0.34, 10), S.bronzeMat)
+  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.24, 0.34, 12), S.bronzeMat)
   bowl.position.y = 1.3
   bowl.castShadow = true
-  const coals = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.08, 10), glowMaterial(FORGE, 1.6))
+  const coals = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.08, 10), emberGlowMaterial(1.25, FORGE))
   coals.position.y = 1.45
-  const f = flame({ size: 1.5 })
-  f.position.y = 1.9
-  g.add(base, stem, bowl, coals, f)
+  const f = flame({ size: 1.35 })
+  f.position.y = 1.55
+  const blob = contactShadow(0.72, 0.42)
+  g.add(base, stem, bowl, coals, f, blob)
   tickables.push(f)
   if (light) {
-    const pl = new THREE.PointLight(TORCH_GOLD, 14, 16, 2)
+    const pl = new THREE.PointLight(TORCH_GOLD, 22, 18, 2)
     pl.position.y = 2
     g.add(pl)
     let t = rand(10)
-    tickables.push({ tick: dt => { t += dt; pl.intensity = 12 + 4 * Math.sin(t * 8.7) * Math.sin(t * 5.1) } })
+    tickables.push({ tick: dt => { t += dt; pl.intensity = 20 + 5 * Math.sin(t * 8.7) * Math.sin(t * 5.1) } })
   }
   return g
 }
@@ -241,11 +430,15 @@ function warBanner(tickables, { h = 3.4 } = {}) {
   finial.position.y = h + 0.15
   const cloth = new THREE.Mesh(
     new THREE.PlaneGeometry(1.05, 2.1, 1, 6),
-    new THREE.MeshStandardMaterial({ map: bannerTexture(), roughness: 0.9, side: THREE.DoubleSide, transparent: true }),
+    new THREE.MeshStandardMaterial({
+      map: bannerTexture(), roughness: 0.98, metalness: 0,
+      side: THREE.DoubleSide, transparent: true, envMapIntensity: 0.05,
+    }),
   )
   cloth.position.set(0.55, h - 1.25, 0)
   cloth.castShadow = true
-  g.add(pole, arm, finial, cloth)
+  const blob = contactShadow(0.34, 0.4)
+  g.add(pole, arm, finial, cloth, blob)
   let t = rand(10)
   tickables.push({ tick: dt => {
     t += dt
@@ -255,51 +448,99 @@ function warBanner(tickables, { h = 3.4 } = {}) {
   return g
 }
 
-/** The main dueling platform: carved stone slab with an ember rune edge. */
+/** Instanced ground clutter on the slab top: pebbles + bone shards. */
+function slabClutter(g) {
+  const S = shared()
+  const pebGeo = new THREE.IcosahedronGeometry(0.05, 0)
+  const pebbles = new THREE.InstancedMesh(pebGeo, S.stoneDarkMat, 46)
+  for (let i = 0; i < 46; i++) {
+    let z = rand(-3, 3)
+    if (Math.abs(z) < 0.9) z += Math.sign(z || 1) * 1.4
+    const s = rand(0.5, 1.7)
+    _q.setFromEuler(_e.set(rand(TAU), rand(TAU), rand(TAU)))
+    _m4.compose(_p.set(rand(-12.6, 12.6), 0.02 * s, z), _q, _s.setScalar(s))
+    pebbles.setMatrixAt(i, _m4)
+  }
+  pebbles.instanceMatrix.needsUpdate = true
+  pebbles.receiveShadow = true
+  const shardGeo = new THREE.BoxGeometry(0.34, 0.045, 0.07)
+  const shardMat = boneMaterial('#b6aa90')
+  shardMat.envMapIntensity = 0.1
+  const shards = new THREE.InstancedMesh(shardGeo, shardMat, 12)
+  for (let i = 0; i < 12; i++) {
+    const x = rand(0, 1) < 0.5 ? rand(-12.5, -6) : rand(6, 12.5)
+    _q.setFromEuler(_e.set(0, rand(TAU), rand(-0.1, 0.1)))
+    _m4.compose(_p.set(x, 0.025, rand(-2.9, 2.9)), _q, _s.setScalar(rand(0.7, 1.5)))
+    shards.setMatrixAt(i, _m4)
+  }
+  shards.instanceMatrix.needsUpdate = true
+  shards.receiveShadow = true
+  g.add(pebbles, shards)
+}
+
+/** The main dueling platform: carved stone slab with deep-relief runes. */
 function mainArena(tickables) {
   const S = shared()
   const g = new THREE.Group()
-  const stoneTex = groundTexture({
-    base: '#453e34', blotches: ['#362f27', '#524a3e', '#2b251f', '#5c5344', '#403930'], count: 560, alpha: 0.3,
+
+  const topSet = cloneSet(S.slabSet, 2.6, 0.8)
+  const topMat = pbrMaterial({ color: '#a89f90', roughness: 1, maps: topSet, normalScale: 1.1, envMapIntensity: 0.07 })
+  const sideSet = cloneSet(S.slabSet, 2.2, 0.5)
+  const sideMat = pbrMaterial({ color: '#6f675c', roughness: 1, maps: sideSet, normalScale: 1.2, envMapIntensity: 0.05 })
+  const bottomMat = pbrMaterial({ color: '#4f463c', roughness: 1, maps: cloneSet(S.slabSet, 2, 0.6), envMapIntensity: 0.03 })
+  // front face: normal-mapped rune carvings, ember heat down in the grooves
+  const rs = runeCarvingSet()
+  rs.map.repeat.set(11, 1)
+  rs.normalMap.repeat.set(11, 1)
+  rs.emissiveMap.repeat.set(11, 1)
+  const runeMat = new THREE.MeshStandardMaterial({
+    map: rs.map, normalMap: rs.normalMap, emissiveMap: rs.emissiveMap,
+    emissive: '#ff7a30', emissiveIntensity: 0.5, roughness: 0.98, metalness: 0,
   })
-  stoneTex.repeat.set(3.4, 1)
-  const topMat = new THREE.MeshStandardMaterial({ map: stoneTex, roughness: 0.94, metalness: 0.04, envMapIntensity: 0.25 })
-  const sideMat = toonMaterial({ color: '#3d372f', rim: EMBER, rimStrength: 0.32 })
+  runeMat.normalScale.setScalar(1.6)
+  runeMat.envMapIntensity = 0.04
+  let runeT = 0
+  tickables.push({ tick: dt => {
+    runeT += dt
+    runeMat.emissiveIntensity = 0.34 + 0.16 * Math.sin(runeT * 1.7) * Math.sin(runeT * 0.9 + 2)
+  } })
+
   const slab = new THREE.Mesh(
-    new THREE.BoxGeometry(26, 1.1, 6.6),
-    [sideMat, sideMat, topMat, sideMat, sideMat, sideMat],
+    chipBox(26, 1.1, 6.6, { sx: 26, sy: 2, sz: 7, amp: 0.14 }),
+    [sideMat, sideMat, topMat, bottomMat, runeMat, sideMat],
   )
   slab.position.y = -0.55
   slab.castShadow = true
   slab.receiveShadow = true
   g.add(slab)
 
-  // rocky basalt underside tapering into the chasm, rim-lit by the lava below
+  // painted contact-AO on the walking surface (edge darkening, soot, scorch)
+  const ao = new THREE.Mesh(
+    new THREE.PlaneGeometry(25.9, 6.5),
+    new THREE.MeshBasicMaterial({ map: slabAOTexture(), transparent: true, depthWrite: false }),
+  )
+  ao.rotation.x = -Math.PI / 2
+  ao.position.y = 0.012
+  g.add(ao)
+  slabClutter(g)
+
+  // rocky basalt underside tapering into the chasm — fracture facets
   const under = new THREE.Mesh(
     jitterCone(8.6, 8.6, 11),
-    toonMaterial({ color: BASALT, rim: FORGE, rimStrength: 0.45, rimPower: 3 }),
+    pbrMaterial({ color: '#2f2922', roughness: 1, maps: cloneSet(S.slabSet, 2, 2), envMapIntensity: 0.02, flatShading: true }),
   )
   under.rotation.x = Math.PI
   under.position.y = -5.15
   under.castShadow = true
   g.add(under)
 
-  // carved war-rune trim along the front face — embers, not neon
-  const runeMat = new THREE.MeshBasicMaterial({
-    map: runeTexture(), color: new THREE.Color(EMBER).multiplyScalar(1.5),
-    transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false,
-  })
-  const runes = new THREE.Mesh(new THREE.PlaneGeometry(25.2, 0.62), runeMat)
-  runes.position.set(0, -0.42, 3.32)
-  g.add(runes)
-  const trim = new THREE.Mesh(new THREE.BoxGeometry(26.1, 0.06, 0.06), glowMaterial(TORCH_GOLD, 1.35))
-  trim.position.set(0, -0.02, 3.32)
+  // worn bronze inlay strip along the top front edge — catches torchlight, no glow
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(25.6, 0.05, 0.07), S.bronzeMat)
+  trim.position.set(0, -0.03, 3.24)
   g.add(trim)
-  let runeT = 0
-  tickables.push({ tick: dt => { runeT += dt; runeMat.opacity = 0.6 + 0.3 * Math.sin(runeT * 1.7) * Math.sin(runeT * 0.9 + 2) } })
 
-  // lava under-glow halo
-  const halo = new THREE.Sprite(glowSpriteMaterial(FORGE, 0.13))
+  // faint magma under-glow licking the underside
+  const halo = new THREE.Sprite(glowSpriteMaterial(FORGE, 0.09))
   halo.scale.set(26, 13, 1)
   halo.position.y = -4
   g.add(halo)
@@ -327,51 +568,68 @@ function mainArena(tickables) {
   const w2 = warBanner(tickables, { h: 3 })
   w2.position.set(12.7, 0, -2.9)
   g.add(w1, w2)
-  const r1 = stageRock({ color: '#575047', scale: 0.9 })
+  const r1 = stageRock({ tint: '#bcb2a0', scale: 0.9 })
   r1.position.set(-9.3, 0, -2.5)
-  const r2 = stageRock({ color: '#4a4239', scale: 0.6 })
+  const r2 = stageRock({ tint: '#a2988a', scale: 0.6 })
   r2.position.set(9, 0, -2.6)
-  g.add(r1, r2)
+  const rb1 = contactShadow(0.62, 0.42)
+  rb1.position.set(-9.3, 0.018, -2.5)
+  const rb2 = contactShadow(0.44, 0.4)
+  rb2.position.set(9, 0.018, -2.6)
+  g.add(r1, r2, rb1, rb2)
   // fallen column drum + broken stub, old-temple wreckage
-  const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 1.6, 10), S.stoneMat)
+  const drumMat = pbrMaterial({ color: '#8f8577', roughness: 1, maps: cloneSet(S.strata, 1.6, 1), normalScale: 1.2, envMapIntensity: 0.05 })
+  const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 1.6, 12), drumMat)
   drum.rotation.z = Math.PI / 2
   drum.rotation.y = 0.4
   drum.position.set(6.4, 0.55, -2.5)
   drum.castShadow = true
-  const stub = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.7, 1.1, 10), S.stoneDarkMat)
+  const stub = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.7, 1.1, 12), drumMat)
   stub.position.set(-6.8, 0.55, -2.6)
   stub.castShadow = true
-  g.add(drum, stub)
+  const db = contactShadow(1, 0.5)
+  db.position.set(6.4, 0.018, -2.5)
+  const sb = contactShadow(0.85, 0.5)
+  sb.position.set(-6.8, 0.018, -2.6)
+  g.add(drum, stub, db, sb)
   return g
 }
 
-/** Pass-through side platform: a broken pillar capital, chained to the sky. */
+/** Pass-through side platform: a broken pillar capital hung on chains. */
 function brokenPillar(p, tickables) {
   const S = shared()
   const g = new THREE.Group()
   g.position.set(p.x, p.y, 0)
-  const stoneTex = groundTexture({ base: '#514a40', blotches: ['#3e372e', '#5f574b', '#332d25'], size: 256, count: 110, alpha: 0.26 })
-  const topMat = new THREE.MeshStandardMaterial({ map: stoneTex, roughness: 0.94, envMapIntensity: 0.25 })
-  const sideMat = toonMaterial({ color: '#423b32', rim: '#ffb27a', rimStrength: 0.3 })
-  const slab = new THREE.Mesh(new THREE.BoxGeometry(p.halfW * 2, 0.42, 2.8), [sideMat, sideMat, topMat, sideMat, sideMat, sideMat])
+  const topMat = pbrMaterial({ color: '#aca293', roughness: 1, maps: cloneSet(S.slabSet, 1.2, 0.5), normalScale: 1.1, envMapIntensity: 0.06 })
+  const sideMat = pbrMaterial({ color: '#8a8172', roughness: 1, maps: cloneSet(S.slabSet, 1.1, 0.3), normalScale: 1.2, envMapIntensity: 0.05 })
+  const slab = new THREE.Mesh(
+    chipBox(p.halfW * 2, 0.42, 2.8, { sx: 10, sy: 1, sz: 4, amp: 0.1 }),
+    [sideMat, sideMat, topMat, sideMat, sideMat, sideMat],
+  )
   slab.position.y = -0.21
   slab.castShadow = true
   slab.receiveShadow = true
   g.add(slab)
 
-  // fluted column stub, snapped off jagged below
-  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(p.halfW * 0.34, p.halfW * 0.4, 1.1, 10), S.stoneMat)
+  // strata column stub, snapped off jagged below — fracture cone
+  const shaft = new THREE.Mesh(
+    new THREE.CylinderGeometry(p.halfW * 0.34, p.halfW * 0.4, 1.1, 12),
+    pbrMaterial({ color: '#6b6255', roughness: 1, maps: cloneSet(S.strata, 2, 1.2), normalScale: 1.3, envMapIntensity: 0.05 }),
+  )
   shaft.position.y = -0.95
   shaft.castShadow = true
-  const jag = new THREE.Mesh(jitterCone(p.halfW * 0.42, 1.4, 8), toonMaterial({ color: BASALT, rim: FORGE, rimStrength: 0.4 }))
+  const jag = new THREE.Mesh(
+    jitterCone(p.halfW * 0.42, 1.4, 8),
+    pbrMaterial({ color: '#38312a', roughness: 1, maps: cloneSet(S.slabSet, 1, 1), envMapIntensity: 0.02, flatShading: true }),
+  )
   jag.rotation.x = Math.PI
   jag.position.y = -2
   jag.castShadow = true
   g.add(shaft, jag)
 
-  // bronze banding + faint ember rune edge
-  const band = new THREE.Mesh(new THREE.BoxGeometry(p.halfW * 2 + 0.1, 0.08, 0.08), glowMaterial(TORCH_GOLD, 1.25))
-  band.position.set(0, -0.44, 1.42)
+  // worn bronze banding on the front edge
+  const band = new THREE.Mesh(new THREE.BoxGeometry(p.halfW * 2 - 0.2, 0.06, 0.06), S.bronzeMat)
+  band.position.set(0, -0.4, 1.32)
   g.add(band)
 
   // suspension chains rising out of frame — the arena's shackled ruins
@@ -382,12 +640,13 @@ function brokenPillar(p, tickables) {
     g.add(ch)
   }
 
-  const halo = new THREE.Sprite(glowSpriteMaterial(FORGE, 0.12))
+  // barely-there heat shimmer from the chasm below
+  const halo = new THREE.Sprite(glowSpriteMaterial(FORGE, 0.06))
   halo.scale.set(p.halfW * 2.4, 3.4, 1)
   halo.position.y = -1.2
   g.add(halo)
   let tt = rand(10)
-  tickables.push({ tick: dt => { tt += dt; halo.material.opacity = 0.09 + 0.05 * Math.sin(tt * 1.8) } })
+  tickables.push({ tick: dt => { tt += dt; halo.material.opacity = 0.05 + 0.025 * Math.sin(tt * 1.8) } })
   return g
 }
 
@@ -395,8 +654,10 @@ function brokenPillar(p, tickables) {
 function chainedStatue({ x, z, s = 1, flip = 1 }, tickables) {
   const S = shared()
   const g = new THREE.Group()
-  const mat = toonMaterial({ color: '#38322b', rim: '#c96a3a', rimStrength: 0.42, rimPower: 2.6 })
-  const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 4.4, 3, 8), S.stoneDarkMat)
+  const mat = pbrMaterial({ color: '#4c4438', roughness: 1, maps: cloneSet(S.slabSet, 1.4, 1.4), normalScale: 1, envMapIntensity: 0.03 })
+  const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 4.4, 3, 8), pbrMaterial({
+    color: '#3f3830', roughness: 1, maps: cloneSet(S.strata, 3, 1), normalScale: 1.2, envMapIntensity: 0.03,
+  }))
   pedestal.position.y = 1.5
   g.add(pedestal)
   // kneeling body
@@ -427,13 +688,13 @@ function chainedStatue({ x, z, s = 1, flip = 1 }, tickables) {
   }
   // ember eyes smoldering under the brow
   for (const sx of [-1, 1]) {
-    const eye = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.1, 0.06), glowMaterial(FORGE, 1.8))
+    const eye = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.1, 0.06), emberGlowMaterial(1.4, FORGE))
     eye.position.set(sx * 0.26, 6.3, 0.95)
     eye.rotation.x = 0.35
     g.add(eye)
   }
   // votive fire at the statue's knees, lighting the stone from below
-  const f = flame({ size: 3 })
+  const f = flame({ size: 2.1, far: true })
   f.position.set(0, 3.6, 2.6)
   g.add(f)
   tickables.push(f)
@@ -443,12 +704,14 @@ function chainedStatue({ x, z, s = 1, flip = 1 }, tickables) {
   return g
 }
 
-/** Distant ruined colonnade / temple silhouettes rising from the chasm haze. */
+/** Distant ruined colonnade / temple silhouettes — aerial-perspective layers. */
 function ruinBackdrop(tickables) {
   const S = shared()
   const g = new THREE.Group()
-  const colMat = toonMaterial({ color: '#302a24', rim: '#b0562e', rimStrength: 0.38, rimPower: 2.6 })
-  const farMat = toonMaterial({ color: '#231a1c', rim: CRIMSON, rimStrength: 0.4, rimPower: 2.4 })
+  // mid layer: lit PBR stone, partially fogged
+  const colMat = pbrMaterial({ color: '#4a4238', roughness: 1, maps: cloneSet(S.strata, 1, 3), normalScale: 1, envMapIntensity: 0.02 })
+  // far layer: pure silhouette, the fog paints the aerial fade
+  const farMat = S.silhouetteMat
   const colGeo = new THREE.CylinderGeometry(1.3, 1.55, 1, 9)
   const capGeo = new THREE.BoxGeometry(3.6, 1, 3.6)
 
@@ -467,7 +730,7 @@ function ruinBackdrop(tickables) {
     _m4.compose(_p.set(x, h - 11.6, z), _q, _s.set(1, 1, 1))
     capInst.setMatrixAt(i, _m4)
     if (torch) {
-      const f = flame({ size: 2.6 })
+      const f = flame({ size: 1.7, far: true })
       f.position.set(x, h - 10.2, z)
       g.add(f)
       tickables.push(f)
@@ -499,7 +762,7 @@ function ruinBackdrop(tickables) {
   gate.add(lintel, crown)
   // two watch-fires smoldering on the gate towers
   for (const s of [-1, 1]) {
-    const f = flame({ size: 5 })
+    const f = flame({ size: 3.1, far: true })
     f.position.set(s * 12, 24.5, 0)
     gate.add(f)
     tickables.push(f)
@@ -518,20 +781,20 @@ function ruinBackdrop(tickables) {
   return g
 }
 
-/** Rising ember updraft particles out of the chasm. */
-function emberUpdraft({ count = 110, area = [64, 30], bottom = -24, top = 15, size = 0.55, color = EMBER } = {}) {
+/** Rising ember updraft particles out of the chasm — kept subtle. */
+function emberUpdraft({ count = 110, area = [64, 30], bottom = -24, top = 15, size = 0.3, color = EMBER } = {}) {
   const pos = new Float32Array(count * 3)
   const spd = new Float32Array(count)
   const phase = new Float32Array(count)
   for (let i = 0; i < count; i++) {
     pos.set([rand(-area[0] / 2, area[0] / 2), rand(bottom, top), rand(-area[1] / 2, area[1] * 0.2)], i * 3)
-    spd[i] = rand(1.6, 4.6)
+    spd[i] = rand(1.4, 4)
     phase[i] = rand(TAU)
   }
   const geo = new THREE.BufferGeometry()
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
   const mat = new THREE.PointsMaterial({
-    map: glowTexture(), color, size, transparent: true, opacity: 0.85,
+    map: glowTexture(), color, size, transparent: true, opacity: 0.55,
     depthWrite: false, blending: THREE.AdditiveBlending,
   })
   const pts = new THREE.Points(geo, mat)
@@ -546,40 +809,45 @@ function emberUpdraft({ count = 110, area = [64, 30], bottom = -24, top = 15, si
       p.setX(i, p.getX(i) + Math.sin(t * 1.3 + phase[i]) * dt * 0.8)
     }
     p.needsUpdate = true
-    mat.opacity = 0.7 + 0.2 * Math.sin(t * 3.1)
+    mat.opacity = 0.48 + 0.1 * Math.sin(t * 3.1)
   }
   return pts
 }
 
-/** Blood-red moon disc + haze halo. */
+/** Blood-red moon disc — dim, hazed, veiled by the smoke sky. */
 function bloodMoon() {
   const g = new THREE.Group()
   const tex = canvasTexture(256, 256, (ctx, w, h) => {
     ctx.clearRect(0, 0, w, h)
     const grad = ctx.createRadialGradient(w / 2, h / 2, w * 0.1, w / 2, h / 2, w * 0.5)
-    grad.addColorStop(0, '#e8604a')
-    grad.addColorStop(0.75, '#b83228')
-    grad.addColorStop(1, '#8a1f1e')
+    grad.addColorStop(0, '#b34a3a')
+    grad.addColorStop(0.75, '#822622')
+    grad.addColorStop(1, '#5c1a1a')
     ctx.fillStyle = grad
     ctx.beginPath()
     ctx.arc(w / 2, h / 2, w * 0.5 - 2, 0, Math.PI * 2)
     ctx.fill()
     // craters
-    ctx.fillStyle = 'rgba(90, 20, 20, 0.45)'
+    ctx.fillStyle = 'rgba(64, 16, 16, 0.45)'
     for (let i = 0; i < 14; i++) {
       const a = rand(TAU), r = rand(0, w * 0.36)
       ctx.beginPath()
       ctx.arc(w / 2 + Math.cos(a) * r, h / 2 + Math.sin(a) * r, rand(4, 16), 0, Math.PI * 2)
       ctx.fill()
     }
+    // horizon-haze bite across the lower limb
+    const hz = ctx.createLinearGradient(0, h * 0.55, 0, h)
+    hz.addColorStop(0, 'rgba(26, 16, 20, 0)')
+    hz.addColorStop(1, 'rgba(26, 16, 20, 0.85)')
+    ctx.fillStyle = hz
+    ctx.fillRect(0, 0, w, h)
   })
   const disc = new THREE.Mesh(
-    new THREE.CircleGeometry(17, 40),
+    new THREE.CircleGeometry(15, 40),
     new THREE.MeshBasicMaterial({ map: tex, transparent: true, fog: false, depthWrite: false }),
   )
-  disc.material.color.setScalar(1.25) // just enough to catch bloom as haze
-  const halo = new THREE.Sprite(glowSpriteMaterial(CRIMSON, 0.4))
-  halo.scale.set(85, 85, 1)
+  const halo = new THREE.Sprite(glowSpriteMaterial(CRIMSON, 0.18))
+  halo.scale.set(70, 70, 1)
   g.add(halo, disc)
   g.position.set(58, 92, -300)
   g.lookAt(0, 4, 0)
@@ -589,20 +857,22 @@ function bloodMoon() {
 /** Build the whole torchlit arena-over-the-chasm stage. Returns { tickables }. */
 export function buildStage(scene) {
   const tickables = []
-  scene.fog = new THREE.Fog('#1c1216', 70, 380)
+  scene.fog = new THREE.Fog('#1a1013', 46, 330)
 
   scene.add(skyDome({
-    top: '#140e1e', mid: '#2c1826', bottom: '#4a2426',
-    sunDir: new THREE.Vector3(0.42, 0.6, -0.68), sunColor: '#a1252c', sunSize: 40,
+    top: '#0d0a15', mid: '#221520', bottom: '#372023',
+    sunDir: new THREE.Vector3(0.42, 0.6, -0.68), sunColor: '#6e1f1e', sunSize: 26,
   }))
-  scene.add(starField({ count: 420, radius: 420, size: 1.8, color: '#ffe4c8' }))
+  const stars = starField({ count: 260, radius: 420, size: 1.4, color: '#cfc2b4' })
+  stars.material.opacity = 0.5
+  scene.add(stars)
   scene.add(bloodMoon())
 
   // ---------- the lava chasm ----------
   // fog-aware basalt floor to the horizon, with a molten seam under the arena
   const basaltFloor = new THREE.Mesh(
     new THREE.PlaneGeometry(700, 600),
-    new THREE.MeshStandardMaterial({ color: '#170a07', roughness: 1, metalness: 0 }),
+    new THREE.MeshStandardMaterial({ color: '#120806', roughness: 1, metalness: 0 }),
   )
   basaltFloor.rotation.x = -Math.PI / 2
   basaltFloor.position.y = -26.5
@@ -614,16 +884,16 @@ export function buildStage(scene) {
     new THREE.MeshBasicMaterial({ map: lavaTex }),
   )
   lava.rotation.x = -Math.PI / 2
-  lava.position.set(0, -26, -22) // molten river kept back in the chasm; foreground stays dark
+  lava.position.set(0, -26, -30) // molten river kept back in the chasm; foreground stays dark
   scene.add(lava)
   let lavaT = 0
   tickables.push({ tick: dt => {
     lavaT += dt
     lavaTex.offset.x += dt * 0.0035 // crust slowly drifting
-    lava.material.color.setScalar(0.72 + 0.11 * Math.sin(lavaT * 1.3)) // molten breathing
+    lava.material.color.setScalar(0.68 + 0.12 * Math.sin(lavaT * 1.3)) // molten breathing, kept buried
   } })
   // molten heart directly beneath the arena
-  const heart = new THREE.Sprite(glowSpriteMaterial(FORGE, 0.16))
+  const heart = new THREE.Sprite(glowSpriteMaterial(FORGE, 0.1))
   heart.scale.set(36, 12, 1)
   heart.position.set(0, -24, -10)
   scene.add(heart)
@@ -637,7 +907,7 @@ export function buildStage(scene) {
     [60, -19, -36, 72, 0.7],
     [0, -16, -52, 100, 0.7], [-46, -15, -56, 92, 0.6], [48, -15, -58, 96, 0.6],
   ]) {
-    const mat = new THREE.SpriteMaterial({ map: smokeTex, color: '#241210', transparent: true, opacity: o, depthWrite: false })
+    const mat = new THREE.SpriteMaterial({ map: smokeTex, color: '#1c100d', transparent: true, opacity: o, depthWrite: false })
     const sp = new THREE.Sprite(mat)
     sp.position.set(x, y, z)
     sp.scale.set(s, s * 0.32, 1)
@@ -652,8 +922,8 @@ export function buildStage(scene) {
   } })
 
   // smoke rolling over the lava + high haze
-  const smokeLow = cloudLayer({ count: 15, radius: 150, height: [-24, -13], opacity: 0.5, scale: [45, 100], color: '#4a2418' })
-  const hazeFar = cloudLayer({ count: 9, radius: 300, height: [22, 70], opacity: 0.22, scale: [80, 150], color: '#3a1c22' })
+  const smokeLow = cloudLayer({ count: 15, radius: 150, height: [-24, -13], opacity: 0.45, scale: [45, 100], color: '#3a2015' })
+  const hazeFar = cloudLayer({ count: 9, radius: 300, height: [22, 70], opacity: 0.12, scale: [80, 150], color: '#2c161c' })
   scene.add(smokeLow, hazeFar)
   tickables.push(smokeLow, hazeFar)
 
@@ -662,7 +932,7 @@ export function buildStage(scene) {
   const puffs = new THREE.Group()
   const puffData = []
   for (const [x, y, z, s] of [[-20, -11, -14, 38], [12, -15, -10, 48], [30, -10, -20, 34], [-34, -17, -8, 44], [2, -19, -16, 56], [-9, -8.5, 5, 24], [16, -12, 6, 28]]) {
-    const mat = new THREE.SpriteMaterial({ map: puffTex, color: '#6e3a24', transparent: true, opacity: rand(0.4, 0.6), depthWrite: false })
+    const mat = new THREE.SpriteMaterial({ map: puffTex, color: '#463228', transparent: true, opacity: rand(0.3, 0.45), depthWrite: false })
     const sp = new THREE.Sprite(mat)
     sp.position.set(x, y, z)
     sp.scale.set(s, s * 0.4, 1)
@@ -677,17 +947,23 @@ export function buildStage(scene) {
   } })
 
   // ---------- lights ----------
-  scene.add(new THREE.HemisphereLight('#3a2438', '#69281a', 0.5))
-  const key = new THREE.DirectionalLight('#ffc98a', 1.45)
-  key.position.set(-14, 24, -15)
+  // Warm firelight key (the arena's watch-fires) vs cool blood-moon rim from
+  // behind; low bounced fill; blacks stay black.
+  scene.add(new THREE.HemisphereLight('#241b2c', '#2e130b', 0.5))
+  const key = new THREE.DirectionalLight('#ffc389', 1.55)
+  key.position.set(-15, 25, 19)
   key.castShadow = true
   key.shadow.mapSize.set(2048, 2048)
-  Object.assign(key.shadow.camera, { left: -18, right: 18, top: 24, bottom: -14, near: 4, far: 80 })
+  Object.assign(key.shadow.camera, { left: -19, right: 19, top: 26, bottom: -14, near: 4, far: 90 })
   key.shadow.camera.updateProjectionMatrix()
-  key.shadow.bias = -0.0004
+  key.shadow.bias = -0.00035
+  key.shadow.normalBias = 0.02
   scene.add(key, key.target)
+  const moonRim = new THREE.DirectionalLight('#8c2b26', 1.15)
+  moonRim.position.set(36, 50, -70)
+  scene.add(moonRim, moonRim.target)
 
-  // lava up-light rimming the underside of the arena
+  // magma up-light rimming the underside of the arena — real falloff
   const lavaLight = new THREE.PointLight(FORGE, 15, 36, 2)
   lavaLight.position.set(0, -9, 3)
   scene.add(lavaLight)
@@ -705,11 +981,11 @@ export function buildStage(scene) {
 
   // ---------- atmosphere particles ----------
   const updraft = emberUpdraft({})
-  const updraftNear = emberUpdraft({ count: 36, area: [30, 8], bottom: -12, top: 8, size: 0.4, color: '#ffb27a' })
+  const updraftNear = emberUpdraft({ count: 30, area: [30, 8], bottom: -12, top: 8, size: 0.24, color: '#ffb27a' })
   scene.add(updraft, updraftNear)
   tickables.push(updraft, updraftNear)
-  const sparks = fireflies({ count: 34, area: [36, 12], height: [0.5, 9], color: '#ff9a3b', size: 0.5 })
-  const ash = fireflies({ count: 46, area: [80, 34], height: [-6, 16], color: '#7a6c5c', size: 0.26 })
+  const sparks = fireflies({ count: 26, area: [36, 12], height: [0.5, 9], color: '#ff9a3b', size: 0.3 })
+  const ash = fireflies({ count: 40, area: [80, 34], height: [-6, 16], color: '#5c5248', size: 0.2 })
   scene.add(sparks, ash)
   tickables.push(sparks, ash)
 

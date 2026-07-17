@@ -32,7 +32,12 @@ const WAVE_BONUS = 60
 export default class SiegeScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.85, bloomThreshold: 0.8, bloomRadius: 0.5, vignette: 0.62, saturation: 1.18, grain: 0.035 }
+    // realism grade: only true fire clears the bloom threshold, neutral
+    // saturation, filmic vignette + grain
+    // (SSAO benchmarked: 100fps -> 62fps at the 45-raider gate on an M-series
+    // integrated GPU — too thin for the fleet's slowest target, so it stays off;
+    // grounding comes from contact shadows + painted AO instead.)
+    this.postOpts = { bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.45, vignette: 0.58, saturation: 1.02, grain: 0.032, exposure: 1.04 }
   }
 
   async init() {
@@ -67,7 +72,8 @@ export default class SiegeScene {
       this.heroTrail = this.vfx.trail(this.hero.hips, { color: profile.appearance.glow, size: 0.38, rate: 14, life: 0.5 })
     }
     // personal torchlight pool — keeps the hero readable against the night mud
-    this.heroLight = new THREE.PointLight(profile.appearance.glow || '#ff8c3b', 7, 8, 2)
+    // (always warm firelight; profile glow stays on trail/VFX where it belongs)
+    this.heroLight = new THREE.PointLight('#ffb37a', 5.5, 8.5, 2)
     this.heroLight.position.y = 2.3
     this.hero.group.add(this.heroLight)
     this.hp = 100
@@ -177,8 +183,8 @@ export default class SiegeScene {
     for (const p of this.env.portals) {
       if (p.flash > 0) {
         p.flash = Math.max(0, p.flash - dt * 2)
-        p.archMat.color.copy(p.baseColor).multiplyScalar(1 + 2.6 * p.flash)
-        p.portalMat.uniforms.uIntensity.value = 1.15 + 2.4 * p.flash
+        p.archMat.color.copy(p.baseColor).multiplyScalar(1 + 2.2 * p.flash)
+        p.portalMat.uniforms.uIntensity.value = 2.1 + 2.6 * p.flash
       }
     }
 
@@ -1179,11 +1185,11 @@ export default class SiegeScene {
       this.ctx.engine.shake(0.5, 0.4)
       this.ctx.audio.play('explode', { vol: 0.7 })
     }, delay)
-    chain(0, 1.4, '#cfe4ff')
-    chain(300, 1.6, '#9fc4ff')
-    chain(650, 2, '#ffffff')
+    chain(0, 1.4, '#ffd9a0')
+    chain(300, 1.6, '#ff9a4c')
+    chain(650, 2, '#fff2d8')
     this._timeout(() => {
-      this.vfx.shockwave(cp, { color: '#9fc4ff', radius: 13 })
+      this.vfx.shockwave(cp, { color: '#ff8c3b', radius: 13 })
       this.ctx.engine.shake(0.7, 0.6)
       this.ctx.audio.play('explode', { vol: 0.9 })
       this.hud.fadeOut()

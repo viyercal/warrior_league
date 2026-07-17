@@ -3,7 +3,7 @@ import { getSkill, WASD_KEY_LABELS, wasdKeyIndex } from '../../meta/skills.js'
 import { HUD } from '../../ui/hud.js'
 import { VFX } from '../../art/vfx.js'
 import { createHero } from '../../art/characterFactory.js'
-import { glowMaterial, glowSpriteMaterial } from '../../art/materials.js'
+import { emberGlowMaterial, glowSpriteMaterial } from '../../art/materials.js'
 import { clamp, damp, lerp, rand, TAU, distXZ, pick, disposeObject3D } from '../../core/utils.js'
 import { buildArena, ARENA_R } from './arenaEnv.js'
 import { Horde, Boss } from './enemies.js'
@@ -25,7 +25,8 @@ const BLASTER_INTERVAL = 0.16
 export default class ArenaScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.85, bloomThreshold: 0.8, bloomRadius: 0.5, vignette: 0.6, saturation: 1.05, grain: 0.045 }
+    // realism grade: bloom reserved for true fire (high threshold), neutral saturation
+    this.postOpts = { bloom: 0.5, bloomThreshold: 0.9, bloomRadius: 0.45, vignette: 0.62, saturation: 1.0, grain: 0.04, exposure: 1.02 }
   }
 
   async init() {
@@ -60,7 +61,7 @@ export default class ArenaScene {
     this.bubble = new THREE.Mesh(
       new THREE.SphereGeometry(1.05, 24, 18),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#9fb4c8').multiplyScalar(1.5), transparent: true, opacity: 0.22,
+        color: new THREE.Color('#9fb4c8').multiplyScalar(1.2), transparent: true, opacity: 0.2,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),
     )
@@ -90,7 +91,7 @@ export default class ArenaScene {
     this.orbs = []
     this.orbPool = []
     this._orbGeo = new THREE.SphereGeometry(0.2, 12, 10)
-    this._orbMat = glowMaterial('#ffb84d', 2.2)
+    this._orbMat = emberGlowMaterial(1.8, '#ffb84d')
     this._ghostMats = null
     this._buildCasters()
 
@@ -175,7 +176,7 @@ export default class ArenaScene {
       if (g.flash > 0) {
         g.flash = Math.max(0, g.flash - dt * 2)
         g.archMat.color.copy(g.baseColor).multiplyScalar(1 + 2.6 * g.flash)
-        g.portalMat.uniforms.uIntensity.value = 1.1 + 2.4 * g.flash
+        g.portalMat.uniforms.uIntensity.value = 0.7 + 2.2 * g.flash
       }
     }
     // wall pulse fade
@@ -552,7 +553,7 @@ export default class ArenaScene {
         disc.rotation.x = -Math.PI / 2
         const rim = new THREE.Mesh(
           new THREE.RingGeometry(r - 0.24, r, 48),
-          new THREE.MeshBasicMaterial({ color: new THREE.Color('#e8eef0').multiplyScalar(1.9), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color('#e8eef0').multiplyScalar(1.45), transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }),
         )
         rim.rotation.x = -Math.PI / 2
         rim.position.y = 0.02
@@ -620,7 +621,7 @@ export default class ArenaScene {
         const mkRing = (ri, ro, op) => {
           const m = new THREE.Mesh(
             new THREE.RingGeometry(ri, ro, 40),
-            new THREE.MeshBasicMaterial({ color: new THREE.Color(def.color).multiplyScalar(1.7), transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+            new THREE.MeshBasicMaterial({ color: new THREE.Color(def.color).multiplyScalar(1.4), transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
           )
           m.rotation.x = -Math.PI / 2
           return m
@@ -669,7 +670,7 @@ export default class ArenaScene {
         const c = this._clampToArena(this.aim.clone(), 2)
         const ring = new THREE.Mesh(
           new THREE.RingGeometry(0.84, 1, 48),
-          new THREE.MeshBasicMaterial({ color: new THREE.Color(def.color).multiplyScalar(1.8), transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(def.color).multiplyScalar(1.5), transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
         )
         ring.rotation.x = -Math.PI / 2
         ring.position.set(c.x, 0.06, c.z)

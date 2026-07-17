@@ -8,10 +8,10 @@ import { rand, TAU, distXZ } from '../../core/utils.js'
  * instance) so waves never re-create geometry.
  */
 export const ENEMY_TYPES = {
-  grunt:    { color: '#b0a184', scale: 1.0, hp: 20, speed: 3.4,  dmg: 5,  reach: 1.15 }, // bone
-  sprinter: { color: '#c9772e', scale: 0.8, hp: 10, speed: 6.15, dmg: 4,  reach: 1.0 },  // ember
-  brute:    { color: '#544639', scale: 1.9, hp: 60, speed: 1.85, dmg: 12, reach: 1.8 },  // ash
-  exploder: { color: '#b53220', scale: 1.0, hp: 14, speed: 4.7,  dmg: 15, reach: 1.5 },  // magma
+  grunt:    { color: '#a3967d', scale: 1.0, hp: 20, speed: 3.4,  dmg: 5,  reach: 1.15 }, // bone
+  sprinter: { color: '#a8703c', scale: 0.8, hp: 10, speed: 6.15, dmg: 4,  reach: 1.0 },  // ember
+  brute:    { color: '#4e4238', scale: 1.9, hp: 60, speed: 1.85, dmg: 12, reach: 1.8 },  // ash
+  exploder: { color: '#96311e', scale: 1.0, hp: 14, speed: 4.7,  dmg: 15, reach: 1.5 },  // magma
 }
 
 export class Horde {
@@ -224,7 +224,7 @@ export class Boss {
     this.tele = new THREE.Mesh(
       new THREE.RingGeometry(0.78, 1, 48),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#c23b2e').multiplyScalar(1.8),
+        color: new THREE.Color('#c23b2e').multiplyScalar(1.45),
         transparent: true, opacity: 0.5,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),

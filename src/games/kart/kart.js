@@ -1,5 +1,8 @@
 import * as THREE from 'three'
-import { toonMaterial, glowMaterial, glowSpriteMaterial } from '../../art/materials.js'
+import {
+  woodMaterial, ironMaterial, bronzeMaterial, leatherMaterial, clothMaterial,
+  emberGlowMaterial, contactShadow,
+} from '../../art/materials.js'
 import { createHero, createMinion } from '../../art/characterFactory.js'
 
 /**
@@ -9,6 +12,17 @@ import { createHero, createMinion } from '../../art/characterFactory.js'
  * (0-1 front, 2-3 rear), frontSteer, exhausts, spoiler, hero, minion, under,
  * poseDriver(dt, {speed, steer}), setGhost(on).
  */
+let _wraithMat = null
+/** ONE shared spectral material for ghost/decoy — swapping materials instead of
+ * toggling `transparent` avoids compiling a transparent shader variant per PBR
+ * material (a mid-race stall when a projectile light changes the light count). */
+const wraithMaterial = () => {
+  _wraithMat ??= new THREE.MeshBasicMaterial({
+    color: '#b7c8bd', transparent: true, opacity: 0.26, depthWrite: false,
+  })
+  return _wraithMat
+}
+
 export function createKartFactory() {
   // wheels: big spoked wood-and-iron
   const rimGeo = new THREE.TorusGeometry(0.44, 0.06, 8, 18)
@@ -31,15 +45,19 @@ export function createKartFactory() {
   const studGeo = new THREE.SphereGeometry(0.035, 6, 5)
 
   function buildKart({ primary, secondary, glow, driver = 'minion', appearance = null, minionColor = '#8fd5ff' }) {
-    // per-chariot materials — setGhost() mutates them, so they must NOT be shared across karts
-    const wood = toonMaterial({ color: '#4a352a', rimStrength: 0.3, rim: '#ffb98a' })
-    const woodDark = toonMaterial({ color: '#33241c', rimStrength: 0.25, rim: '#ff9a5c' })
-    const iron = toonMaterial({ color: '#6b6f78', rimStrength: 0.5, rim: '#ffe0b0' })
-    const bronze = toonMaterial({ color: '#b0793a', rimStrength: 0.55, rim: '#ffd9a0' })
-    const priMat = toonMaterial({ color: primary, rim: '#ffe2c0', rimStrength: 0.5 })
-    const secMat = toonMaterial({ color: secondary, rim: '#ffc9a0', rimStrength: 0.4 })
-    const glowMat = glowMaterial(glow, 1.7)
-    const hubMat = glowMaterial(glow, 1.25) // wheel hubs: ember-lit, not blinding
+    // per-chariot materials — setGhost() mutates them, so they must NOT be
+    // shared across karts (presets return fresh materials over cached textures)
+    const wood = woodMaterial('#6e5238') // weathered oak
+    const woodDark = woodMaterial('#463322')
+    const iron = ironMaterial() // worn banding, eff. roughness ≈0.55
+    const bronze = bronzeMaterial() // polished fittings
+    const leather = leatherMaterial('#3a281e')
+    const priMat = woodMaterial(primary) // team pigment painted over grain
+    priMat.roughness = 0.78
+    const secMat = woodMaterial(secondary)
+    secMat.roughness = 0.8
+    const glowMat = emberGlowMaterial(1.3, glow) // rune-ember accents only
+    const hubMat = bronzeMaterial()
 
     const group = new THREE.Group()
     const body = new THREE.Group() // lean/roll pivot
@@ -58,8 +76,10 @@ export function createKartFactory() {
 
     // ---- basket: plank floor, curved war-bow front, open rear ----
     add(floorGeo, woodDark, [0, 0.12, 0])
-    // low rim flood: the interior (backface) is what the chase camera sees
-    const bowMat = toonMaterial({ color: primary, rim: '#ffe2c0', rimStrength: 0.12, side: THREE.DoubleSide })
+    // painted plank bow — interior (backface) is what the chase camera sees
+    const bowMat = woodMaterial(primary)
+    bowMat.roughness = 0.78
+    bowMat.side = THREE.DoubleSide
     add(bowGeo, bowMat, [0, 0.42, 0.55], { rot: [0, -Math.PI / 2, 0] })
     // side boards
     for (const s of [-1, 1]) {
@@ -91,21 +111,20 @@ export function createKartFactory() {
     // ---- war-banner pole at the rear ----
     add(poleGeo, woodDark, [-0.42, 1.0, -0.72])
     add(new THREE.ConeGeometry(0.05, 0.16, 5), bronze, [-0.42, 1.95, -0.72])
-    // face the cloth's front (+Z) at the chase camera — the custom rim shader
-    // floods backfaces with rim color, so never show the back to the player
+    // ragged team-pigment cloth (grain-mapped, lit both sides)
     const pennant = add(
       pennantGeo.clone(),
-      toonMaterial({ color: primary, rim: '#ffcf9a', rimStrength: 0.12, side: THREE.DoubleSide }),
+      clothMaterial(primary),
       [-0.22, 1.68, -0.72], { rot: [0, Math.PI, 0], scale: [0.8, 0.8, 1], shadow: false },
     )
     add(new THREE.BoxGeometry(0.03, 0.36, 0.02), glowMat, [-0.41, 1.68, -0.72], { shadow: false }) // ember hoist edge
     const pennantBase = pennant.geometry.attributes.position.array.slice()
     let pennantT = Math.random() * 10
 
-    // ---- reins: crossbar the warrior grips + two straps to the bow ----
+    // ---- reins: crossbar the warrior grips + two leather straps to the bow ----
     const reinsBar = add(reinsBarGeo, wood, [0, 0.98, 0.1], { rot: [0, 0, Math.PI / 2], shadow: false })
     for (const s of [-1, 1]) {
-      add(reinGeo, woodDark, [0.14 * s, 0.9, 0.48], { rot: [1.05, 0, 0.1 * s], shadow: false })
+      add(reinGeo, leather, [0.14 * s, 0.9, 0.48], { rot: [1.05, 0, 0.1 * s], shadow: false })
     }
 
     // ---- wheels: steer group -> spin group -> spoked wheel ----
@@ -141,10 +160,10 @@ export function createKartFactory() {
     mkWheel(0.78, -0.55, false)
     mkWheel(-0.78, -0.55, false)
 
-    // ember underglow halo (firelight spilling beneath the frame)
-    const under = new THREE.Sprite(glowSpriteMaterial(glow, 0.3))
-    under.scale.set(1.9, 1.1, 1)
-    under.position.y = 0.05
+    // soft contact shadow grounding the chariot (replaces the ember underglow)
+    const under = contactShadow(1, 0.4)
+    under.scale.set(1.5, 2.05, 1)
+    under.position.y = 0.03
     group.add(under)
 
     // ---- the warrior stands in the basket, gripping the reins ----
@@ -153,10 +172,12 @@ export function createKartFactory() {
       hero = createHero(appearance, { auraRing: false })
       hero.group.scale.setScalar(0.7)
       hero.group.position.set(0, 0.18, -0.42)
+      hero.shadowBlob.visible = false // riding the basket — chariot has its own
       body.add(hero.group)
     } else {
       minion = createMinion({ color: minionColor, scale: 0.95 })
       minion.group.position.set(0, 0.24, -0.45)
+      minion.shadowBlob.visible = false
       body.add(minion.group)
     }
 
@@ -199,23 +220,21 @@ export function createKartFactory() {
       }
     }
 
-    /** Translucent wraith-cloak toggle (also used for the decoy spirit). */
+    /** Translucent wraith-cloak toggle (also used for the decoy spirit).
+     * Swaps every mesh onto the shared spectral material; originals are
+     * saved per-mesh and restored exactly on release. */
     visual.setGhost = on => {
       if (on && !visual._ghostSaved) {
         const saved = new Map()
         group.traverse(o => {
-          if (o.material && !saved.has(o.material)) {
-            saved.set(o.material, [o.material.transparent, o.material.opacity])
-            o.material.transparent = true
-            o.material.opacity = Math.min(o.material.opacity ?? 1, 0.3)
+          if (o.isMesh && o.material && o !== under) {
+            saved.set(o, o.material)
+            o.material = wraithMaterial()
           }
         })
         visual._ghostSaved = saved
       } else if (!on && visual._ghostSaved) {
-        for (const [m, [tr, op]] of visual._ghostSaved) {
-          m.transparent = tr
-          m.opacity = op
-        }
+        for (const [o, m] of visual._ghostSaved) o.material = m
         visual._ghostSaved = null
       }
     }

@@ -52,8 +52,10 @@ export function buildComposer(renderer, scene, camera, opts = {}) {
   } = opts
   const size = renderer.getSize(new THREE.Vector2())
   const pr = renderer.getPixelRatio()
+  // Perf: at pixelRatio 2 the supersampled density already antialiases —
+  // full 4x MSAA on a half-float target doubles fill cost for no visible gain.
   const rt = new THREE.WebGLRenderTarget(size.x * pr, size.y * pr, {
-    samples: 4,
+    samples: pr >= 2 ? 2 : 4,
     type: THREE.HalfFloatType,
   })
   const composer = new EffectComposer(renderer, rt)

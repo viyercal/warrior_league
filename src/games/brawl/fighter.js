@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { createHero } from '../../art/characterFactory.js'
-import { toonMaterial, glowMaterial, glowSpriteMaterial } from '../../art/materials.js'
+import { stoneMaterial, emberGlowMaterial, glowSpriteMaterial, contactShadow } from '../../art/materials.js'
 import { clamp, damp, lerp, TAU } from '../../core/utils.js'
 
 export const GRAV = 36
@@ -44,6 +44,12 @@ export class Fighter {
     this.root = new THREE.Group()
     this.root.add(this.hero.group)
     scene.add(this.root)
+    // hero's built-in blob spins with tumble/flip anims — replace with a
+    // root-level disc projected onto the platform below (flat, height-faded)
+    if (this.hero.shadowBlob) this.hero.shadowBlob.visible = false
+    this.blob = contactShadow(0.62, 0.5)
+    this.root.add(this.blob)
+    this._platforms = null
     this.pos = this.root.position
     this.pos.set(spawnX, 0, 0)
     this.spawnX = spawnX
@@ -108,13 +114,12 @@ export class Fighter {
 
     // descending respawn pad — a rune-lit stone disc lowered from above
     const pad = this.pad = new THREE.Group()
-    const disc = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.35, 1.6, 0.16, 18),
-      toonMaterial({ color: '#6a5d4a', rim: '#ffd9a0', rimStrength: 0.5 }),
-    )
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.06, 8, 28), glowMaterial(this.glow, 1.8))
+    const discMat = stoneMaterial('#a3988a')
+    discMat.envMapIntensity = 0.06 // room env is way too hot for the night arena
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.6, 0.16, 18), discMat)
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.06, 8, 28), emberGlowMaterial(1.3, this.glow))
     ring.rotation.x = Math.PI / 2
-    const padHalo = new THREE.Sprite(glowSpriteMaterial(this.glow, 0.4))
+    const padHalo = new THREE.Sprite(glowSpriteMaterial(this.glow, 0.2))
     padHalo.scale.set(4.4, 1.6, 1)
     pad.add(disc, ring, padHalo)
     pad.visible = false
@@ -127,6 +132,7 @@ export class Fighter {
 
   /** gdt = game-time dt (slow-mo aware), dt = real dt for animation. */
   update(gdt, dt, intent, platforms) {
+    this._platforms = platforms
     this.iFrames = Math.max(0, this.iFrames - gdt)
     this.chillT = Math.max(0, this.chillT - gdt)
     if (this.lastHitT > 0) {
@@ -352,6 +358,7 @@ export class Fighter {
     this.root.rotation.y = damp(this.root.rotation.y, this.facing * 1.25, 12, dt)
     this.hero.setMoveSpeed(this.grounded ? Math.abs(this.vel.x) : Math.abs(this.vel.x) * 0.4)
     this.hero.update(dt)
+    this._groundBlob()
 
     // air-jump flip: spin the hips group
     if (this.flipT > 0) {
@@ -390,6 +397,28 @@ export class Fighter {
       this.invulnT -= dt
       this.shimmer.material.opacity = 0.22 + 0.16 * Math.sin(this.hero.t * 14)
     } else this.shimmer.material.opacity = 0
+  }
+
+  /** Project the contact-shadow disc onto the platform below; fade with height. */
+  _groundBlob() {
+    const plats = this._platforms
+    if (!plats) return
+    let gy = -Infinity
+    for (const p of plats) {
+      if (Math.abs(this.pos.x - p.x) > p.halfW + 0.2) continue
+      if (p.y > this.pos.y + 0.05 || p.y < gy) continue
+      gy = p.y
+    }
+    const h = this.pos.y - gy
+    if (gy === -Infinity || h > 6.5) {
+      this.blob.visible = false
+      return
+    }
+    this.blob.visible = true
+    this.blob.position.y = (gy - this.pos.y) / this.scaleMul + 0.025
+    const k = 1 - h / 6.5
+    this.blob.material.opacity = 0.5 * (0.3 + 0.7 * k)
+    this.blob.scale.setScalar(0.62 * (0.7 + 0.3 * k))
   }
 
   _attackPose() {

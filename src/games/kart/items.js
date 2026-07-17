@@ -28,9 +28,10 @@ export class Items {
   }
 
   dropSlick(pos, { radius = 4, duration = 3.5, owner = null } = {}) {
+    // smoldering ash slick: dark char pool with a dull ember tint (no neon disc)
     const mesh = new THREE.Mesh(this._slickGeo, new THREE.MeshBasicMaterial({
-      color: new THREE.Color('#c23b2e').multiplyScalar(1.25), transparent: true, opacity: 0.5,
-      blending: THREE.AdditiveBlending, depthWrite: false,
+      color: '#c24d30', transparent: true, opacity: 0.5,
+      blending: THREE.MultiplyBlending, depthWrite: false,
     }))
     mesh.rotation.x = -Math.PI / 2
     mesh.scale.setScalar(radius)
@@ -45,7 +46,7 @@ export class Items {
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(0.85, 1, 40),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color(color).multiplyScalar(1.8), transparent: true, opacity: 0.7,
+        color: new THREE.Color(color).multiplyScalar(1.2), transparent: true, opacity: 0.7,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
       }),
     )

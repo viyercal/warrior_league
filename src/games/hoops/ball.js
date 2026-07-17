@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { canvasTexture } from '../../core/assets.js'
+import { canvasTexture, normalMapFromHeight } from '../../core/assets.js'
+import { contactShadow } from '../../art/materials.js'
 import { clamp, rand, TAU } from '../../core/utils.js'
 import { COURT, GRAV } from './constants.js'
 
@@ -11,9 +12,9 @@ function ballTexture() {
   // battle-worn stitched leather
   return canvasTexture(256, 256, (ctx, w, h) => {
     const g = ctx.createRadialGradient(w * 0.38, h * 0.34, 20, w / 2, h / 2, w * 0.72)
-    g.addColorStop(0, '#c07a38')
-    g.addColorStop(0.6, '#95571f')
-    g.addColorStop(1, '#5f3414')
+    g.addColorStop(0, '#b3763c')
+    g.addColorStop(0.6, '#8a5526')
+    g.addColorStop(1, '#5a3517')
     ctx.fillStyle = g
     ctx.fillRect(0, 0, w, h)
     // scuffed patches
@@ -61,13 +62,20 @@ export class HoopsBall {
   constructor(scene) {
     this.scene = scene
     this.R = 0.17
+    const leather = ballTexture()
     this.mat = new THREE.MeshStandardMaterial({
-      map: ballTexture(), roughness: 0.55, metalness: 0,
+      map: leather, roughness: 0.68, metalness: 0,
+      normalMap: normalMapFromHeight(leather.image, { strength: 1.3 }),
       emissive: '#ff6a20', emissiveIntensity: 0,
     })
+    this.mat.normalScale.setScalar(0.7)
+    this.mat.envMapIntensity = 0.5
     this.mesh = new THREE.Mesh(new THREE.SphereGeometry(this.R, 20, 16), this.mat)
     this.mesh.castShadow = true
     scene.add(this.mesh)
+    // soft contact blob grounds the ball (grows + fades with height)
+    this.shadowBlob = contactShadow(0.38, 0.5)
+    scene.add(this.shadowBlob)
     this.pos = this.mesh.position
     this.vel = new THREE.Vector3()
 
@@ -165,6 +173,15 @@ export class HoopsBall {
     this.mesh.rotation.x += this.spin * dt
     this.spin *= Math.exp(-0.4 * dt)
     if (this.fire) this.mat.emissiveIntensity = 0.7 + Math.sin(game.t * 9) * 0.3
+
+    // contact blob: track XZ, widen + fade as the ball rises
+    const blob = this.shadowBlob
+    blob.position.x = this.pos.x
+    blob.position.z = this.pos.z
+    const h = clamp((this.pos.y - this.R) / 5, 0, 1)
+    blob.material.opacity = 0.5 * (1 - h * 0.88)
+    const bs = 0.38 * (1 + h * 1.7)
+    blob.scale.setScalar(bs)
     void audio
   }
 

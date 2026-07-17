@@ -20,6 +20,7 @@ sm.register('arena', () => import('./games/arena/arenaScene.js'))
 sm.register('kart', () => import('./games/kart/kartScene.js'))
 sm.register('brawl', () => import('./games/brawl/brawlScene.js'))
 sm.register('siege', () => import('./games/siege/siegeScene.js'))
+sm.register('duel', () => import('./games/duel/duelScene.js'))
 
 engine.addTicker(tickMaterials)
 engine.start()

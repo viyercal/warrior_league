@@ -62,7 +62,7 @@ allocations in hot loops (reuse Vector3s).
 - `npm run dev -- --port <YOUR_PORT> --strictPort` (each agent uses its OWN port, see task).
 - Open `http://localhost:<port>/?scene=<name>&mute=1` — jumps straight into your
   scene, skips the click gate. Scene names: `hub`, `loadout`, `moba`, `hoops`, `arena`,
-  `kart`, `brawl`, `siege`.
+  `kart`, `brawl`, `siege`, `duel`.
 - `window.__ipl = { engine, input, audio, sm }` and `window.__scene` (current module)
   are exposed for debugging/QA.
 - Screenshot QA: use playwright-core with `channel: 'chrome'` (installed; Chrome is
@@ -97,7 +97,7 @@ export default class MyScene {
 - `audio`: `.play(name, {delay, vol})` — names: click hover back cast dash zap hit
   explode heal shield coin levelup kill tower bounce swish rim buzzer whistle crowd
   countdown go victory defeat spawn. `.music(theme)` — themes: hub battle court arena
-  race brawl siege.
+  race brawl siege duel.
   Call `.music(...)` once in init(); SceneManager stops music on scene change.
 - `profile`: `{ name, appearance: {primary, secondary, glow, head, hair, trail, cape},
   loadout: [4 skill ids], stats: {wins: {}, plays: {}} }`. Mutate then call

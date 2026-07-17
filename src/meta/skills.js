@@ -15,6 +15,7 @@ export const SKILLS = [
       kart: 'Shadow-step 12 lengths up the track — cut the corner like a wraith.',
       brawl: 'Step through their strike in a puff of ash — or back to the ledge.',
       siege: 'Cross the battlefield in one stride to plug a breach in the wall.',
+      duel: 'Vanish and reappear BEHIND your foe — the mixup that wins duels.',
     },
   },
   {
@@ -28,6 +29,7 @@ export const SKILLS = [
       kart: 'Hurl a flaming spear at the chariot ahead — a clean hit spins them out.',
       brawl: 'A burning spear that stacks damage from across the arena.',
       siege: 'Spear from the ramparts — bursts on the first raider it touches.',
+      duel: 'The classic: a flaming bolt across the pit. Zone, poke, punish.',
     },
   },
   {
@@ -41,6 +43,7 @@ export const SKILLS = [
       kart: 'Leave cursed frost in your wake — pursuers skid and crawl.',
       brawl: 'Chill the arena floor — slowed warriors are easy to launch.',
       siege: 'Curse the chokepoint and watch the assault falter.',
+      duel: 'Ice the ground at their feet — slowed foes eat full combos.',
     },
   },
   {
@@ -54,6 +57,7 @@ export const SKILLS = [
       kart: 'The shockwave hurls every nearby chariot off your line.',
       brawl: 'Point-blank launcher — a killing blow at high percent.',
       siege: 'Hurl the raiders swarming you back off the walls.',
+      duel: 'Rising earthen uppercut — launches for a juggle, swats jumpers.',
     },
   },
   {
@@ -67,6 +71,7 @@ export const SKILLS = [
       kart: 'Whip the team into a frenzy. Raw speed.',
       brawl: 'Strike and move faster — a flurry of iron.',
       siege: 'Sprint between fronts before the gates fall.',
+      duel: 'Blood frenzy — your strikes chain faster for 4 seconds.',
     },
   },
   {
@@ -80,6 +85,7 @@ export const SKILLS = [
       kart: 'Plating that eats one hit — spears, rams, cursed frost.',
       brawl: 'Iron that soaks their blows while you keep swinging.',
       siege: 'Hold the line behind the bulwark.',
+      duel: 'A parry-ward that eats the next hit and staggers the attacker.',
     },
   },
   {
@@ -93,6 +99,7 @@ export const SKILLS = [
       kart: 'Steady the chariot — recover lost speed and some charge.',
       brawl: 'Shake off 45% of your wounds.',
       siege: 'Bind your wounds without leaving the wall.',
+      duel: 'Steal a breath mid-duel — recover a sliver of health.',
     },
   },
   {
@@ -106,6 +113,7 @@ export const SKILLS = [
       kart: 'A phantom chariot rides ahead and baits the hunting spears.',
       brawl: 'A twin that fights at your side for 6 seconds.',
       siege: 'The phantom draws raider fury away from the bastion.',
+      duel: 'A shadow twin lunges from behind you for a double-team strike.',
     },
   },
   {
@@ -119,6 +127,7 @@ export const SKILLS = [
       kart: 'Hook boost rings and drag yourself toward the chariot ahead.',
       brawl: 'Drag warriors into the air above you — the combo begins.',
       siege: 'Drag raiders into your ballista kill-zone.',
+      duel: 'Hurl the chained harrow — drag your foe into your fists.',
     },
   },
   {
@@ -132,6 +141,7 @@ export const SKILLS = [
       kart: 'A colossus at the reins — crush whatever you touch.',
       brawl: 'Heavier, harder — your blows land like siege stones.',
       siege: 'Become the wall.',
+      duel: 'Colossus stance — armored heavies, longer reach, slower feet.',
     },
   },
   {
@@ -145,6 +155,7 @@ export const SKILLS = [
       kart: 'Ride through spears, frost, and chariots like mist.',
       brawl: 'Untouchable for 3 seconds — walk through the melee.',
       siege: 'Slip through the raider horde untouched.',
+      duel: 'Wraith stance — your next strike passes clean through a block.',
     },
   },
   {
@@ -158,6 +169,7 @@ export const SKILLS = [
       kart: 'Call the hammer onto your closest rival. Dishonorable. Effective.',
       brawl: 'The hammer smashes the arena — massive launch power.',
       siege: 'The sky falls on their lane push. Ended.',
+      duel: 'Bring the hammer of the sky down on the center of the pit.',
     },
   },
 ]

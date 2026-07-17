@@ -34,6 +34,10 @@ const THEMES = {
     bpm: 108, pad: 'sawtooth', bass: 'sine', arp: 'triangle', drums: true, arpDiv: 2,
     prog: [[24, 48, 51, 55], [32, 51, 56, 60], [22, 46, 53, 58], [31, 55, 59, 62]],
   },
+  duel: { // the crucible — E phrygian death-drum ritual
+    bpm: 96, pad: 'sawtooth', bass: 'sine', arp: 'triangle', drums: true, arpDiv: 2,
+    prog: [[28, 52, 53, 59], [26, 50, 53, 57], [28, 52, 55, 59], [24, 48, 51, 56]],
+  },
 }
 
 /**

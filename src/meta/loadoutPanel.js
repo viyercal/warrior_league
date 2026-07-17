@@ -3,9 +3,10 @@ import { SKILLS, KEY_LABELS } from './skills.js'
 export const GAME_TITLES = {
   moba: 'WAR RIFT', hoops: 'BLOOD COURT', arena: 'THE PIT',
   kart: 'WAR CHARIOTS', brawl: 'MORTAL ARENA', siege: 'LAST BASTION',
+  duel: 'THE CRUCIBLE',
 }
-const GAME_ORDER = ['moba', 'hoops', 'arena', 'kart', 'brawl', 'siege']
-const GAME_SHORT = { moba: 'RIFT', hoops: 'COURT', arena: 'PIT', kart: 'CHARIOT', brawl: 'ARENA', siege: 'SIEGE' }
+const GAME_ORDER = ['moba', 'hoops', 'arena', 'kart', 'brawl', 'siege', 'duel']
+const GAME_SHORT = { moba: 'RIFT', hoops: 'COURT', arena: 'PIT', kart: 'CHARIOT', brawl: 'ARENA', siege: 'SIEGE', duel: 'CRUCIBLE' }
 
 // war paint: bronze, blood, iron, bone, witchfire, olive, nightshade, leather
 const PRIMARY = ['#b0793a', '#c23b2e', '#6b6f78', '#e8dcc4', '#7dff8a', '#8fae4a', '#75559e', '#4a352a']
@@ -126,9 +127,9 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
 
   const grid = hud.el('div', 'loadout-grid', '', secS)
   const tip = hud.el('div', 'loadout-tip')
-  // 6 games per skill: with a destination game its line gets the full "hot"
-  // row and the other five collapse into a compact dimmed stack; with no
-  // destination (hub customize) all six render as one tight legible list.
+  // 7 games per skill: with a destination game its line gets the full "hot"
+  // row and the other six collapse into a compact dimmed stack; with no
+  // destination (hub customize) all seven render as one tight legible list.
   const showTip = (sk, cell) => {
     let rows
     if (game) {

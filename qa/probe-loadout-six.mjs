@@ -11,7 +11,7 @@ page.on('pageerror', e => errors.push(String(e)))
 await page.goto(`http://localhost:${PORT}/?scene=loadout&mute=1`, { waitUntil: 'load' })
 await page.waitForTimeout(3500)
 
-// --- 1. game=null: tooltip lists all SIX games compactly ---
+// --- 1. game=null: tooltip lists all SEVEN games compactly ---
 await page.locator('.loadout-skill').nth(8).hover()
 await page.waitForTimeout(400)
 const nullTip = await page.evaluate(() => {
@@ -24,11 +24,11 @@ const nullTip = await page.evaluate(() => {
     height: Math.round(r.height),
   }
 })
-console.log('NULL-GAME TIP (6 minis, in viewport):', JSON.stringify(nullTip))
+console.log('NULL-GAME TIP (7 minis, in viewport):', JSON.stringify(nullTip))
 await page.screenshot({ path: 'qa/screens/meta6-tip-null.png' })
 
 // --- 2. each new game: NEXT STOP chip + footer label + tooltip hot row ---
-const games = { kart: 'TURBO KART GP', brawl: 'BRAWL STADIUM', siege: 'SIEGE PROTOCOL' }
+const games = { kart: 'WAR CHARIOTS', brawl: 'MORTAL ARENA', siege: 'LAST BASTION' }
 for (const [game, title] of Object.entries(games)) {
   await page.evaluate(g => window.__ipl.sm.goTo('loadout', { game: g }), game)
   await page.waitForTimeout(1600)
@@ -46,7 +46,7 @@ for (const [game, title] of Object.entries(games)) {
       inViewport: r.top >= 0 && r.bottom <= innerHeight,
     }
   })
-  console.log(`GAME ${game} (label ENTER ${title} ▶, hot ${title}, 5 minis):`, JSON.stringify(state))
+  console.log(`GAME ${game} (label ENTER ${title} ▶, hot ${title}, 6 minis):`, JSON.stringify(state))
   if (game === 'kart') await page.screenshot({ path: 'qa/screens/meta6-tip-kart.png' })
 }
 

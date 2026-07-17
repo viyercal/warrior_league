@@ -78,6 +78,10 @@
 .loadout-next.loadout-g-kart { background: linear-gradient(90deg, #ffd98a, #d9922e); box-shadow: 0 0 20px rgba(255, 184, 77, 0.45); }
 .loadout-next.loadout-g-brawl { background: linear-gradient(90deg, #f2e8d2, #b5a276); box-shadow: 0 0 20px rgba(232, 220, 196, 0.4); }
 .loadout-next.loadout-g-siege { background: linear-gradient(90deg, #c2d4e0, #7a92a8); box-shadow: 0 0 20px rgba(159, 184, 200, 0.45); }
+.loadout-next.loadout-g-duel {
+  background: linear-gradient(90deg, #ffc27d, #ff8c3b 62%, #d9531f);
+  box-shadow: 0 0 22px rgba(255, 140, 59, 0.55), inset 0 0 0 1px rgba(122, 20, 16, 0.55), inset 0 1px 0 rgba(255, 226, 173, 0.5);
+}
 @keyframes loadoutNextPulse { 50% { filter: brightness(1.18); } }
 
 /* ---------- scroll body ---------- */
@@ -250,6 +254,10 @@
 .loadout-go.loadout-g-kart { background: linear-gradient(135deg, #ffe0a0, #d9922e); box-shadow: 0 0 22px rgba(255, 184, 77, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
 .loadout-go.loadout-g-brawl { background: linear-gradient(135deg, #f4ecd8, #b5a276); box-shadow: 0 0 22px rgba(232, 220, 196, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
 .loadout-go.loadout-g-siege { background: linear-gradient(135deg, #cedeea, #7a92a8); box-shadow: 0 0 22px rgba(159, 184, 200, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
+.loadout-go.loadout-g-duel {
+  background: linear-gradient(135deg, #ffcf94, #ff8c3b 58%, #d9531f);
+  box-shadow: 0 0 26px rgba(255, 140, 59, 0.6), inset 0 0 0 1px rgba(122, 20, 16, 0.55), inset 0 1px 0 rgba(255, 236, 200, 0.55);
+}
 
 /* ---------- skill tooltip: aged parchment slab ---------- */
 .loadout-tip {
@@ -292,9 +300,9 @@
 }
 .loadout-tip-mini { display: flex; gap: 8px; align-items: baseline; padding: 2px 2px; opacity: 0.5; }
 .loadout-tip-mini b {
-  flex: none; width: 52px;
+  flex: none; width: 56px;
   font-family: var(--font-display);
-  font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
   color: var(--accent);
 }
 .loadout-tip-mini span { font-size: 10px; line-height: 1.4; }

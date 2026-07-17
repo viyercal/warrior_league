@@ -48,10 +48,10 @@ results.heroAppearance = await page.evaluate(() => window.__scene.hero.appearanc
 await page.locator('.loadout-skill').nth(8).hover()
 await page.waitForTimeout(400)
 results.tipVisible = await page.evaluate(() => {
-  // game=null -> all SIX games listed compactly (short labels)
+  // game=null -> all SEVEN games listed compactly (short labels)
   const t = document.querySelector('.loadout-tip')
-  return t.classList.contains('on') && t.querySelectorAll('.loadout-tip-mini').length === 6
-    && t.innerText.includes('RIFT') && t.innerText.includes('SIEGE')
+  return t.classList.contains('on') && t.querySelectorAll('.loadout-tip-mini').length === 7
+    && t.innerText.includes('RIFT') && t.innerText.includes('SIEGE') && t.innerText.includes('CRUCIBLE')
 })
 await page.screenshot({ path: 'qa/screens/loadout-tooltip.png' })
 

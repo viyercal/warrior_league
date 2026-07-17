@@ -11,7 +11,7 @@ page.on('pageerror', e => errors.push(String(e)))
 await page.goto(`http://localhost:${PORT}/?scene=hub&mute=1`, { waitUntil: 'load' })
 await page.waitForTimeout(3500)
 
-const names = { 3: 'siege', 4: 'kart', 5: 'brawl' }
+const names = { 3: 'siege', 4: 'kart', 5: 'brawl', 6: 'duel' }
 for (const [idx, name] of Object.entries(names)) {
   await page.evaluate(i => {
     const s = window.__scene

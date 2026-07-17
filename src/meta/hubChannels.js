@@ -12,13 +12,26 @@ export const CHANNEL_DEFS = [
   { title: 'LAST BASTION', sub: 'HOLD THE GATE', game: 'siege', accent: '#9fb8c8' },
   { title: 'WAR CHARIOTS', sub: '3-LAP DEATH RACE', game: 'kart', accent: '#ffb84d' },
   { title: 'MORTAL ARENA', sub: 'LAST WARRIOR STANDING', game: 'brawl', accent: '#e8dcc4' },
+  { title: 'THE CRUCIBLE', sub: '1V1 TOURNAMENT — BEST OF 3', game: 'duel', accent: '#ff8c3b', trim: '#c23b2e', flagship: true },
 ]
 
 const W = 3.3, H = 2.1, R = 0.26, B = 0.15
-const COL_X = [-3.95, 0, 3.95]
-const COL_Z = [-2.35, -3.1, -2.35]
-const COL_YAW = [0.17, 0, -0.17]
-const ROW_Y = [2.3, 5.0] // front row, back row
+
+/**
+ * Wall composition: THE CRUCIBLE flagship dead-center, ~35% larger and pulled
+ * forward off the wall plane; the six original arenas ring it — a pair
+ * crowning it above, two wings at the shoulders, two at the lower flanks.
+ * Index-aligned with CHANNEL_DEFS. plate: where the DOM title plate anchors.
+ */
+const LAYOUT = [
+  { x: -5.5, y: 4.55, z: -2.5, yaw: 0.3, pitch: 0.1, plate: 'above' },   // moba — left shoulder
+  { x: -2.55, y: 6.05, z: -3.2, yaw: 0.1, pitch: 0.13, plate: 'above' },  // hoops — crown left
+  { x: 2.55, y: 6.05, z: -3.2, yaw: -0.1, pitch: 0.13, plate: 'above' },  // arena — crown right
+  { x: 5.5, y: 4.55, z: -2.5, yaw: -0.3, pitch: 0.1, plate: 'above' },   // siege — right shoulder
+  { x: -5.55, y: 1.95, z: -2.1, yaw: 0.32, pitch: -0.02, plate: 'below' }, // kart — left flank
+  { x: 5.55, y: 1.95, z: -2.1, yaw: -0.32, pitch: -0.02, plate: 'below' }, // brawl — right flank
+  { x: 0, y: 3.2, z: -1.7, yaw: 0, pitch: -0.02, scale: 1.35, plate: 'brand' }, // duel — FLAGSHIP
+]
 
 function roundedRect(w, h, r) {
   const s = new THREE.Shape()
@@ -724,6 +737,271 @@ function siegeStage() {
   }
 }
 
+// ---------- THE CRUCIBLE: torchlit tournament pit — two champions trade blows
+// under draining health bars, ringed by braziers and a crowd in the dark ----------
+
+function crucibleFloorTexture() {
+  return canvasTexture(256, 256, (ctx, w, h) => {
+    const cx = w / 2, cy = h / 2
+    const g = ctx.createRadialGradient(cx, cy, 18, cx, cy, 132)
+    g.addColorStop(0, '#4c3826')
+    g.addColorStop(0.6, '#31231a')
+    g.addColorStop(1, '#191110')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, w, h)
+    // packed sand + old scorch mottling
+    for (let i = 0; i < 120; i++) {
+      ctx.fillStyle = ['#57422c', '#281c12', '#463420'][i % 3]
+      ctx.globalAlpha = 0.28
+      ctx.beginPath()
+      ctx.ellipse(Math.random() * w, Math.random() * h, 4 + Math.random() * 12, 3 + Math.random() * 8, 0, 0, TAU)
+      ctx.fill()
+    }
+    ctx.globalAlpha = 1
+    // crimson duel ring + inner ember circle
+    ctx.strokeStyle = 'rgba(161, 37, 44, 0.8)'
+    ctx.lineWidth = 7
+    ctx.beginPath(); ctx.arc(cx, cy, 86, 0, TAU); ctx.stroke()
+    ctx.strokeStyle = 'rgba(255, 140, 59, 0.45)'
+    ctx.lineWidth = 3
+    ctx.beginPath(); ctx.arc(cx, cy, 66, 0, TAU); ctx.stroke()
+    // bone tally marks radiating from the ring
+    ctx.strokeStyle = 'rgba(232, 220, 196, 0.5)'
+    ctx.lineWidth = 3
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * TAU + 0.13
+      ctx.beginPath()
+      ctx.moveTo(cx + Math.cos(a) * 92, cy + Math.sin(a) * 92)
+      ctx.lineTo(cx + Math.cos(a) * 104, cy + Math.sin(a) * 104)
+      ctx.stroke()
+    }
+    // center clash sigil
+    ctx.strokeStyle = 'rgba(255, 140, 59, 0.55)'
+    ctx.lineWidth = 4
+    ctx.beginPath()
+    ctx.moveTo(cx, cy - 16); ctx.lineTo(cx + 13, cy); ctx.lineTo(cx, cy + 16); ctx.lineTo(cx - 13, cy)
+    ctx.closePath()
+    ctx.stroke()
+  })
+}
+
+/** Tournament health bar: dark iron backing + glowing fill that drains toward
+ * its anchored outer edge (MK-style). anchor = -1 left player, +1 right. */
+function miniHealthBar(color, anchor) {
+  const BW = 0.42, BH = 0.05
+  const g = new THREE.Group()
+  const back = new THREE.Mesh(
+    new THREE.PlaneGeometry(BW + 0.035, BH + 0.03),
+    new THREE.MeshBasicMaterial({ color: '#150c07' }),
+  )
+  g.add(back)
+  const fill = new THREE.Mesh(new THREE.PlaneGeometry(BW, BH), glowMaterial(color, 1.5))
+  fill.position.z = 0.005
+  g.add(fill)
+  const trim = new THREE.Mesh(
+    new THREE.PlaneGeometry(BW + 0.035, 0.012),
+    new THREE.MeshBasicMaterial({ color: '#a1252c' }),
+  )
+  trim.position.set(0, -(BH + 0.03) / 2 - 0.008, 0.002)
+  g.add(trim)
+  let shown = 1
+  return {
+    group: g,
+    set(hp, dt) {
+      shown = damp(shown, hp, 9, dt)
+      const s = Math.max(shown, 0.02)
+      fill.scale.x = s
+      fill.position.x = anchor * (1 - s) * BW / 2
+    },
+    snap() { shown = 1 },
+  }
+}
+
+/** Mini iron brazier with a flickering flame tip (for the pit ring). */
+function miniBrazier() {
+  const g = new THREE.Group()
+  const iron = toonMaterial({ color: '#3a3d44', rim: '#9aa3b2', rimStrength: 0.3 })
+  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.032, 0.05, 7), iron)
+  bowl.position.y = 0.17
+  g.add(bowl)
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.022, 0.15, 6), iron)
+  stem.position.y = 0.075
+  g.add(stem)
+  const coal = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 6, 0, TAU, 0, Math.PI / 2), glowMaterial('#ff5a26', 1.6))
+  coal.scale.y = 0.55
+  coal.position.y = 0.19
+  g.add(coal)
+  const fl = spark('#ffb84d', 0.8, 0.2)
+  fl.position.y = 0.25
+  g.add(fl)
+  return { group: g, fl, ph: rand(TAU) }
+}
+
+function duelStage() {
+  const stage = new THREE.Group()
+
+  // pit floor + crimson ring markings
+  const floor = new THREE.Mesh(
+    new THREE.CircleGeometry(0.98, 26),
+    new THREE.MeshStandardMaterial({ map: crucibleFloorTexture(), roughness: 0.92, envMapIntensity: 0.32 }),
+  )
+  floor.rotation.x = -Math.PI / 2
+  floor.scale.set(1.42, 1, 1)
+  stage.add(floor)
+
+  // ember trim ring around the fighting circle
+  const ringGlow = new THREE.Mesh(
+    new THREE.RingGeometry(0.62, 0.66, 40),
+    new THREE.MeshBasicMaterial({
+      color: '#ff8c3b', transparent: true, opacity: 0.35,
+      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+    }),
+  )
+  ringGlow.rotation.x = -Math.PI / 2
+  ringGlow.position.y = 0.008
+  stage.add(ringGlow)
+
+  // balcony crowd in the dark: a rail silhouette + two banked rows of dim
+  // torch-lit faces high behind the pit (kept forward of the frame backplane)
+  const rail = new THREE.Mesh(
+    new THREE.BoxGeometry(2.35, 0.045, 0.05),
+    toonMaterial({ color: '#241c16', rim: '#8a6138', rimStrength: 0.35 }),
+  )
+  rail.position.set(0, 0.5, -0.42)
+  stage.add(rail)
+  const crowdN = 26
+  const crowdPos = new Float32Array(crowdN * 3)
+  for (let i = 0; i < crowdN; i++) {
+    const row = i < 14 ? 0 : 1
+    const n = row ? 12 : 14
+    const j = row ? i - 14 : i
+    crowdPos[i * 3] = (j / (n - 1) - 0.5) * (2.15 - row * 0.35) + rand(-0.04, 0.04)
+    crowdPos[i * 3 + 1] = 0.6 + row * 0.17 + rand(0.05)
+    crowdPos[i * 3 + 2] = -0.42 - row * 0.06
+  }
+  const crowdGeo = new THREE.BufferGeometry()
+  crowdGeo.setAttribute('position', new THREE.BufferAttribute(crowdPos, 3))
+  const crowd = new THREE.Points(crowdGeo, new THREE.PointsMaterial({
+    map: glowTexture(), color: '#d8955a', size: 0.085, transparent: true, opacity: 0.5,
+    depthWrite: false, blending: THREE.AdditiveBlending,
+  }))
+  stage.add(crowd)
+
+  // ring of braziers between crowd and pit
+  const braziers = []
+  for (const a of [Math.PI * 0.78, Math.PI * 1.22, Math.PI * 0.42, Math.PI * 1.58]) {
+    const b = miniBrazier()
+    b.group.position.set(Math.cos(a + Math.PI / 2) * 0.95 * 1.3, 0, -Math.sin(a + Math.PI / 2) * 0.88)
+    stage.add(b.group)
+    braziers.push(b)
+  }
+
+  // the two duelists: bronze champion (west) vs blood-crimson challenger (east)
+  const BASE = 0.44
+  const F = [
+    { m: createMinion({ color: '#b0793a', scale: 0.56 }), dir: 1, ph: 0 },
+    { m: createMinion({ color: '#a1252c', scale: 0.56 }), dir: -1, ph: 1.3 },
+  ]
+  for (const f of F) {
+    f.m.setMoving(true)
+    f.m.group.rotation.x = -0.16
+    f.m.group.rotation.y = f.dir * Math.PI / 2
+    stage.add(f.m.group)
+  }
+
+  // tournament health bars floating above each corner
+  const bars = [miniHealthBar('#ffb84d', -1), miniHealthBar('#ff6a3c', 1)]
+  bars[0].group.position.set(-0.42, 1.0, 0.1)
+  bars[1].group.position.set(0.42, 1.0, 0.1)
+  stage.add(bars[0].group, bars[1].group)
+
+  // clash spark + KO flash
+  const hitSpark = spark('#ffe27d', 0, 0.24)
+  stage.add(hitSpark)
+
+  const CYCLE = 2.3
+  const hp = [1, 1]
+  let t = rand(10)
+  let prevK = (t / CYCLE) % 1
+  let ko = -1 // index of the downed fighter during a round reset
+  let koT = 0
+  let sparkT = 0
+
+  return {
+    group: stage,
+    update(dt) {
+      t += dt
+
+      for (const b of braziers) {
+        const f = 0.8 + 0.2 * Math.sin(t * 9 + b.ph)
+        b.fl.scale.setScalar(0.26 * f)
+        b.fl.material.opacity = 0.6 + 0.3 * f
+      }
+      crowd.material.opacity = 0.42 + 0.12 * Math.sin(t * 3.1) + 0.05 * Math.sin(t * 7.7)
+      ringGlow.material.opacity = 0.28 + 0.12 * Math.sin(t * 2.2)
+
+      const k = (t / CYCLE) % 1
+      const atk = Math.floor(t / CYCLE) % 2
+
+      if (ko >= 0) {
+        // round over: loser crumples, winner exults, then both reset
+        koT -= dt
+        const L = F[ko], Wn = F[1 - ko]
+        L.m.group.rotation.z = damp(L.m.group.rotation.z, -L.dir * 1.25, 6, dt)
+        L.m.group.position.set(-L.dir * (BASE + 0.16), 0.02, 0.05)
+        const hop = Math.abs(Math.sin(t * 6)) * 0.12
+        Wn.m.group.position.set(-Wn.dir * BASE * 0.7, hop, 0.05)
+        L.m.update(dt)
+        Wn.m.update(dt)
+        if (koT <= 0) {
+          ko = -1
+          hp[0] = hp[1] = 1
+          bars[0].snap()
+          bars[1].snap()
+          L.m.group.rotation.z = 0
+          prevK = k
+        }
+      } else {
+        // fight timeline: attacker lunges, spark pops, defender knocks back
+        const lunge = k > 0.32 && k < 0.56 ? Math.sin(Math.PI * (k - 0.32) / 0.24) : 0
+        const knock = k > 0.5 && k < 0.72 ? Math.sin(Math.PI * (k - 0.5) / 0.22) : 0
+        const clashed = (prevK < 0.5 && k >= 0.5) || (k < prevK && prevK < 0.5)
+        prevK = k
+        if (clashed) {
+          const def = 1 - atk
+          hp[def] = Math.max(0, hp[def] - rand(0.18, 0.3))
+          sparkT = 0.2
+          F[def].m.hitFlash?.()
+          if (hp[def] <= 0.03) {
+            hp[def] = 0
+            ko = def
+            koT = 1.3
+            sparkT = 0.34
+          }
+        }
+        for (let i = 0; i < 2; i++) {
+          const f = F[i]
+          const hop = Math.pow(Math.abs(Math.sin(t * 2.5 + f.ph)), 0.7) * 0.16
+          let x = -f.dir * BASE // dir points INWARD toward the foe
+          if (i === atk) x += f.dir * 0.26 * lunge
+          else x -= f.dir * 0.13 * knock
+          f.m.group.position.set(x, hop, 0.05)
+          f.m.update(dt)
+        }
+      }
+
+      bars[0].set(hp[0], dt)
+      bars[1].set(hp[1], dt)
+
+      sparkT = Math.max(0, sparkT - dt)
+      const sk = sparkT / 0.2
+      hitSpark.position.set(0, 0.42, 0.12)
+      hitSpark.material.opacity = Math.min(1, sk) * 0.95
+      hitSpark.scale.setScalar(0.14 + (1 - Math.min(1, sk)) * 0.5 + (ko >= 0 ? 0.2 : 0))
+    },
+  }
+}
+
 // ---------- channel ----------
 
 class Channel {
@@ -736,14 +1014,16 @@ class Channel {
     this.tiltX = 0
     this.tiltY = 0
 
-    const col = idx % 3
-    const back = idx >= 3 // back row sits higher, pitched down toward the camera
-    this.basePos = new THREE.Vector3(COL_X[col], ROW_Y[back ? 1 : 0], COL_Z[col])
-    this.baseRot = { x: back ? 0.12 : -0.02, y: COL_YAW[col] }
+    const L = LAYOUT[idx]
+    this.basePos = new THREE.Vector3(L.x, L.y, L.z)
+    this.baseRot = { x: L.pitch, y: L.yaw }
+    this.baseScale = L.scale ?? 1
+    this.dolly = 3.2 * this.baseScale // camera stand-off that frames this channel
 
     const g = this.group = new THREE.Group()
     g.position.copy(this.basePos)
     g.rotation.set(this.baseRot.x, this.baseRot.y, 0)
+    g.scale.setScalar(this.baseScale)
 
     const border = new THREE.Mesh(geos.border, mats.border)
     g.add(border)
@@ -752,6 +1032,24 @@ class Channel {
     const rim = new THREE.Mesh(geos.rim, this.rimMat)
     rim.position.z = 0.155
     g.add(rim)
+
+    if (def.flagship) {
+      // grander flagship frame: crimson outer trim, ember corner studs, keystone crest
+      const trim2 = new THREE.Mesh(geos.rim, glowMaterial(def.trim || '#c23b2e', 1.25))
+      trim2.scale.setScalar(1.09)
+      trim2.position.z = 0.11
+      g.add(trim2)
+      const studGeo = new THREE.OctahedronGeometry(0.085, 0)
+      for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        const stud = new THREE.Mesh(studGeo, this.rimMat)
+        stud.position.set(sx * (W / 2 - 0.02), sy * (H / 2 - 0.02), 0.19)
+        g.add(stud)
+      }
+      const crest = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), glowMaterial('#ffb84d', 1.6))
+      crest.scale.y = 1.6
+      crest.position.set(0, H / 2 + 0.18, 0.08)
+      g.add(crest)
+    }
 
     const backTex = gradientTexture([[0, mix(def.accent, '#171009', 0.78)], [0.55, '#171009'], [1, '#0c0806']])
     const backPlane = new THREE.Mesh(geos.back, new THREE.MeshBasicMaterial({ map: backTex }))
@@ -771,7 +1069,7 @@ class Channel {
       this.banners.push({ mesh: b, ph })
     }
 
-    this.stage = { moba: mobaStage, hoops: hoopsStage, arena: arenaStage, kart: kartStage, brawl: brawlStage, siege: siegeStage }[def.game]()
+    this.stage = { moba: mobaStage, hoops: hoopsStage, arena: arenaStage, kart: kartStage, brawl: brawlStage, siege: siegeStage, duel: duelStage }[def.game]()
     this.stage.group.scale.setScalar(0.78)
     this.stage.group.rotation.x = 0.3
     this.stage.group.position.set(0, -0.52, 0.28)
@@ -783,9 +1081,14 @@ class Channel {
     g.add(this.hit)
 
     // static world-space anchors (frames only tilt/scale around origin)
-    this.center = this.basePos.clone().add(new THREE.Vector3(0, 0, 0.2))
-    // back-row plates go ABOVE their frame (clear sky) so they never overlap the front row below
-    const plateY = back ? H / 2 + 0.52 : -H / 2 - 0.28
+    this.center = this.basePos.clone().add(new THREE.Vector3(0, 0, 0.2 * this.baseScale))
+    // plates anchor per-layout: 'above' (clear sky over the crown row),
+    // 'below' (under the flanks), 'brand' (flagship nameplate hugging the sill)
+    const plateY = {
+      above: H / 2 + 0.52,
+      below: -H / 2 - 0.28,
+      brand: -H / 2 - 0.1,
+    }[L.plate] * this.baseScale
     this.plateAnchor = this.basePos.clone().add(new THREE.Vector3(Math.sin(this.baseRot.y) * 0.4, plateY, Math.cos(this.baseRot.y) * 0.4))
     this.normal = new THREE.Vector3(Math.sin(this.baseRot.y), 0, Math.cos(this.baseRot.y))
 
@@ -802,7 +1105,7 @@ class Channel {
     this.tiltX = damp(this.tiltX, this.focus ? this.tiltTarget.x : 0, 8, dt)
     this.tiltY = damp(this.tiltY, this.focus ? this.tiltTarget.y : 0, 8, dt)
 
-    this.group.scale.setScalar(1 + 0.06 * hv)
+    this.group.scale.setScalar(this.baseScale * (1 + 0.06 * hv))
     this.group.position.y = this.basePos.y + Math.sin(t * 0.6) * 0.05
 
     const rx = this.baseRot.x + this.tiltX
@@ -827,7 +1130,7 @@ function mix(a, b, k) {
   return '#' + ca.lerp(cb, k).getHexString()
 }
 
-/** Build the 6-channel wall. Returns { channels, hitMeshes }. */
+/** Build the 7-channel wall (flagship Crucible centered). Returns { channels, hitMeshes }. */
 export function buildChannelWall(scene) {
   const geos = buildGeos()
   const mats = {

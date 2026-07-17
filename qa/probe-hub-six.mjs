@@ -1,6 +1,8 @@
-// Six-channel hub probe: all channels unlocked + animated, keyboard cycling
-// across 6, hover, and a real-input click on EVERY channel -> loadout opens
-// with the right params.game and footer label. Zero console errors required.
+// Legacy six-channel hub probe (see probe-hub-seven.mjs for the full 7-channel
+// wall incl. THE CRUCIBLE): the original 6 channels unlocked + animated,
+// keyboard cycling, hover, and a real-input click on each of the first six ->
+// loadout opens with the right params.game and footer label. Zero console
+// errors required.
 import { chromium } from 'playwright-core'
 
 const PORT = process.env.IPL_PORT || '5189'
@@ -12,7 +14,7 @@ page.on('pageerror', e => errors.push(String(e)))
 await page.goto(`http://localhost:${PORT}/?scene=hub&mute=1`, { waitUntil: 'load' })
 await page.waitForTimeout(3500)
 
-// --- 1. defs: six playable channels, no locked affordances anywhere ---
+// --- 1. defs: playable channels, no locked affordances anywhere ---
 const defs = await page.evaluate(() => window.__scene.channels.map(c => ({
   title: c.def.title, game: c.def.game, accent: c.def.accent, locked: !!c.def.locked,
 })))
@@ -34,7 +36,7 @@ const moved = a.map((arr, i) => {
   for (let j = 0; j < arr.length; j++) d = Math.max(d, Math.abs(arr[j] - b[i][j]))
   return +d.toFixed(3)
 })
-console.log('DIORAMA max-deltas (all 6 > 0.01):', JSON.stringify(moved))
+console.log('DIORAMA max-deltas (all > 0.01):', JSON.stringify(moved))
 
 // --- 3. keyboard: 1-6 direct select + arrow wrap both ways ---
 const kb = []
@@ -43,13 +45,13 @@ for (let i = 1; i <= 6; i++) {
   await page.waitForTimeout(120)
   kb.push(await page.evaluate(() => window.__scene.focusIdx))
 }
-await page.keyboard.press('ArrowRight') // 5 -> 0
+await page.keyboard.press('ArrowRight') // 5 -> 6 (the flagship Crucible)
 await page.waitForTimeout(120)
 kb.push(await page.evaluate(() => window.__scene.focusIdx))
-await page.keyboard.press('ArrowLeft') // 0 -> 5
+await page.keyboard.press('ArrowLeft') // 6 -> 5
 await page.waitForTimeout(120)
 kb.push(await page.evaluate(() => window.__scene.focusIdx))
-console.log('KEYS 1-6 then wrap R,L (expect 0,1,2,3,4,5,0,5):', JSON.stringify(kb))
+console.log('KEYS 1-6 then arrows R,L (expect 0,1,2,3,4,5,6,5):', JSON.stringify(kb))
 
 // --- 4. real-input click on each of the six channels -> loadout w/ params ---
 const clicks = []

@@ -10,8 +10,8 @@ import '../ui/loadout.css'
 /**
  * LOADOUT — the Hero Forge. Configure the ONE hero (appearance + Q/W/E/R
  * skillset) that carries into every game. params.game =
- * 'moba'|'hoops'|'arena'|'kart'|'brawl'|'siege' routes onward into that game;
- * null returns to the hub.
+ * 'moba'|'hoops'|'arena'|'kart'|'brawl'|'siege'|'duel' routes onward into
+ * that game; null returns to the hub.
  */
 export default class LoadoutScene {
   constructor(ctx) {

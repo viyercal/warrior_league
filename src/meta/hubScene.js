@@ -109,13 +109,13 @@ export default class HubScene {
 
     hud.hints([
       ['MOUSE', 'Hover / click an arena'],
-      ['← → 1-6', 'Cycle arenas'],
+      ['← → 1-7', 'Cycle arenas'],
       ['ENTER', 'March to battle'],
       ['C', 'Visit the war forge'],
     ])
 
     this.plates = this.channels.map(ch => {
-      const plate = hud.el('div', 'hub-plate')
+      const plate = hud.el('div', `hub-plate${ch.def.flagship ? ' hub-plate-flag' : ''}`)
       plate.style.setProperty('--acc', ch.def.accent)
       plate.innerHTML = `<div class="hub-plate-title">${ch.def.title}</div>
         <div class="hub-plate-sub">${ch.def.sub}</div>`
@@ -127,11 +127,12 @@ export default class HubScene {
 
   _bindInput() {
     const { input, audio } = this.ctx
+    const n = this.channels.length
     input.onKey((code, down) => {
       if (!down || this.transition) return
-      if (code === 'ArrowRight') this._setKbFocus((this.focusIdx + 1 + 6) % 6)
-      else if (code === 'ArrowLeft') this._setKbFocus(this.focusIdx <= 0 ? 5 : this.focusIdx - 1)
-      else if (/^Digit[1-6]$/.test(code)) this._setKbFocus(Number(code[5]) - 1)
+      if (code === 'ArrowRight') this._setKbFocus((this.focusIdx + 1 + n) % n)
+      else if (code === 'ArrowLeft') this._setKbFocus(this.focusIdx <= 0 ? n - 1 : this.focusIdx - 1)
+      else if (/^Digit[1-9]$/.test(code) && Number(code[5]) <= n) this._setKbFocus(Number(code[5]) - 1)
       else if (code === 'Enter' || code === 'NumpadEnter' || code === 'Space') {
         if (this.focusIdx >= 0) this._activate(this.focusIdx)
       } else if (code === 'KeyC') {
@@ -235,7 +236,7 @@ export default class HubScene {
   }
 
   _applyFocus() {
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < this.channels.length; i++) {
       const ch = this.channels[i]
       ch.focus = i === this.focusIdx
       if (i === this.focusIdx && i !== this.hoverIdx) {
@@ -252,7 +253,7 @@ export default class HubScene {
       tr.t += dt
       const k = clamp(tr.t / 0.7, 0, 1)
       const e = k * k * (3 - 2 * k)
-      this._camTarget.copy(tr.ch.center).addScaledVector(tr.ch.normal, 3.2)
+      this._camTarget.copy(tr.ch.center).addScaledVector(tr.ch.normal, tr.ch.dolly)
       this._camTarget.y += 0.15
       this.camera.position.lerpVectors(tr.fromPos, this._camTarget, e)
       this._look.lerpVectors(tr.fromLook, tr.ch.center, e)
@@ -280,7 +281,7 @@ export default class HubScene {
   }
 
   _updatePlates() {
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < this.channels.length; i++) {
       const ch = this.channels[i]
       const p = this._v.copy(ch.plateAnchor)
       p.y += Math.sin(ch.t * 0.6) * 0.05 // ride the frame bob

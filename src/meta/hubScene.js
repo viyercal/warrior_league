@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { createHero } from '../art/characterFactory.js'
 import { VFX } from '../art/vfx.js'
 import { HUD } from '../ui/hud.js'
+import { icon } from '../ui/craft.js'
 import { getSkill } from './skills.js'
 import { damp, rand, clamp } from '../core/utils.js'
 import { buildSky, buildLights, buildPlatform, buildIslands, buildAtmosphere } from './hubEnvironment.js'
@@ -91,7 +92,8 @@ export default class HubScene {
     const hud = this.hud = new HUD()
 
     hud.el('div', 'hub-logo',
-      '<div class="hub-logo-main">IWL</div><div class="hub-logo-sub">IMMORTAL WARLORDS LEAGUE</div>')
+      '<div class="hub-logo-main">IWL</div><div class="hub-logo-sub">IMMORTAL WARLORDS LEAGUE</div>' +
+      `<div class="hub-logo-rule" aria-hidden="true">${icon('ornament-divider', { size: 185 })}</div>`)
 
     const skillChips = profile.loadout.map(id => {
       const s = getSkill(id)
@@ -117,7 +119,10 @@ export default class HubScene {
     this.plates = this.channels.map(ch => {
       const plate = hud.el('div', `hub-plate${ch.def.flagship ? ' hub-plate-flag' : ''}`)
       plate.style.setProperty('--acc', ch.def.accent)
-      plate.innerHTML = `<div class="hub-plate-title">${ch.def.title}</div>
+      const finial = side => ch.def.flagship
+        ? `<span class="hub-plate-finial hub-plate-finial-${side}" aria-hidden="true">${icon('ornament-divider', { size: 58 })}</span>`
+        : ''
+      plate.innerHTML = `<div class="hub-plate-row">${finial('l')}<div class="hub-plate-title">${ch.def.title}</div>${finial('r')}</div>
         <div class="hub-plate-sub">${ch.def.sub}</div>`
       return plate
     })

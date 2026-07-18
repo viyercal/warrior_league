@@ -1,89 +1,213 @@
-/* ============ THE CRUCIBLE HUD — opposing war-plaques, torch bronze ============ */
+/* ============================================================
+   THE CRUCIBLE HUD — the flagship forged surface.
+   Two tapered war-blades point into an engraved stone timer
+   keystone; every fitting is iron, bronze, stone or parchment.
+   Per-frame paths (hp/ghost/meter scaleX, timer text) stay on
+   transform/text only — no filters above them, no layout thrash.
+   ============================================================ */
 
-/* ---------- top rail: two angled health bars + timer ---------- */
+/* ---------- top rail: blade | stone keystone | blade ---------- */
 .duel-top {
-  position: absolute; top: 20px; left: 0; right: 0;
-  display: flex; align-items: flex-start; justify-content: center; gap: 18px;
+  position: absolute; top: 18px; left: 0; right: 0;
+  display: flex; align-items: flex-start; justify-content: center; gap: 14px;
   z-index: 12;
 }
-.duel-hpwrap { --fc: #ffb84d; width: 36vw; max-width: 560px; }
+.duel-hpwrap { --fc: #ffb84d; width: 36vw; max-width: 540px; }
+.duel-hpwrap.duel-left { order: 0; }
+.duel-timerblock { order: 1; }
+.duel-hpwrap.duel-right { order: 2; }
+
+/* ---------- sigil-crest name plates ---------- */
 .duel-nameplate {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 9px;
   font-family: var(--font-display);
-  font-size: 14px; font-weight: 800; letter-spacing: 0.2em;
-  font-variant: small-caps; color: var(--ink);
-  text-shadow: 0 1px 3px #000;
-  margin-bottom: 4px;
+  font-size: 15px; font-weight: 800; letter-spacing: 0.2em;
+  font-variant: small-caps;
+  color: color-mix(in srgb, var(--fc) 30%, var(--ink));
+  text-shadow: var(--engrave), 0 2px 4px #000;
+  margin-bottom: 5px;
 }
 .duel-right .duel-nameplate { flex-direction: row-reverse; }
+/* forged shield crest, quenched in the fighter's color */
 .duel-sigil {
-  width: 22px; height: 22px; flex: none;
+  width: 24px; height: 26px; flex: none;
   display: flex; align-items: center; justify-content: center;
-  transform: rotate(45deg);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--fc) 85%, #fff 8%), color-mix(in srgb, var(--fc) 60%, #000 30%));
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--fc) 50%, transparent), inset 0 1px 0 rgba(255, 240, 210, 0.4);
-  font-size: 12px; color: #1a1005; font-weight: 800;
+  padding-bottom: 3px;
+  clip-path: var(--clip-shield);
+  background:
+    linear-gradient(165deg, rgba(255, 236, 200, 0.55), rgba(255, 255, 255, 0) 34%, rgba(20, 8, 2, 0.45) 88%),
+    linear-gradient(165deg,
+      color-mix(in srgb, var(--fc) 78%, #f0d9a8) 0%,
+      var(--fc) 46%,
+      color-mix(in srgb, var(--fc) 52%, #140c04) 100%);
+  box-shadow: inset 0 -2px 3px rgba(10, 4, 0, 0.5);
+  font-size: 13px; color: #1a1005; font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255, 240, 210, 0.4);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 0 7px color-mix(in srgb, var(--fc) 40%, transparent));
 }
-.duel-sigil { text-shadow: none; }
-.duel-sigil, .duel-sigil * { transform-origin: center; }
+
+/* ---------- tapered blade health bars ---------- */
+.duel-blade { position: relative; height: 26px; }
+/* quenched under-glow + grounding shadow (static, never repaints) */
+.duel-blade::before {
+  content: ''; position: absolute; inset: 5px -3px -6px;
+  background: color-mix(in srgb, var(--fc) 26%, rgba(0, 0, 0, 0.6));
+  filter: blur(7px);
+  z-index: -1;
+}
 .duel-hp {
-  position: relative; height: 24px; overflow: hidden;
-  background: linear-gradient(180deg, rgba(6, 4, 3, 0.92), rgba(30, 23, 16, 0.88));
-  border: 1px solid rgba(176, 121, 58, 0.55);
-  border-top-color: rgba(232, 220, 196, 0.28);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8), 0 3px 10px rgba(0, 0, 0, 0.55);
+  position: absolute; inset: 0; overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.22) 52%, rgba(0, 0, 0, 0.58)),
+    var(--tex-iron),
+    #120e09;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.5),
+    inset 0 1px 0 rgba(232, 220, 196, 0.14),
+    inset 0 3px 7px rgba(0, 0, 0, 0.85);
 }
-.duel-left .duel-hp { clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
-.duel-right .duel-hp { clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%); }
+.duel-left .duel-hp { clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 50%, calc(100% - 26px) 100%, 0 100%); }
+.duel-right .duel-hp { clip-path: polygon(26px 0, 100% 0, 100% 100%, 26px 100%, 0 50%); }
 .duel-hpfill, .duel-hpghost {
   position: absolute; inset: 0;
   transition: none;
+  will-change: transform; /* per-frame scaleX stays on the compositor */
 }
 .duel-left .duel-hpfill, .duel-left .duel-hpghost { transform-origin: left center; }
 .duel-right .duel-hpfill, .duel-right .duel-hpghost { transform-origin: right center; }
+/* steel quenched in the fighter's color: white-hot spine edge -> deep temper */
 .duel-hpfill {
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--fc) 92%, #fff 18%) 0%,
-    var(--fc) 42%,
-    color-mix(in srgb, var(--fc) 62%, #000 38%) 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background:
+    var(--tex-stone),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--fc) 55%, #fff) 0%,
+      color-mix(in srgb, var(--fc) 88%, #fff) 20%,
+      var(--fc) 48%,
+      color-mix(in srgb, var(--fc) 55%, #000) 100%);
+  background-blend-mode: soft-light, normal;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 1px rgba(0, 0, 0, 0.4);
 }
-.duel-hpghost { background: rgba(226, 210, 180, 0.42); }
-.duel-pips { display: flex; gap: 7px; margin-top: 5px; }
-.duel-right .duel-pips { justify-content: flex-end; }
+/* ember afterglow trail where the blade has been bitten */
+.duel-hpghost {
+  background: linear-gradient(180deg, rgba(255, 178, 92, 0.62), rgba(255, 110, 38, 0.5) 55%, rgba(140, 44, 14, 0.55));
+}
+/* etched segment ticks + blade spine, cut over the fill */
+.duel-hpticks {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(180deg, transparent calc(50% - 1px), rgba(232, 220, 196, 0.13) calc(50% - 1px) 50%, rgba(0, 0, 0, 0.22) 50% calc(50% + 1px), transparent calc(50% + 1px)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0 1px, rgba(232, 220, 196, 0.1) 1px 2px, transparent 2px);
+  background-size: 100% 100%, 10% 100%;
+}
+/* forged pommel finial at the hilt end */
+.duel-hpcap {
+  position: absolute; top: 50%; width: 15px; height: 15px;
+  transform: translateY(-50%) rotate(45deg);
+  background: linear-gradient(135deg, #ecc27c, #a8763a 55%, #5c3d1a);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 200, 0.6),
+    inset -1px -1px 1px rgba(30, 14, 2, 0.65),
+    0 1px 3px rgba(0, 0, 0, 0.7);
+  z-index: 1;
+}
+.duel-hpcap::before { /* bone boss set in the pommel */
+  content: ''; position: absolute; inset: 4.5px;
+  background: radial-gradient(circle at 38% 32%, #f6ecd2, #b09a6e 70%, #6a5636);
+  border-radius: 50%;
+  box-shadow: inset 0 -1px 1px rgba(40, 20, 4, 0.6);
+}
+.duel-left .duel-hpcap { left: -7px; }
+.duel-right .duel-hpcap { right: -7px; }
+
+/* ---------- round pips: rivet gems set by the blade tips ---------- */
+.duel-pips { display: flex; gap: 8px; margin-top: 6px; padding: 0 32px; }
+.duel-left .duel-pips { justify-content: flex-end; }
+.duel-right .duel-pips { justify-content: flex-start; }
 .duel-pip {
-  width: 11px; height: 11px; transform: rotate(45deg);
-  background: rgba(18, 14, 10, 0.85);
-  border: 1px solid rgba(176, 121, 58, 0.45);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
-  transition: background 0.3s, box-shadow 0.3s;
+  width: 13px; height: 13px; border-radius: 50%;
+  /* empty socket: a drilled iron seat */
+  background:
+    radial-gradient(circle at 50% 42%, #060402 0 36%, #241c12 62%, #3a2e1c 78%, #14100a 100%);
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.9),
+    inset 0 -1px 0 rgba(232, 220, 196, 0.12),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+  transition: box-shadow 0.3s;
 }
 .duel-pip.on {
-  background: var(--fc);
-  border-color: color-mix(in srgb, var(--fc) 60%, #fff 12%);
-  box-shadow: 0 0 10px var(--fc), inset 0 0 3px rgba(255, 244, 220, 0.6);
-}
-.duel-timer {
-  min-width: 84px; margin-top: 2px; text-align: center;
-  font-family: var(--font-display);
-  font-size: 44px; font-weight: 800; line-height: 1;
-  color: var(--ink);
-  text-shadow: 0 0 18px rgba(255, 140, 59, 0.35), 0 3px 0 rgba(16, 8, 3, 0.8);
+  /* quenched gem: hot core, faceted dome, bronze collar */
   background:
-    linear-gradient(180deg, rgba(66, 56, 44, 0.6), rgba(16, 12, 9, 0.75));
-  border: 1px solid rgba(176, 121, 58, 0.5);
-  border-radius: 5px;
-  padding: 6px 8px 8px;
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.14), inset 0 0 18px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.55);
+    radial-gradient(circle at 36% 28%, rgba(255, 252, 240, 0.95) 0 12%, transparent 34%),
+    radial-gradient(circle at 50% 45%,
+      color-mix(in srgb, var(--fc) 55%, #fff) 0%,
+      var(--fc) 44%,
+      color-mix(in srgb, var(--fc) 45%, #000) 78%,
+      color-mix(in srgb, var(--fc) 30%, #000) 100%);
+  background-color: var(--fc);
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.55),
+    0 0 0 1.5px rgba(122, 84, 38, 0.9),
+    0 0 10px color-mix(in srgb, var(--fc) 65%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.6);
+  animation: duelPipSet 0.5s cubic-bezier(0.16, 1.4, 0.4, 1);
 }
-.duel-timer.low { color: #ff5a3a; animation: duelTimerPulse 0.9s ease-in-out infinite; }
-@keyframes duelTimerPulse {
-  0%, 100% { text-shadow: 0 0 12px rgba(255, 60, 30, 0.4), 0 3px 0 rgba(16, 8, 3, 0.8); }
-  50% { text-shadow: 0 0 30px rgba(255, 60, 30, 0.85), 0 3px 0 rgba(16, 8, 3, 0.8); }
+@keyframes duelPipSet {
+  0% { transform: scale(2.4); filter: brightness(2.2); }
+  100% { transform: scale(1); filter: brightness(1); }
 }
 
-/* ---------- surge meters, bottom corners ---------- */
+/* ---------- timer: engraved stone keystone, hourglass finial ---------- */
+.duel-timerblock {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6));
+}
+.duel-timer-finial {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 38px; padding: 2px 10px 3px;
+  clip-path: var(--clip-tag);
+  background:
+    linear-gradient(180deg, rgba(255, 226, 168, 0.5), rgba(255, 255, 255, 0) 42%, rgba(30, 14, 2, 0.45)),
+    linear-gradient(180deg, #d9a055 0%, #b0793a 52%, #82551f 100%);
+  color: #241505;
+  box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.45);
+  margin-bottom: -2px; z-index: 1;
+}
+.duel-timer {
+  position: relative; min-width: 88px; text-align: center;
+  font-family: var(--font-display);
+  font-size: 40px; font-weight: 800; line-height: 1;
+  color: var(--ink);
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(232, 220, 196, 0.14),
+    0 3px 6px rgba(0, 0, 0, 0.65);
+  clip-path: var(--clip-plaque-sm);
+  background:
+    radial-gradient(circle at 8px 8px, rgba(228, 196, 138, 0.45) 0 1px, #4a3820 1.3px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
+    radial-gradient(circle at calc(100% - 8px) 8px, rgba(228, 196, 138, 0.45) 0 1px, #4a3820 1.3px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
+    linear-gradient(150deg, rgba(232, 220, 196, 0.1), transparent 40%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    #1c1712;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.55),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.4),
+    inset 0 -9px 14px rgba(0, 0, 0, 0.5);
+  padding: 8px 10px 10px;
+}
+.duel-timer.low { color: #ff5a3a; animation: duelTimerPulse 0.9s ease-in-out infinite; }
+.duel-timerblock:has(.duel-timer.low) .duel-timer-finial {
+  background:
+    linear-gradient(180deg, rgba(255, 200, 168, 0.5), rgba(255, 255, 255, 0) 42%, rgba(30, 8, 2, 0.5)),
+    linear-gradient(180deg, #e0684f 0%, #a1252c 55%, #6e181d 100%);
+  color: #ffd9c4;
+}
+@keyframes duelTimerPulse {
+  0%, 100% { text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.95), 0 1px 0 rgba(232, 220, 196, 0.1), 0 0 12px rgba(255, 60, 30, 0.4); }
+  50% { text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.95), 0 1px 0 rgba(232, 220, 196, 0.1), 0 0 28px rgba(255, 60, 30, 0.85); }
+}
+
+/* ---------- surge meters: ember-quenched forge gauges ---------- */
 .duel-meter {
   --fc: #ffb84d;
   position: absolute; bottom: 26px;
@@ -93,117 +217,214 @@
 .duel-meter.duel-left { left: 26px; }
 .duel-meter.duel-right { right: 26px; flex-direction: row-reverse; }
 .duel-meter-seg {
-  width: 42px; height: 12px; overflow: hidden;
+  width: 42px; height: 13px; overflow: hidden;
   transform: skewX(-16deg);
-  background: rgba(12, 9, 6, 0.88);
-  border: 1px solid rgba(176, 121, 58, 0.4);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.75);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.2) 55%, rgba(0, 0, 0, 0.5)),
+    var(--tex-iron),
+    #14100b;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.45),
+    inset 0 2px 4px rgba(0, 0, 0, 0.8);
+  transition: box-shadow 0.25s;
 }
 .duel-meter.duel-right .duel-meter-seg { transform: skewX(16deg); }
+/* molten fill: dark temper at the tail, white heat at the leading edge */
 .duel-meter-seg i {
   display: block; width: 100%; height: 100%;
+  will-change: transform; /* fed every frame by DuelHud.update */
   transform-origin: left center; transform: scaleX(0);
-  background: linear-gradient(180deg, #ffd489, #ff8c3b 55%, #b34d18);
-  box-shadow: 0 0 8px rgba(255, 140, 59, 0.6);
+  background: linear-gradient(90deg, #8c3410, #e06322 42%, #ff8c3b 72%, #ffd489 94%, #fff3d0);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 1px rgba(60, 16, 0, 0.5);
 }
-.duel-meter.duel-right .duel-meter-seg i { transform-origin: right center; }
+.duel-meter.duel-right .duel-meter-seg i {
+  transform-origin: right center;
+  background: linear-gradient(90deg, #fff3d0, #ffd489 6%, #ff8c3b 28%, #e06322 58%, #8c3410);
+}
 .duel-meter-label {
-  position: absolute; top: -18px; left: 4px;
+  position: absolute; top: -20px; left: 4px;
+  display: flex; align-items: center; gap: 4px;
   font-family: var(--font-display); font-size: 11px; font-weight: 800;
-  letter-spacing: 0.34em; font-variant: small-caps;
+  letter-spacing: 0.3em; font-variant: small-caps;
   color: #ffb84d; opacity: 0;
-  text-shadow: 0 0 12px rgba(255, 140, 59, 0.8);
+  text-shadow: var(--engrave), 0 0 12px rgba(255, 140, 59, 0.8);
   transition: opacity 0.3s;
 }
-.duel-meter.duel-right .duel-meter-label { left: auto; right: 4px; }
+.duel-meter.duel-right .duel-meter-label { left: auto; right: 4px; flex-direction: row-reverse; }
 .duel-meter.full .duel-meter-label { opacity: 1; animation: duelSurge 0.8s ease-in-out infinite; }
-.duel-meter.full .duel-meter-seg { border-color: #ffcf7a; box-shadow: 0 0 12px rgba(255, 160, 70, 0.55), inset 0 2px 4px rgba(0, 0, 0, 0.6); }
+.duel-meter.full .duel-meter-seg {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 207, 122, 0.9),
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 12px rgba(255, 160, 70, 0.55);
+  animation: duelForgeBreathe 0.8s ease-in-out infinite;
+}
 @keyframes duelSurge {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }
 }
+@keyframes duelForgeBreathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.28); }
+}
 
-/* ---------- combo ticker ---------- */
+/* ---------- combo ticker: a stamped field-scribe tally ---------- */
 .duel-combo {
-  position: absolute; top: 37%;
-  opacity: 0; transform: translateY(8px);
+  position: absolute; top: 36%;
+  isolation: isolate;
+  min-width: 148px;
+  padding: 13px 20px 15px;
+  opacity: 0; transform: translateY(10px) rotate(-1.6deg);
   transition: opacity 0.25s, transform 0.25s;
   text-align: left; z-index: 14;
   pointer-events: none;
 }
-.duel-combo.duel-left { left: 7%; }
-.duel-combo.duel-right { right: 7%; text-align: right; }
-.duel-combo.show { opacity: 1; transform: none; }
+/* parchment sheet + blurred underlay live on static layers so the per-hit
+   ticker text never re-runs a clip or blur */
+.duel-combo::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  clip-path: var(--clip-torn);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.3), rgba(0, 0, 0, 0) 38%, rgba(96, 72, 40, 0.24)),
+    var(--tex-parchment),
+    #d3c19a;
+}
+.duel-combo::after {
+  content: ''; position: absolute; inset: 7px -2px -6px; z-index: -2;
+  background: rgba(0, 0, 0, 0.55);
+  filter: blur(6px);
+}
+.duel-combo.duel-left { left: 6.5%; }
+.duel-combo.duel-right { right: 6.5%; text-align: right; transform: translateY(10px) rotate(1.6deg); }
+.duel-combo.show { opacity: 1; transform: rotate(-1.6deg); }
+.duel-combo.duel-right.show { transform: rotate(1.6deg); }
 .duel-combo-hits {
   font-family: var(--font-display);
-  font-size: 40px; font-weight: 800; font-style: italic; letter-spacing: 0.04em;
-  color: #ffb84d;
-  text-shadow: 0 0 22px rgba(255, 140, 59, 0.5), 0 3px 0 rgba(20, 10, 4, 0.85);
-  -webkit-text-stroke: 1.5px rgba(24, 14, 6, 0.9);
+  font-size: 38px; font-weight: 800; font-style: italic; letter-spacing: 0.04em;
+  color: #8a2018;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
+  line-height: 1;
 }
 .duel-combo-dmg {
+  margin-top: 3px;
   font-family: var(--font-display);
-  font-size: 17px; font-weight: 700; letter-spacing: 0.24em;
-  color: var(--ink); text-shadow: 0 2px 4px #000;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.24em;
+  color: var(--sepia); text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4);
 }
 .duel-combo.pop .duel-combo-hits { animation: duelComboPop 0.22s ease; }
 @keyframes duelComboPop {
   0% { transform: scale(var(--pop, 1.2)) rotate(-2deg); }
   100% { transform: scale(1); }
 }
+/* grade stamps: each tier pressed harder into the parchment */
 .duel-combo-grade {
-  margin-top: 2px;
+  display: inline-block; margin-top: 7px;
+  padding: 2px 10px 3px;
   font-family: var(--font-display);
-  font-size: 26px; font-weight: 800; letter-spacing: 0.28em; font-variant: small-caps;
+  font-size: 19px; font-weight: 800; letter-spacing: 0.24em; font-variant: small-caps;
+  transform: rotate(-4deg);
   animation: duelGradeIn 0.3s cubic-bezier(0.16, 1.4, 0.4, 1);
 }
-.duel-combo-grade.g1 { color: #ffb84d; text-shadow: 0 0 16px rgba(255, 184, 77, 0.6), 0 2px 0 #000; }
-.duel-combo-grade.g2 { color: #ff5a26; text-shadow: 0 0 20px rgba(255, 90, 38, 0.7), 0 2px 0 #000; }
-.duel-combo-grade.g3 { color: #ff2e3e; text-shadow: 0 0 26px rgba(255, 46, 62, 0.8), 0 2px 0 #000; }
-@keyframes duelGradeIn { from { transform: scale(2); opacity: 0; } }
+.duel-combo.duel-right .duel-combo-grade { transform: rotate(3deg); }
+.duel-combo-grade:empty { display: none; }
+.duel-combo-grade.g1 { /* FIERCE: bronze ink */
+  color: rgba(138, 90, 30, 0.95);
+  border: 2px solid rgba(138, 90, 30, 0.75);
+}
+.duel-combo-grade.g2 { /* SAVAGE: blood ink, struck harder */
+  font-size: 22px;
+  color: rgba(150, 26, 24, 0.95);
+  border: 2.5px solid rgba(150, 26, 24, 0.7);
+  box-shadow: inset 0 0 0 1.5px rgba(211, 193, 154, 0.9), inset 0 0 0 2.5px rgba(150, 26, 24, 0.55);
+}
+.duel-combo-grade.g3 { /* LEGENDARY: gold-leaf seal over blood */
+  font-size: 25px;
+  color: #8a5a10;
+  border: 3px double rgba(138, 90, 16, 0.85);
+  background: radial-gradient(ellipse at 50% 45%, rgba(255, 200, 90, 0.4), rgba(255, 184, 77, 0.12) 70%, transparent);
+  text-shadow: 0 1px 0 rgba(255, 244, 214, 0.75), 0 0 10px rgba(255, 184, 77, 0.45);
+  box-shadow: inset 0 0 0 2px rgba(211, 193, 154, 0.9), inset 0 0 0 3.5px rgba(150, 26, 24, 0.4);
+}
+@keyframes duelGradeIn { from { transform: scale(2.4) rotate(-4deg); opacity: 0; } }
 
-/* ---------- tower progress chips ---------- */
+/* ---------- tower ladder: carved portrait plaques ---------- */
 .duel-tower {
   position: absolute; top: 108px; right: 22px;
-  display: flex; flex-direction: column; gap: 6px;
+  display: flex; flex-direction: column; gap: 7px;
   z-index: 11;
 }
 .duel-chip {
   --fc: #ffb84d;
-  position: relative;
-  display: flex; align-items: center; gap: 8px;
-  min-width: 108px; padding: 5px 10px;
-  background: linear-gradient(160deg, rgba(56, 47, 37, 0.6), rgba(14, 10, 8, 0.85));
-  border: 1px solid rgba(176, 121, 58, 0.35);
-  border-radius: 5px;
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.08), 0 3px 8px rgba(0, 0, 0, 0.45);
+  position: relative; isolation: isolate;
+  display: flex; align-items: center; gap: 9px;
+  min-width: 118px; padding: 6px 12px 7px;
+  clip-path: var(--clip-plaque-sm);
+  /* forged rim… */
+  background: linear-gradient(165deg, #4a3a24 0%, #2c2114 42%, #140f09 85%);
   font-family: var(--font-display);
-  transition: opacity 0.4s, filter 0.4s, border-color 0.3s, box-shadow 0.3s;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+  transition: opacity 0.4s, filter 0.4s;
 }
+/* …around a chiseled stone face */
+.duel-chip::before {
+  content: ''; position: absolute; inset: 2px; z-index: -1;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.09), transparent 42%, rgba(0, 0, 0, 0.42)),
+    var(--tex-stone),
+    #1e1913;
+}
+/* portrait crest: a small quenched shield */
 .duel-chip-sigil {
-  width: 18px; height: 18px; flex: none;
+  width: 20px; height: 22px; flex: none;
   display: flex; align-items: center; justify-content: center;
-  transform: rotate(45deg);
-  background: color-mix(in srgb, var(--fc) 75%, #201408);
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  font-size: 10px; font-weight: 800; color: #180f04;
+  padding-bottom: 3px;
+  clip-path: var(--clip-shield);
+  background:
+    linear-gradient(165deg, rgba(255, 236, 200, 0.45), rgba(255, 255, 255, 0) 36%, rgba(20, 8, 2, 0.45) 90%),
+    linear-gradient(165deg,
+      color-mix(in srgb, var(--fc) 75%, #f0d9a8) 0%,
+      var(--fc) 48%,
+      color-mix(in srgb, var(--fc) 50%, #140c04) 100%);
+  box-shadow: inset 0 -2px 3px rgba(10, 4, 0, 0.5);
+  font-size: 11px; font-weight: 800; color: #180f04;
+  text-shadow: 0 1px 0 rgba(255, 240, 210, 0.35);
 }
 .duel-chip-name {
   font-size: 11px; font-weight: 800; letter-spacing: 0.16em;
   font-variant: small-caps; color: var(--ink);
+  text-shadow: var(--engrave);
 }
+/* the challenger at hand: torch-lit, quenched rim */
 .duel-chip.current {
-  border-color: color-mix(in srgb, var(--fc) 70%, #5a4326);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--fc) 30%, transparent), inset 0 1px 0 rgba(232, 220, 196, 0.12);
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--fc) 60%, #6a4c24) 0%,
+    color-mix(in srgb, var(--fc) 28%, #2c1d0e) 46%,
+    #150f08 100%);
+  filter:
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 10px color-mix(in srgb, var(--fc) 38%, transparent));
 }
-.duel-chip.done { opacity: 0.4; filter: grayscale(0.85) brightness(0.75); }
+.duel-chip.current .duel-chip-name { color: color-mix(in srgb, var(--fc) 35%, var(--ink)); }
+/* the fallen: cracked stone under a crimson slash */
+.duel-chip.done { opacity: 0.5; filter: grayscale(0.85) brightness(0.72); }
+.duel-chip.done::before {
+  background:
+    linear-gradient(112deg, transparent 27.5%, rgba(4, 2, 1, 0.9) 28.3%, rgba(88, 70, 48, 0.4) 29%, transparent 29.9%),
+    linear-gradient(64deg, transparent 61%, rgba(4, 2, 1, 0.85) 61.8%, transparent 62.7%),
+    linear-gradient(150deg, rgba(232, 220, 196, 0.09), transparent 42%, rgba(0, 0, 0, 0.42)),
+    var(--tex-stone),
+    #1e1913;
+}
 .duel-chip.done::after {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(115deg, transparent 46%, rgba(194, 59, 46, 0.95) 47%, rgba(194, 59, 46, 0.95) 53%, transparent 54%);
+  background: linear-gradient(115deg,
+    transparent 45%, rgba(120, 16, 12, 0.9) 46%, rgba(214, 72, 52, 0.95) 49%,
+    rgba(120, 16, 12, 0.9) 52%, transparent 53%);
 }
 
-/* ---------- vs plates ---------- */
+/* ---------- vs plates: engraved proclamation slabs ---------- */
 .duel-vs {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center; gap: 34px;
@@ -213,19 +434,33 @@
 .duel-vs.out { opacity: 0; }
 .duel-vs-plate {
   --fc: #ffb84d;
-  width: 330px; padding: 22px 26px;
+  position: relative; isolation: isolate;
+  width: 330px; padding: 24px 26px 22px;
   text-align: center;
+  clip-path: var(--clip-plaque);
+  /* forged rim quenched in the fighter's color… */
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--fc) 45%, #5c4a30) 0%,
+    color-mix(in srgb, var(--fc) 16%, #33271a) 40%,
+    #17110b 82%);
+  filter:
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 14px 30px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 24px color-mix(in srgb, var(--fc) 20%, transparent));
+}
+/* …set with a riveted stone face */
+.duel-vs-plate::before {
+  content: ''; position: absolute; inset: 3px; z-index: -1;
+  clip-path: var(--clip-plaque);
   background:
-    linear-gradient(170deg, rgba(80, 68, 52, 0.55), rgba(14, 10, 7, 0.55) 55%, rgba(0, 0, 0, 0.6)),
-    rgba(24, 19, 14, 0.94);
-  border: 1px solid color-mix(in srgb, var(--fc) 45%, #4a3416);
-  border-top-color: color-mix(in srgb, var(--fc) 60%, #a88a4a);
-  border-radius: 6px;
-  box-shadow:
-    0 0 34px color-mix(in srgb, var(--fc) 18%, transparent),
-    inset 0 1px 0 rgba(232, 220, 196, 0.14),
-    inset 0 0 44px rgba(0, 0, 0, 0.55),
-    0 16px 44px rgba(0, 0, 0, 0.7);
+    radial-gradient(circle at 11px 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at 11px calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 34%, transparent 62%, rgba(0, 0, 0, 0.45)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.5)),
+    var(--tex-stone),
+    rgba(24, 19, 14, 0.97);
 }
 .duel-vsl { animation: duelSlamL 0.45s cubic-bezier(0.16, 1.3, 0.4, 1); }
 .duel-vsr { animation: duelSlamR 0.45s cubic-bezier(0.16, 1.3, 0.4, 1); }
@@ -236,20 +471,44 @@
   font-size: 34px; font-weight: 800; letter-spacing: 0.1em;
   font-variant: small-caps;
   color: color-mix(in srgb, var(--fc) 80%, #ffe9c4);
-  text-shadow: 0 0 22px color-mix(in srgb, var(--fc) 45%, transparent), 0 3px 0 rgba(16, 8, 3, 0.8);
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(255, 240, 210, 0.18),
+    0 3px 0 rgba(16, 8, 3, 0.8),
+    0 0 22px color-mix(in srgb, var(--fc) 40%, transparent);
 }
+.duel-vs-orn {
+  color: color-mix(in srgb, var(--fc) 45%, #b0793a);
+  margin: 2px 0 0;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 1px 0 rgba(255, 240, 210, 0.12));
+}
+.duel-vs-orn svg { display: block; margin: 0 auto; }
 .duel-vs-title {
-  margin-top: 4px;
+  margin-top: 3px;
   font-family: var(--font-display);
   font-size: 12px; font-weight: 700; letter-spacing: 0.32em;
   font-variant: small-caps; color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
 .duel-vs-mid {
-  font-family: var(--font-display);
-  font-size: 58px; font-weight: 800; font-style: italic;
-  color: #c23b2e;
-  text-shadow: 0 0 30px rgba(194, 59, 46, 0.7), 0 4px 0 rgba(16, 6, 4, 0.85);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
   animation: duelVsPop 0.5s cubic-bezier(0.16, 1.5, 0.4, 1) 0.12s backwards;
+}
+.duel-vs-swords {
+  display: flex;
+  color: #b0793a;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 0 rgba(255, 240, 210, 0.14)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+.duel-vs-text {
+  font-family: var(--font-display);
+  font-size: 54px; font-weight: 800; font-style: italic; line-height: 1;
+  color: #c23b2e;
+  -webkit-text-stroke: 1.5px rgba(30, 8, 4, 0.9);
+  text-shadow:
+    0 -2px 0 rgba(255, 224, 200, 0.18),
+    0 3px 0 rgba(16, 6, 4, 0.9),
+    0 5px 1px rgba(10, 4, 2, 0.6),
+    0 0 30px rgba(194, 59, 46, 0.7);
 }
 @keyframes duelVsPop { from { transform: scale(3.2); opacity: 0; } }
 
@@ -262,18 +521,32 @@
 }
 .duel-dark.on { opacity: 1; }
 .duel-oblit {
-  position: absolute; left: 50%; top: 34%; transform: translateX(-50%);
+  position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
   z-index: 34;
+  animation: duelOblit 0.34s ease-in-out infinite alternate;
+}
+.duel-oblit-orn {
+  display: flex;
+  color: #ff8c3b;
+  opacity: 0.9;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 0 rgba(255, 240, 210, 0.14)) drop-shadow(0 0 10px rgba(255, 110, 38, 0.6));
+}
+.duel-oblit-orn-b { transform: scaleY(-1); }
+.duel-oblit-text {
   font-family: var(--font-display);
-  font-size: 74px; font-weight: 800; letter-spacing: 0.1em; font-style: italic;
+  font-size: 74px; font-weight: 800; letter-spacing: 0.1em; font-style: italic; line-height: 1.05;
   font-variant: small-caps;
   color: #ff5a26;
   -webkit-text-stroke: 2px rgba(30, 8, 4, 0.9);
-  text-shadow: 0 0 44px rgba(255, 90, 38, 0.9), 0 5px 0 rgba(20, 8, 4, 0.8);
-  animation: duelOblit 0.34s ease-in-out infinite alternate;
+  text-shadow:
+    0 -2px 0 rgba(255, 236, 200, 0.22),
+    0 3px 0 rgba(24, 8, 4, 0.95),
+    0 5px 0 rgba(16, 6, 3, 0.8),
+    0 0 44px rgba(255, 90, 38, 0.9);
 }
 @keyframes duelOblit {
-  from { opacity: 0.55; transform: translateX(-50%) scale(0.97); }
+  from { opacity: 0.6; transform: translateX(-50%) scale(0.97); }
   to { opacity: 1; transform: translateX(-50%) scale(1.05); }
 }
 
@@ -287,63 +560,138 @@
 .duel-cine-bot { bottom: 0; }
 .duel-cine.on { height: 9vh; }
 
-/* ---------- defeat / champion tablets ---------- */
+/* ---------- defeat / champion tablets: full ornament engraving ---------- */
 .duel-panel {
   position: absolute; left: 50%; top: 55%; transform: translateX(-50%);
-  width: 430px; padding: 24px 26px;
+  isolation: isolate;
+  width: 440px; padding: 22px 28px 26px;
   text-align: center; z-index: 30;
-  background:
-    linear-gradient(180deg, rgba(84, 74, 60, 0.4), rgba(0, 0, 0, 0.25) 26%, rgba(0, 0, 0, 0.42)),
-    rgba(26, 21, 16, 0.94);
-  border: 1px solid rgba(176, 121, 58, 0.5);
-  border-top-color: rgba(232, 220, 196, 0.25);
-  border-radius: 10px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(232, 220, 196, 0.12), inset 0 0 44px rgba(0, 0, 0, 0.5);
+  clip-path: var(--clip-plaque);
+  /* forged bronze rim… */
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 80%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 16px 40px rgba(0, 0, 0, 0.65));
   animation: duelPanelIn 0.35s ease;
 }
+/* …riveted stone face */
+.duel-panel::before {
+  content: ''; position: absolute; inset: 3px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    radial-gradient(circle at 11px 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at 11px calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 34%, transparent 62%, rgba(0, 0, 0, 0.45)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.5)),
+    var(--tex-stone),
+    rgba(26, 21, 16, 0.97);
+}
 @keyframes duelPanelIn { from { opacity: 0; transform: translate(-50%, 16px); } }
+.duel-panel-crest {
+  display: flex; justify-content: center;
+  color: var(--gold);
+  margin-bottom: 2px;
+  filter:
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.9))
+    drop-shadow(0 1px 0 rgba(255, 240, 210, 0.16))
+    drop-shadow(0 0 12px rgba(255, 184, 77, 0.45));
+}
+.duel-panel-crest.duel-crest-lose {
+  color: #d8574a;
+  filter:
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.9))
+    drop-shadow(0 1px 0 rgba(255, 240, 210, 0.12))
+    drop-shadow(0 0 12px rgba(194, 59, 46, 0.5));
+}
 .duel-panel-title {
   font-family: var(--font-display);
-  font-size: 24px; font-weight: 800; font-style: italic; letter-spacing: 0.26em;
+  font-size: 25px; font-weight: 800; letter-spacing: 0.24em;
+  font-variant: small-caps;
   color: var(--gold);
-  text-shadow: 0 0 20px rgba(255, 184, 77, 0.5), 0 2px 3px #000;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(255, 240, 210, 0.2),
+    0 2px 4px #000,
+    0 0 20px rgba(255, 184, 77, 0.45);
 }
-.duel-panel-title.lose { color: #e04a3a; text-shadow: 0 0 20px rgba(194, 59, 46, 0.6), 0 2px 3px #000; }
+.duel-panel-title.lose {
+  color: #e04a3a;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(255, 220, 200, 0.16),
+    0 2px 4px #000,
+    0 0 20px rgba(194, 59, 46, 0.55);
+}
+.duel-panel-orn {
+  color: rgba(176, 121, 58, 0.9);
+  margin-top: 2px;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 1px 0 rgba(255, 240, 210, 0.1));
+}
+.duel-panel-orn svg { display: block; margin: 0 auto; }
 .duel-panel-sub {
-  margin: 8px 0 16px;
+  margin: 7px 0 18px;
   font-family: var(--font-display);
   font-size: 12px; font-weight: 700; letter-spacing: 0.3em;
   font-variant: small-caps; color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
 .duel-panel-row { display: flex; gap: 12px; justify-content: center; }
+/* forged plaque buttons */
 .duel-btn {
+  position: relative; isolation: isolate;
   font-family: var(--font-display);
   font-size: 14px; font-weight: 800; letter-spacing: 0.18em;
   font-variant: small-caps;
-  color: #1c1108;
-  background: linear-gradient(180deg, #e0aa5e, #b0793a 55%, #8a5a26);
-  border: 1px solid #5c3d1a;
-  border-top-color: #f0cf9a;
-  border-radius: 6px;
-  padding: 11px 22px;
+  color: #2a1808;
+  clip-path: var(--clip-plaque-sm);
+  border: none; border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 226, 168, 0.5), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(30, 14, 2, 0.45)),
+    linear-gradient(180deg, #d9a055 0%, #b0793a 48%, #82551f 100%);
+  padding: 12px 24px;
   cursor: pointer;
-  text-shadow: 0 1px 0 rgba(255, 226, 178, 0.5);
-  box-shadow: 0 0 20px rgba(255, 140, 59, 0.28), 0 3px 8px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(90, 50, 12, 0.55);
-  transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
+  text-shadow: 0 1px 0 rgba(255, 232, 190, 0.45), 0 -1px 1px rgba(40, 18, 4, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 180, 0.5),
+    inset 0 -3px 5px rgba(40, 18, 4, 0.55);
+  filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.9)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+  transition: transform 0.12s, filter 0.12s;
+}
+.duel-btn::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: var(--tex-bronze);
+  opacity: 0.32; mix-blend-mode: overlay;
+  pointer-events: none;
 }
 .duel-btn:hover {
   transform: translateY(-2px);
-  filter: brightness(1.12);
-  box-shadow: 0 0 30px rgba(255, 140, 59, 0.5), 0 5px 12px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(90, 50, 12, 0.55);
+  filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.9)) drop-shadow(0 4px 12px rgba(255, 110, 40, 0.4)) brightness(1.1);
 }
+.duel-btn:active { transform: translateY(1px); filter: brightness(0.88); }
+/* etched-stone ghost variant */
 .duel-btn-ghost {
-  background: linear-gradient(180deg, rgba(58, 48, 38, 0.7), rgba(30, 24, 18, 0.7));
   color: var(--ink);
-  border-color: rgba(176, 121, 58, 0.45);
-  border-top-color: rgba(232, 220, 196, 0.2);
-  text-shadow: none;
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.08), 0 2px 8px rgba(0, 0, 0, 0.4);
+  background:
+    linear-gradient(160deg, rgba(66, 56, 44, 0.5), rgba(22, 17, 12, 0.62)),
+    rgba(20, 16, 12, 0.6);
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.5),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(232, 220, 196, 0.08);
+  text-shadow: var(--engrave);
 }
-.duel-btn-ghost:hover { color: var(--accent); box-shadow: 0 0 18px rgba(255, 140, 59, 0.28), 0 2px 8px rgba(0, 0, 0, 0.4); }
-.duel-panel-auto { margin-top: 10px; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim); }
+.duel-btn-ghost::before { background: var(--tex-stone); opacity: 0.5; }
+.duel-btn-ghost:hover {
+  color: var(--accent);
+  filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.9)) drop-shadow(0 3px 10px rgba(255, 140, 59, 0.3));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 184, 77, 0.65),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(232, 220, 196, 0.08);
+}
+.duel-panel-auto {
+  margin-top: 11px;
+  font-size: 11px; letter-spacing: 0.14em;
+  color: var(--ink-dim);
+  text-shadow: var(--engrave);
+}

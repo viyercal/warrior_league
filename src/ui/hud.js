@@ -1,4 +1,5 @@
 import { KEY_LABELS } from '../meta/skills.js'
+import { icon } from './craft.js' // side effect: installCraft() puts --tex-* on :root
 
 /**
  * DOM HUD toolkit. Everything renders into #ui (cleared automatically on
@@ -33,7 +34,11 @@ export class HUD {
       const cd = this.el('div', 'cd-sweep', '', slot)
       const cdText = this.el('div', 'cd-text', '', slot)
       const tipDesc = game && s.inGame?.[game] ? s.inGame[game] : s.desc
-      this.el('div', 'ability-tip', `<b>${s.name}</b><span>${tipDesc}</span><i>${s.cd}s cooldown</i>`, slot)
+      // parchment tip is the slot's NEXT SIBLING (shield clip-path on the slot
+      // would clip a child); shown via `.ability-slot:hover + .ability-tip`.
+      const tip = this.el('div', 'ability-tip', `<b>${s.name}</b><span>${tipDesc}</span><i>${s.cd}s cooldown</i>`, root)
+      tip.style.setProperty('--skill-color', s.color)
+      tip.style.setProperty('--slot-i', i)
       return { slot, cd, cdText }
     })
     return {
@@ -62,6 +67,7 @@ export class HUD {
     const ghost = this.el('div', 'stat-bar-ghost', '', track)
     const fill = this.el('div', 'stat-bar-fill', '', track)
     const text = this.el('div', 'stat-bar-text', '', track)
+    this.el('span', 'stat-bar-cap', '', root) // forged pommel end-cap
     let ghostFrac = 1
     return {
       root,
@@ -80,7 +86,10 @@ export class HUD {
   banner(text, { sub = '', color = '#ffd166', duration = 2.2, cls = '' } = {}) {
     const b = this.el('div', `big-banner ${cls}`)
     b.style.setProperty('--banner-color', color)
-    this.el('div', 'banner-main', text, b)
+    const row = this.el('div', 'banner-row', '', b)
+    this.el('span', 'banner-orn banner-orn-l', icon('ornament-divider'), row)
+    this.el('div', 'banner-main', text, row)
+    this.el('span', 'banner-orn banner-orn-r', icon('ornament-divider'), row)
     if (sub) this.el('div', 'banner-sub', sub, b)
     if (duration > 0) {
       setTimeout(() => b.classList.add('out'), duration * 1000)

@@ -1,108 +1,194 @@
-/* ============ LAST BASTION HUD — stone / iron / torchlight ============ */
+/* ============================================================
+   LAST BASTION HUD — forged & engraved game chrome.
+   Built on the craft kit (styles.css + craft.js): the bastion
+   bar is a grand tapered blade with a gate-sigil finial, gold
+   is a forged coin tag, raider chips are iron tags, the honors
+   tablet is a parchment-and-iron ledger.
+   ============================================================ */
 
-/* ---- bastion bar, top center ---- */
+/* ---- bastion: the grand blade, top center ---- */
+/* NOTE: no `filter` on this root — the fill inside repaints constantly under
+   siege, and a root filter would force re-rasterizing the whole blade every
+   frame (measured ~-15fps at DPR2). Depth comes from inset shadows instead. */
 .siege-citadel {
   position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-  width: 520px; z-index: 12;
+  width: 540px; z-index: 12;
 }
 .siege-citadel-label {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
   font-family: var(--font-display);
   font-size: 13px; font-weight: 800; letter-spacing: 0.4em; text-align: center;
-  color: #e8dcc4;
-  text-shadow: 0 0 12px rgba(255, 180, 106, 0.45), 0 1px 3px #000;
+  font-variant: small-caps;
+  color: var(--ink);
+  text-shadow: var(--engrave), 0 0 12px rgba(255, 180, 106, 0.3);
   margin-bottom: 4px;
 }
-.siege-cit-icon { color: #ffb46a; letter-spacing: 0; }
+.siege-cit-icon {
+  display: flex; font-size: 13px; letter-spacing: 0;
+  color: #ffb46a;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.12));
+}
 .siege-citadel-track {
-  position: relative; height: 18px;
-  background: linear-gradient(180deg, rgba(24, 20, 15, 0.9), rgba(12, 10, 8, 0.9));
-  border: 1px solid rgba(176, 121, 58, 0.65);
-  border-radius: 4px; overflow: hidden;
-  box-shadow: 0 0 14px rgba(255, 180, 106, 0.16), inset 0 0 10px rgba(0, 0, 0, 0.8);
+  position: relative; height: 20px;
+  clip-path: var(--clip-blade);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.22) 55%, rgba(0, 0, 0, 0.5)),
+    var(--tex-iron),
+    #14100b;
+  box-shadow: inset 0 0 0 1px rgba(176, 121, 58, 0.45), inset 0 2px 5px rgba(0, 0, 0, 0.8);
 }
 .siege-citadel-fill {
   height: 100%; width: 100%;
-  background: linear-gradient(180deg, #ffe9c2, #e8a35c 55%, #8a5a24);
-  box-shadow: 0 0 12px rgba(255, 184, 77, 0.55);
+  background: linear-gradient(180deg, #ffe9c2 0%, #e8a35c 52%, #8a5a24 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 1px rgba(0, 0, 0, 0.4);
   transition: width 0.2s ease;
 }
+/* hammered grain in the blade metal (no blend mode — this fill repaints
+   constantly under siege and blending would tax the compositor) */
+.siege-citadel-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--tex-stone);
+  opacity: 0.16;
+  pointer-events: none;
+}
+/* etched segment notches: dark cut, light catching the lip */
 .siege-citadel-seg {
   position: absolute; top: 0; bottom: 0; width: 2px;
-  background: rgba(14, 10, 6, 0.8);
+  background: linear-gradient(180deg, rgba(6, 4, 2, 0.75), rgba(6, 4, 2, 0.5));
+  box-shadow: 1px 0 0 rgba(232, 220, 196, 0.13);
 }
 .siege-citadel-text {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 11px; font-weight: 800;
-  letter-spacing: 0.14em; color: #f4ede0;
-  text-shadow: 0 1px 2px #000, 0 0 6px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.14em; color: var(--ink);
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
+  z-index: 3;
 }
-.siege-citadel.hit .siege-citadel-track { animation: siegeCitHit 0.4s ease-out; }
+/* crimson flash sheet inside the blade (clip-path-safe hit/bleed glow) */
+.siege-citadel-track::before {
+  content: ''; position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(180deg, rgba(255, 122, 90, 0.9), rgba(161, 37, 44, 0.8));
+  opacity: 0; pointer-events: none;
+}
+/* gate-sigil finial medallion capping the hilt */
+.siege-cit-finial {
+  position: absolute; left: -16px; top: 15px;
+  width: 33px; height: 33px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  color: #ffd9a0;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 226, 168, 0.5), rgba(255, 255, 255, 0) 44%),
+    var(--tex-bronze),
+    radial-gradient(circle at 50% 40%, #8a6230, #4a3216 62%, #241605 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 180, 0.45),
+    inset 0 -3px 4px rgba(20, 8, 2, 0.7),
+    0 0 0 2px #17100a,
+    0 0 0 3px rgba(176, 121, 58, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.6);
+  z-index: 2;
+}
+.siege-cit-finial svg { filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 1px 0 rgba(255, 236, 200, 0.2)); }
+.siege-citadel.hit .siege-citadel-track::before { animation: siegeCitHit 0.4s ease-out; }
 @keyframes siegeCitHit {
-  0% { box-shadow: 0 0 30px rgba(255, 90, 38, 0.9), inset 0 0 14px rgba(255, 90, 38, 0.5); border-color: #ff8a5c; }
-  100% { box-shadow: 0 0 14px rgba(255, 180, 106, 0.16), inset 0 0 10px rgba(0, 0, 0, 0.8); }
+  0% { opacity: 0.75; }
+  100% { opacity: 0; }
 }
 .siege-citadel.low .siege-citadel-fill {
   background: linear-gradient(180deg, #ffb8a0, #e0553c 55%, #8a1c10);
-  box-shadow: 0 0 14px #ff5a26;
+}
+/* low-state smolder: opacity-only pulse on the flash sheet (compositor-cheap —
+   a filter animation here would re-rasterize the textured fill every frame) */
+.siege-citadel.low .siege-citadel-track::before {
   animation: siegeCitLow 0.8s ease-in-out infinite;
 }
 @keyframes siegeCitLow {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(0.55); }
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.5; }
 }
 
-/* ---- wave, top left ---- */
-.siege-wave { position: absolute; top: 16px; left: 26px; z-index: 12; }
+/* ---- wave, top left: engraved war-banner readout ---- */
+.siege-wave {
+  position: absolute; top: 16px; left: 26px; z-index: 12;
+  display: flex; align-items: center; gap: 10px;
+}
+.siege-wave-sigil {
+  display: flex; font-size: 26px; font-style: normal;
+  color: #d86a3c;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85));
+}
 .siege-wave-num {
   font-family: var(--font-display);
   font-size: 24px; font-weight: 800; font-style: italic; letter-spacing: 0.18em;
   color: var(--ink);
-  text-shadow: 0 0 16px rgba(255, 140, 59, 0.6), 0 2px 5px #000;
+  text-shadow: var(--engrave), 0 2px 5px #000, 0 0 16px rgba(255, 140, 59, 0.35);
 }
 .siege-wave-sub {
   font-family: var(--font-display);
   font-size: 12px; font-weight: 700; letter-spacing: 0.3em;
   color: #ffab7a; margin-top: 2px;
-  text-shadow: 0 1px 3px #000;
+  text-shadow: var(--engrave), 0 1px 3px #000;
 }
 
-/* ---- gold, top right ---- */
+/* ---- gold, top right: coin-sigil forged tag ---- */
 .siege-gold {
   position: absolute; top: 16px; right: 26px; z-index: 12;
   display: flex; align-items: center; gap: 9px;
+  clip-path: var(--clip-tag);
+  padding: 6px 20px 7px;
+  background:
+    linear-gradient(160deg, rgba(232, 220, 196, 0.1), transparent 42%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #1e1a14;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.45),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.55);
 }
 .siege-coin {
-  width: 20px; height: 20px; border-radius: 50%;
-  background: radial-gradient(circle at 34% 30%, #fff3c4, #ffb84d 45%, #8a5a14 90%);
-  box-shadow: 0 0 12px rgba(255, 184, 77, 0.8), inset 0 -2px 3px rgba(90, 50, 0, 0.6);
-  border: 1px solid #6e4a10;
+  display: flex; font-size: 19px;
+  color: var(--gold);
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85));
 }
 .siege-gold b {
   font-family: var(--font-display);
-  font-size: 32px; font-weight: 800; font-style: italic;
+  font-size: 26px; font-weight: 800; font-style: italic;
   color: var(--gold);
-  text-shadow: 0 0 16px rgba(255, 184, 77, 0.55), 0 2px 4px #000;
+  text-shadow: var(--engrave), 0 0 14px rgba(255, 184, 77, 0.45);
 }
-.siege-gold.pop b { animation: siegeGoldPop 0.3s ease-out; }
+/* pop the WHOLE forged tag (root transform = composited; animating the inner
+   <b> inside this clip-path'd, textured tag forced a per-frame repaint storm
+   on every gold pickup — measured ~-10fps at DPR2 mid-wave) */
+.siege-gold.pop { animation: siegeGoldPop 0.3s ease-out; }
 @keyframes siegeGoldPop {
-  0% { transform: scale(1.35); }
+  0% { transform: scale(1.18); }
   100% { transform: scale(1); }
 }
 
-/* ---- build prompt ---- */
+/* ---- build prompt: forged plaque with a struck F key-tag ---- */
 .siege-prompt {
   position: absolute; bottom: 132px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 11px;
   font-family: var(--font-display);
   font-size: 15px; font-weight: 800; letter-spacing: 0.2em;
-  color: #f0e6d0; z-index: 14;
-  background: linear-gradient(180deg, rgba(32, 26, 18, 0.88), rgba(16, 12, 8, 0.88));
-  border: 1px solid rgba(176, 121, 58, 0.7);
-  border-radius: 6px; padding: 9px 16px;
-  box-shadow: 0 0 22px rgba(255, 184, 77, 0.3), inset 0 1px 0 rgba(232, 220, 196, 0.12);
-  text-shadow: 0 1px 3px #000;
+  font-variant: small-caps;
+  color: var(--ink); z-index: 14; isolation: isolate;
+  clip-path: var(--clip-plaque-sm);
+  background: linear-gradient(165deg, #55432b 0%, #2e2315 45%, #150f09 100%);
+  padding: 10px 18px;
+  text-shadow: var(--engrave);
   animation: siegePromptIn 0.22s ease-out;
+}
+.siege-prompt::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.09), transparent 42%, rgba(0, 0, 0, 0.42)),
+    var(--tex-iron),
+    #1c1610;
 }
 @keyframes siegePromptIn {
   0% { transform: translateX(-50%) translateY(8px); opacity: 0; }
@@ -110,43 +196,71 @@
 }
 .siege-prompt-key {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px; border-radius: 4px;
-  background: linear-gradient(180deg, #ffd166, #b0793a);
-  color: #2a1a08; font-size: 15px; letter-spacing: 0;
-  border: 1px solid #6e4a10;
-  box-shadow: 0 0 10px rgba(255, 184, 77, 0.7);
+  min-width: 30px; padding: 2px 9px 3px;
+  clip-path: var(--clip-tag);
+  font-size: 14px; font-weight: 800; letter-spacing: 0;
+  color: #241505;
+  background: linear-gradient(180deg, #f0cf8e, #c8963e 55%, #8a5a1c 100%);
+  text-shadow: 0 1px 0 rgba(255, 236, 200, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 236, 200, 0.5), inset 0 -2px 3px rgba(60, 30, 6, 0.55);
 }
-.siege-prompt.no { border-color: rgba(194, 59, 46, 0.7); color: #ffb0a0; box-shadow: 0 0 22px rgba(161, 37, 44, 0.35); }
-.siege-prompt.no .siege-prompt-key { background: linear-gradient(180deg, #5a5e66, #2c3038); color: #14161c; box-shadow: none; }
+.siege-prompt.no {
+  color: #ffb0a0;
+  background: linear-gradient(165deg, #5c241a 0%, #34120c 45%, #150806 100%);
+}
+.siege-prompt.no::before {
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.07), transparent 42%, rgba(0, 0, 0, 0.5)),
+    var(--tex-iron),
+    #1c100c;
+}
+.siege-prompt.no .siege-prompt-key {
+  color: #101214;
+  background: linear-gradient(180deg, #5a5e66, #2c3038);
+  text-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.2), inset 0 -2px 3px rgba(0, 0, 0, 0.6);
+}
 
-/* ---- boss bar ---- */
+/* ---- boss bar: obsidian blade with a crimson rim ---- */
 .siege-boss {
-  position: absolute; top: 74px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 78px; left: 50%; transform: translateX(-50%);
   width: 440px; z-index: 12;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(194, 59, 46, 0.3));
 }
 .siege-boss-name {
   font-family: var(--font-display);
   font-size: 13px; font-weight: 800; letter-spacing: 0.42em; text-align: center;
+  font-variant: small-caps;
   color: #ff8a5c;
-  text-shadow: 0 0 14px rgba(255, 90, 38, 0.75), 0 1px 3px #000;
+  text-shadow: var(--engrave), 0 0 14px rgba(255, 90, 38, 0.55);
   margin-bottom: 4px;
 }
 .siege-boss-track {
-  height: 13px;
-  background: linear-gradient(180deg, rgba(22, 10, 8, 0.9), rgba(10, 5, 4, 0.9));
-  border: 1px solid rgba(194, 59, 46, 0.6);
-  border-radius: 4px; overflow: hidden;
-  box-shadow: 0 0 18px rgba(194, 59, 46, 0.35), inset 0 0 8px rgba(0, 0, 0, 0.7);
+  position: relative; height: 14px;
+  clip-path: var(--clip-blade);
+  overflow: hidden;
+  /* obsidian: near-black stone, oiled sheen */
+  background:
+    linear-gradient(180deg, rgba(232, 220, 196, 0.07), rgba(0, 0, 0, 0.4) 45%, rgba(0, 0, 0, 0.7)),
+    var(--tex-stone),
+    #0c0806;
+  box-shadow: inset 0 0 0 1px rgba(194, 59, 46, 0.65), inset 0 2px 4px rgba(0, 0, 0, 0.85);
 }
 .siege-boss-fill {
+  position: relative;
   height: 100%; width: 100%;
-  background: linear-gradient(180deg, #ff9a7a, #c23b2e);
-  box-shadow: 0 0 12px #ff5a26;
-  border-radius: 3px;
+  background: linear-gradient(180deg, #e86248 0%, #a1252c 52%, #4a0d0a 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 200, 180, 0.35), inset 0 -1px 1px rgba(0, 0, 0, 0.6);
   transition: width 0.15s ease;
 }
+.siege-boss-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--tex-stone);
+  opacity: 0.2;
+  pointer-events: none;
+}
 .siege-boss.enraged .siege-boss-name { color: #ff3b2e; animation: siegeEnrage 0.5s ease-in-out infinite; }
-.siege-boss.enraged .siege-boss-fill { background: linear-gradient(180deg, #ff7a6a, #a1252c); }
+.siege-boss.enraged .siege-boss-fill { background: linear-gradient(180deg, #ff7a5c 0%, #c22c20 52%, #58100c 100%); }
 @keyframes siegeEnrage {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
@@ -178,12 +292,18 @@
 }
 .siege-fade.on { opacity: 0.82; }
 
+/* respawn: engraved letterpress strike */
 .siege-respawn {
   position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
   font-family: var(--font-display);
   font-size: 34px; font-weight: 800; font-style: italic; letter-spacing: 0.3em;
+  font-variant: small-caps;
   color: #ff8a5c; z-index: 15;
-  text-shadow: 0 0 22px rgba(255, 90, 38, 0.7), 0 2px 6px #000;
+  text-shadow:
+    0 -2px 1px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(232, 220, 196, 0.14),
+    0 3px 6px rgba(0, 0, 0, 0.7),
+    0 0 22px rgba(255, 90, 38, 0.55);
   animation: siegeLowPulse 1s ease-in-out infinite;
 }
 
@@ -215,7 +335,11 @@
   font-size: 84px; font-weight: 800; font-style: italic; letter-spacing: 0.14em;
   color: #ffd9a0;
   -webkit-text-stroke: 2px rgba(40, 18, 6, 0.9);
-  text-shadow: 0 0 46px rgba(255, 140, 59, 0.75), 0 6px 0 rgba(20, 8, 4, 0.85);
+  text-shadow:
+    0 -2px 0 rgba(255, 240, 210, 0.2),
+    0 4px 0 rgba(20, 8, 4, 0.85),
+    0 7px 1px rgba(12, 6, 2, 0.55),
+    0 0 46px rgba(255, 140, 59, 0.7);
   animation: siegeTitleSlam 0.5s cubic-bezier(0.16, 1.4, 0.4, 1);
 }
 @keyframes siegeTitleSlam {
@@ -227,7 +351,7 @@
   font-family: var(--font-display);
   font-size: 16px; font-weight: 800; letter-spacing: 0.5em;
   color: #e8dcc4;
-  text-shadow: 0 0 14px rgba(255, 140, 59, 0.5), 0 2px 4px #000;
+  text-shadow: var(--engrave), 0 0 14px rgba(255, 140, 59, 0.5), 0 2px 4px #000;
   animation: siegeTitleSub 0.6s ease 0.22s backwards;
 }
 @keyframes siegeTitleSub {
@@ -236,11 +360,15 @@
 }
 .siege-bosscard .siege-title-main {
   font-size: 68px; color: #ff5a3c;
-  text-shadow: 0 0 50px rgba(255, 53, 36, 0.85), 0 6px 0 rgba(24, 4, 2, 0.9);
+  text-shadow:
+    0 -2px 0 rgba(255, 220, 200, 0.16),
+    0 4px 0 rgba(24, 4, 2, 0.9),
+    0 7px 1px rgba(12, 2, 1, 0.6),
+    0 0 50px rgba(255, 53, 36, 0.85);
 }
 .siege-bosscard .siege-title-sub { color: #ffab7a; }
 
-/* ---- wave composition preview row (inside the wave banner) ---- */
+/* ---- wave composition: raider sigils on forged iron tags ---- */
 .siege-comp {
   display: flex; gap: 8px; justify-content: center; margin-top: 12px;
   animation: siegeCompIn 0.4s ease 0.15s backwards;
@@ -251,50 +379,71 @@
 }
 .siege-comp-chip {
   --cc: #c98d5f;
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 9px; border-radius: 4px;
-  background: linear-gradient(180deg, rgba(30, 24, 17, 0.92), rgba(14, 10, 7, 0.92));
-  border: 1px solid color-mix(in srgb, var(--cc) 55%, #3a2c1a);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--cc) 22%, transparent), 0 2px 5px rgba(0, 0, 0, 0.6);
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px 5px;
+  clip-path: var(--clip-tag);
+  background:
+    linear-gradient(160deg, rgba(232, 220, 196, 0.09), transparent 45%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #1c1712;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--cc) 50%, #3a2c1a),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.5);
 }
 .siege-comp-glyph {
-  font-style: normal; font-size: 15px; line-height: 1;
+  display: flex; font-style: normal; font-size: 16px; line-height: 1;
   color: var(--cc);
-  text-shadow: 0 0 8px color-mix(in srgb, var(--cc) 70%, transparent);
+  filter:
+    drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85))
+    drop-shadow(0 1px 0 rgba(232, 220, 196, 0.12))
+    drop-shadow(0 0 6px color-mix(in srgb, var(--cc) 55%, transparent));
 }
 .siege-comp-chip b {
   font-family: var(--font-display);
   font-size: 13px; font-weight: 800; letter-spacing: 0.06em;
-  color: #e8dcc4; text-shadow: 0 1px 2px #000;
+  color: var(--ink); text-shadow: var(--engrave);
 }
 
-/* ---- PREPARE countdown chip ---- */
+/* ---- PREPARE countdown: forged hourglass tag ---- */
 .siege-prepare {
   position: absolute; top: 21%; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
   font-family: var(--font-display);
   font-size: 19px; font-weight: 800; letter-spacing: 0.34em;
+  font-variant: small-caps;
   color: #ffd9a0; z-index: 13;
-  background: linear-gradient(180deg, rgba(32, 26, 18, 0.88), rgba(16, 12, 8, 0.88));
-  border: 1px solid rgba(176, 121, 58, 0.7);
-  border-radius: 6px; padding: 8px 20px 8px 24px;
-  box-shadow: 0 0 24px rgba(255, 184, 77, 0.28), inset 0 1px 0 rgba(232, 220, 196, 0.12);
-  text-shadow: 0 0 12px rgba(255, 140, 59, 0.55), 0 1px 3px #000;
+  clip-path: var(--clip-tag);
+  padding: 9px 26px 10px 22px;
+  background:
+    linear-gradient(160deg, rgba(232, 220, 196, 0.1), transparent 42%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #1e1a14;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.5),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.55);
+  text-shadow: var(--engrave), 0 0 12px rgba(255, 140, 59, 0.4);
+}
+.siege-prep-glass {
+  display: flex; font-size: 17px; font-style: normal;
+  color: var(--accent);
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.14));
 }
 .siege-prepare b { color: var(--gold); font-style: italic; }
-.siege-prepare.tick b { display: inline-block; animation: siegePrepTick 0.3s ease-out; }
+/* tick pulses the whole tag (same composited-root pattern as the gold tag) */
+.siege-prepare.tick { animation: siegePrepTick 0.3s ease-out; }
 @keyframes siegePrepTick {
-  0% { transform: scale(1.7); }
-  100% { transform: scale(1); }
+  0% { transform: translateX(-50%) scale(1.14); }
+  100% { transform: translateX(-50%) scale(1); }
 }
 
 /* ---- breach drama: crimson bleed pulse + low-hp heartbeat ---- */
-.siege-citadel.bleed .siege-citadel-track { animation: siegeBleed 0.9s ease-out; }
+/* the flash sheet holds crimson, while the whole blade (unclipped root) bleeds light */
+.siege-citadel.bleed .siege-citadel-track::before { animation: siegeBleed 0.9s ease-out; }
 @keyframes siegeBleed {
-  0%, 40% {
-    box-shadow: 0 0 42px rgba(194, 37, 44, 1), inset 0 0 22px rgba(194, 37, 44, 0.75);
-    border-color: #ff4a3c;
-  }
-  100% { box-shadow: 0 0 14px rgba(255, 180, 106, 0.16), inset 0 0 10px rgba(0, 0, 0, 0.8); }
+  0%, 40% { opacity: 0.95; }
+  100% { opacity: 0; }
 }
 .siege-citadel.heartbeat { animation: siegeHeartbeat 1.05s ease-in-out infinite; }
 @keyframes siegeHeartbeat {
@@ -305,7 +454,7 @@
   32% { transform: translateX(-50%) scale(1); }
 }
 
-/* ---- ANNIHILATION popup ---- */
+/* ---- ANNIHILATION popup: struck-metal letterpress ---- */
 .siege-annihilate {
   position: absolute; left: 50%; top: 21%; transform: translateX(-50%);
   z-index: 26; pointer-events: none;
@@ -313,7 +462,11 @@
   font-size: 58px; font-weight: 800; font-style: italic; letter-spacing: 0.16em;
   color: #ff8c3b;
   -webkit-text-stroke: 2px rgba(40, 12, 4, 0.9);
-  text-shadow: 0 0 40px rgba(255, 90, 38, 0.9), 0 5px 0 rgba(20, 8, 4, 0.8);
+  text-shadow:
+    0 -2px 0 rgba(255, 240, 210, 0.18),
+    0 4px 0 rgba(20, 8, 4, 0.8),
+    0 6px 1px rgba(12, 4, 2, 0.55),
+    0 0 40px rgba(255, 90, 38, 0.9);
   animation: siegeAnnIn 0.32s cubic-bezier(0.16, 1.5, 0.4, 1);
   transition: opacity 0.4s;
 }
@@ -323,63 +476,88 @@
   100% { transform: translateX(-50%) scale(1); opacity: 1; }
 }
 
-/* ---- end tablet (victory / defeat stats) ---- */
+/* ---- BATTLE HONORS: the parchment-and-iron ledger ---- */
 .siege-end {
   position: absolute; left: 50%; top: 56%; transform: translateX(-50%);
-  width: 470px; padding: 22px 26px 20px;
-  text-align: center; z-index: 35;
-  background:
-    linear-gradient(180deg, rgba(84, 74, 60, 0.4), rgba(0, 0, 0, 0.25) 26%, rgba(0, 0, 0, 0.42)),
-    rgba(26, 21, 16, 0.94);
-  border: 1px solid rgba(176, 121, 58, 0.5);
-  border-top-color: rgba(232, 220, 196, 0.25);
-  border-radius: 10px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(232, 220, 196, 0.12), inset 0 0 44px rgba(0, 0, 0, 0.5);
+  width: 486px; padding: 0 0 20px;
+  text-align: center; z-index: 35; isolation: isolate;
+  clip-path: var(--clip-plaque);
+  /* forged iron frame… */
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 82%);
   animation: siegeEndIn 0.35s ease;
+}
+/* …holding the inked honors leaf */
+.siege-end::before {
+  content: ''; position: absolute; inset: 3px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.3), rgba(0, 0, 0, 0) 30%, rgba(96, 72, 40, 0.28) 92%),
+    radial-gradient(130% 90% at 50% 108%, rgba(96, 72, 40, 0.35), transparent 55%),
+    var(--tex-parchment),
+    #cdbb92;
 }
 @keyframes siegeEndIn {
   0% { opacity: 0; transform: translate(-50%, 16px); }
   100% { opacity: 1; transform: translate(-50%, 0); }
 }
+/* title strap: iron band riveted across the ledger's crown */
 .siege-end-title {
   font-family: var(--font-display);
-  font-size: 23px; font-weight: 800; font-style: italic; letter-spacing: 0.24em;
+  font-size: 22px; font-weight: 800; font-style: italic; letter-spacing: 0.24em;
   color: var(--gold);
-  text-shadow: 0 0 20px rgba(255, 184, 77, 0.5), 0 2px 3px #000;
+  text-shadow: var(--engrave), 0 0 16px rgba(255, 184, 77, 0.35);
+  background:
+    linear-gradient(160deg, rgba(232, 220, 196, 0.08), transparent 45%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #1c1712;
+  box-shadow:
+    inset 0 -1px 0 rgba(176, 121, 58, 0.5),
+    inset 0 1px 0 rgba(232, 220, 196, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  padding: 14px 18px 12px;
 }
-.siege-end-title.lose {
-  color: #e04a3a;
-  text-shadow: 0 0 20px rgba(194, 59, 46, 0.6), 0 2px 3px #000;
-}
+.siege-end-title.lose { color: #e04a3a; text-shadow: var(--engrave), 0 0 16px rgba(194, 59, 46, 0.45); }
 .siege-end-sub {
-  margin-top: 6px;
+  margin-top: 12px;
   font-family: var(--font-display);
   font-size: 11px; font-weight: 700; letter-spacing: 0.3em;
-  color: var(--ink-dim);
+  color: var(--sepia-dim);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
 }
-.siege-stats { margin: 14px 0 16px; }
+.siege-stats { margin: 12px 30px 16px; }
 .siege-stat-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 5px 4px;
-  border-bottom: 1px solid rgba(176, 121, 58, 0.18);
+  gap: 9px;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(90, 65, 35, 0.35);
 }
 .siege-stat-row:last-child { border-bottom: none; }
+.siege-stat-sigil {
+  display: flex; flex: none; font-size: 14px; font-style: normal;
+  color: #7a5a30;
+  filter: drop-shadow(0 1px 0 rgba(255, 250, 230, 0.55));
+}
 .siege-stat-label {
   font-family: var(--font-display);
   font-size: 11px; font-weight: 800; letter-spacing: 0.24em;
-  color: var(--ink-dim);
+  color: var(--sepia-dim);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
+  margin-right: auto;
 }
 .siege-stat-value {
   font-family: var(--font-display);
   font-size: 13px; font-weight: 800; letter-spacing: 0.08em;
-  color: #f0e6d0; text-shadow: 0 1px 2px #000;
+  color: var(--sepia);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4);
   display: inline-flex; align-items: center; gap: 6px;
 }
 .siege-stat-value .siege-comp { margin: 0; animation: none; }
-.siege-stat-value .siege-comp-chip { padding: 2px 6px; }
+.siege-stat-value .siege-comp-chip { padding: 2px 8px 3px; }
 .siege-end-row { display: flex; gap: 14px; justify-content: center; }
+.siege-end-row button { font-size: 14px; padding: 11px 30px; }
 .siege-end-note {
   margin-top: 10px;
-  font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim);
+  font-size: 11px; letter-spacing: 0.14em; font-style: italic;
+  color: var(--sepia-dim);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4);
 }

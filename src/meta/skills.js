@@ -3,9 +3,11 @@
  * Every game interprets a skill's `archetype` + `params` in its own context —
  * the descriptions in `inGame` tell the player what each skill becomes there.
  */
+import { icon } from '../ui/craft.js'
+
 export const SKILLS = [
   {
-    id: 'blink', name: 'Shadow Step', icon: '👣', color: '#9aa3b2', cd: 5,
+    id: 'blink', name: 'Shadow Step', icon: icon('blink', { size: '1em', color: '#9aa3b2' }), color: '#9aa3b2', cd: 5,
     archetype: 'dash', params: { range: 12 },
     desc: 'Vanish into smoke and reappear a short distance away.',
     inGame: {
@@ -19,7 +21,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'starfire', name: 'Flaming Spear', icon: '🔥', color: '#ff5a26', cd: 3.5,
+    id: 'starfire', name: 'Flaming Spear', icon: icon('starfire', { size: '1em', color: '#ff5a26' }), color: '#ff5a26', cd: 3.5,
     archetype: 'projectile', params: { damage: 34, speed: 26, radius: 1.4 },
     desc: 'Hurl a forge-fired spear that bursts into embers.',
     inGame: {
@@ -33,7 +35,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'frostring', name: 'Grave Chill', icon: '💀', color: '#b8c4c8', cd: 9,
+    id: 'frostring', name: 'Grave Chill', icon: icon('frostring', { size: '1em', color: '#b8c4c8' }), color: '#b8c4c8', cd: 9,
     archetype: 'slowfield', params: { radius: 5.5, slow: 0.55, duration: 3.5, damage: 10 },
     desc: 'Curse the ground with grave-cold — all within slow to a crawl.',
     inGame: {
@@ -47,7 +49,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'quake', name: 'Earthbreaker', icon: '🪨', color: '#b0793a', cd: 8,
+    id: 'quake', name: 'Earthbreaker', icon: icon('quake', { size: '1em', color: '#b0793a' }), color: '#b0793a', cd: 8,
     archetype: 'nova', params: { radius: 5, damage: 40, knock: 7 },
     desc: 'Split the ground with one blow — everything near you is thrown.',
     inGame: {
@@ -61,7 +63,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'overdrive', name: 'Bloodrush', icon: '🩸', color: '#c23b2e', cd: 11,
+    id: 'overdrive', name: 'Bloodrush', icon: icon('overdrive', { size: '1em', color: '#c23b2e' }), color: '#c23b2e', cd: 11,
     archetype: 'buff', params: { haste: 0.6, duration: 4 },
     desc: 'Battle fury floods your veins — massive move speed.',
     inGame: {
@@ -75,7 +77,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'aegis', name: 'Iron Bulwark', icon: '🛡️', color: '#8c939f', cd: 12,
+    id: 'aegis', name: 'Iron Bulwark', icon: icon('aegis', { size: '1em', color: '#8c939f' }), color: '#8c939f', cd: 12,
     archetype: 'shield', params: { absorb: 60, duration: 5 },
     desc: 'Raise a wall of ancestral iron that soaks the blows meant for you.',
     inGame: {
@@ -89,7 +91,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'mend', name: 'Warrior\'s Resolve', icon: '✊', color: '#ffb84d', cd: 13,
+    id: 'mend', name: 'Warrior\'s Resolve', icon: icon('mend', { size: '1em', color: '#ffb84d' }), color: '#ffb84d', cd: 13,
     archetype: 'heal', params: { amount: 45 },
     desc: 'Grit your teeth and refuse to fall — wounds close, strength returns.',
     inGame: {
@@ -103,7 +105,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'decoy', name: 'Phantom Twin', icon: '🎭', color: '#8f86a3', cd: 14,
+    id: 'decoy', name: 'Phantom Twin', icon: icon('decoy', { size: '1em', color: '#8f86a3' }), color: '#8f86a3', cd: 14,
     archetype: 'summon', params: { duration: 6, hp: 40 },
     desc: 'Conjure a spectral double of yourself from ash and shadow.',
     inGame: {
@@ -117,7 +119,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'gravity', name: 'Chained Harrow', icon: '⛓️', color: '#a1252c', cd: 13,
+    id: 'gravity', name: 'Chained Harrow', icon: icon('gravity', { size: '1em', color: '#a1252c' }), color: '#a1252c', cd: 13,
     archetype: 'pull', params: { radius: 6.5, pull: 11, duration: 2.2, damage: 8 },
     desc: 'Hurl cursed chains that drag every foe to one point.',
     inGame: {
@@ -131,7 +133,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'titan', name: 'Colossus Form', icon: '🗿', color: '#c9b083', cd: 16,
+    id: 'titan', name: 'Colossus Form', icon: icon('titan', { size: '1em', color: '#c9b083' }), color: '#c9b083', cd: 16,
     archetype: 'giant', params: { scale: 1.75, duration: 5, power: 1.5 },
     desc: 'Swell into a living colossus — stronger, heavier, dreadful.',
     inGame: {
@@ -145,7 +147,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'ghost', name: 'Wraith Walk', icon: '🌫️', color: '#d8d2c2', cd: 15,
+    id: 'ghost', name: 'Wraith Walk', icon: icon('ghost', { size: '1em', color: '#d8d2c2' }), color: '#d8d2c2', cd: 15,
     archetype: 'ghost', params: { duration: 3 },
     desc: 'Fade into the mist of the dead — untouchable, half-seen.',
     inGame: {
@@ -159,7 +161,7 @@ export const SKILLS = [
     },
   },
   {
-    id: 'comet', name: 'Skyfall Hammer', icon: '🔨', color: '#ff8c3b', cd: 18,
+    id: 'comet', name: 'Skyfall Hammer', icon: icon('comet', { size: '1em', color: '#ff8c3b' }), color: '#ff8c3b', cd: 18,
     archetype: 'meteor', params: { damage: 70, radius: 4.5, delay: 0.9 },
     desc: 'Call a burning hammer down from the heavens. It is not subtle.',
     inGame: {

@@ -1,87 +1,185 @@
-/* ============ WAR CHARIOTS HUD — parchment, bronze & torchlight ============ */
+/* ============ WAR CHARIOTS HUD — forged bronze, carved stone, inked parchment ============
+   No rounded rects, no flat fills: medallions, plaques, blades, tags, scraps. */
 
+/* ---------- position: grand engraved bronze medallion, laurel ring ---------- */
 .kart-pos {
-  position: absolute; top: 16px; right: 28px; z-index: 12;
-  font-family: var(--font-display); font-style: italic; font-weight: 800;
-  color: var(--ink);
-  text-shadow: 0 0 24px rgba(255, 140, 59, 0.55), 0 3px 6px #000;
+  position: absolute; top: 18px; right: 26px; z-index: 12;
+  width: 116px; height: 116px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(circle at 50% 26%, rgba(255, 226, 168, 0.5), rgba(255, 255, 255, 0) 46%),
+    radial-gradient(circle at 50% 84%, rgba(20, 8, 2, 0.5), transparent 55%),
+    var(--tex-bronze),
+    radial-gradient(circle, #c08c48 0%, #a06c30 52%, #6a4318 82%, #46280e 100%);
+  box-shadow:
+    inset 0 2px 2px rgba(255, 232, 190, 0.55),
+    inset 0 -4px 8px rgba(30, 14, 2, 0.75),
+    inset 0 0 0 4px rgba(58, 34, 12, 0.6),
+    inset 0 0 0 5.5px rgba(255, 226, 168, 0.2),
+    inset 0 0 26px rgba(46, 22, 4, 0.5),
+    0 3px 5px rgba(0, 0, 0, 0.6),
+    0 10px 26px rgba(0, 0, 0, 0.5);
 }
-.kart-pos b { font-size: 78px; letter-spacing: 0.02em; }
-.kart-pos span { font-size: 30px; color: var(--ink-dim); }
-.kart-pos.kart-pos-lead b { color: var(--gold); text-shadow: 0 0 30px rgba(255, 184, 77, 0.8), 0 3px 6px #000; }
+/* laurel ring engraved into the disc */
+.kart-pos .kp-ring {
+  position: absolute; inset: 3px;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(54, 30, 9, 0.62);
+  filter: drop-shadow(0 1px 0 rgba(255, 226, 168, 0.3)) drop-shadow(0 -1px 1px rgba(20, 8, 0, 0.55));
+  pointer-events: none;
+}
+.kart-pos .kp-num {
+  position: relative;
+  display: flex; align-items: baseline; justify-content: center;
+  font-family: var(--font-display); font-weight: 800;
+}
+/* struck numerals, cut into the bronze */
+.kart-pos b {
+  font-size: 46px; line-height: 1;
+  letter-spacing: 0.02em;
+  color: #2e1a06;
+  text-shadow: 0 1px 0 rgba(255, 232, 190, 0.45), 0 -1px 1px rgba(20, 8, 0, 0.65);
+}
+.kart-pos .kp-of {
+  font-size: 15px; margin-left: 2px;
+  letter-spacing: 0.06em;
+  color: rgba(46, 26, 6, 0.8);
+  text-shadow: 0 1px 0 rgba(255, 232, 190, 0.32);
+}
+/* leading the field: the numeral is inlaid with gold, the rim catches fire */
+.kart-pos.kart-pos-lead { filter: drop-shadow(0 0 18px rgba(255, 184, 77, 0.5)); }
+.kart-pos.kart-pos-lead b {
+  color: #ffd489;
+  text-shadow: 0 -1px 1px rgba(20, 8, 0, 0.85), 0 1px 0 rgba(255, 236, 200, 0.3), 0 0 12px rgba(255, 184, 77, 0.65);
+}
 
+/* ---------- lap + race clock: carved stone plaque ---------- */
 .kart-top {
   position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
   text-align: center; z-index: 12;
+  isolation: isolate;
+  clip-path: var(--clip-plaque-sm);
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 40%, #17110b 82%);
+  padding: 9px 28px 10px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
+}
+.kart-top::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 36%, transparent 62%, rgba(0, 0, 0, 0.42)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    var(--panel-bg);
+  pointer-events: none;
 }
 .kart-lap {
-  font-family: var(--font-display); font-size: 26px; font-weight: 800; font-style: italic;
-  letter-spacing: 0.22em; color: var(--ink);
-  text-shadow: 0 0 18px rgba(255, 140, 59, 0.5), 0 2px 5px #000;
+  font-family: var(--font-display); font-size: 22px; font-weight: 800;
+  letter-spacing: 0.24em; color: var(--ink);
+  text-shadow: var(--engrave), 0 2px 5px rgba(0, 0, 0, 0.7);
 }
 .kart-clock {
-  font-family: var(--font-display); font-size: 16px; font-weight: 700;
-  letter-spacing: 0.24em; color: var(--ink-dim); margin-top: 2px;
-  text-shadow: 0 2px 4px #000;
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  letter-spacing: 0.24em; color: var(--ink-dim); margin-top: 3px;
+  text-shadow: var(--engrave);
 }
 
-/* bottom-left cluster */
+/* ---------- bottom-left cluster: blade, sliver, engraved speed ---------- */
 .kart-cluster { position: absolute; left: 26px; bottom: 30px; z-index: 12; width: 300px; }
 .kart-boost span, .kart-dmg span {
   font-family: var(--font-display); font-size: 11px; font-weight: 700;
-  letter-spacing: 0.3em; color: var(--ink-dim);
+  letter-spacing: 0.3em; font-variant: small-caps; color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
+/* boost: a tapered blade in an iron trough, ember fill */
+.kart-boost { position: relative; }
 .kart-boost-track {
-  height: 18px; margin-top: 3px;
-  background: rgba(20, 15, 10, 0.82);
-  border: 1px solid rgba(176, 121, 58, 0.55);
-  border-radius: 4px; overflow: hidden;
-  box-shadow: 0 0 16px rgba(255, 140, 59, 0.18), inset 0 0 10px rgba(0, 0, 0, 0.7);
+  position: relative; height: 18px; margin-top: 4px;
+  clip-path: var(--clip-blade);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.2) 55%, rgba(0, 0, 0, 0.5)),
+    var(--tex-iron),
+    #14100b;
+  box-shadow: inset 0 0 0 1px rgba(176, 121, 58, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+}
+/* drift-tier notch marks etched at each quarter of the blade */
+.kart-boost-track::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 1px, rgba(232, 220, 196, 0.1) 1px 2px, transparent 2px);
+  background-size: 25% 100%;
+  pointer-events: none;
 }
 .kart-boost-fill {
-  height: 100%; width: 0%;
-  background: linear-gradient(90deg, #ffb84d, #ff5a26);
-  box-shadow: 0 0 14px #ff8c3b;
-  border-radius: 3px;
+  position: relative; height: 100%; width: 0%;
+  background: linear-gradient(90deg, #a1252c 0%, #ff5a26 55%, #ffb84d 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 232, 190, 0.45), inset 0 -1px 1px rgba(0, 0, 0, 0.45), 2px 0 9px rgba(255, 110, 38, 0.7);
   transition: width 0.1s linear;
 }
-.kart-dmg { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+/* hammered grain in the ember metal */
+.kart-boost-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--tex-stone);
+  opacity: 0.4; mix-blend-mode: overlay;
+}
+/* forged pommel at the blade's root */
+.kart-boost::after {
+  content: ''; position: absolute; left: -5px; bottom: 3.5px;
+  width: 11px; height: 11px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #e0b26a, #a8763a 55%, #6a4318);
+  box-shadow: inset 0 1px 0 rgba(255, 232, 190, 0.55), inset -1px -1px 1px rgba(30, 14, 2, 0.6), 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+/* damage: a cracked-iron sliver seeping crimson */
+.kart-dmg { margin-top: 9px; display: flex; align-items: center; gap: 8px; }
 .kart-dmg-track {
-  flex: 1; height: 8px;
-  background: rgba(20, 15, 10, 0.82);
-  border: 1px solid rgba(194, 59, 46, 0.45);
-  border-radius: 3px; overflow: hidden;
+  position: relative; flex: 1; height: 8px;
+  clip-path: var(--clip-blade);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.25) 60%, rgba(0, 0, 0, 0.5)),
+    var(--tex-stone),
+    #1a1210;
+  box-shadow: inset 0 0 0 1px rgba(194, 59, 46, 0.35), inset 0 1px 3px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
 }
 .kart-dmg-fill {
   height: 100%; width: 0%;
-  background: linear-gradient(90deg, #b0793a, #a1252c);
-  border-radius: 3px;
+  background: linear-gradient(90deg, #6e3020, #a1252c 60%, #c23b2e);
+  box-shadow: inset 0 1px 0 rgba(255, 200, 160, 0.25), 1px 0 6px rgba(194, 59, 46, 0.6);
   transition: width 0.15s;
 }
 .kart-dmg.hot .kart-dmg-fill { animation: kartDmgPulse 0.7s ease-in-out infinite; }
 @keyframes kartDmgPulse { 50% { filter: brightness(1.7); } }
 
+/* speed: engraved numerals lit by torchlight */
 .kart-speed {
   margin-top: 10px;
-  font-family: var(--font-display); font-size: 44px; font-weight: 800; font-style: italic;
+  font-family: var(--font-display); font-size: 44px; font-weight: 800;
   color: var(--ink);
-  text-shadow: 0 0 18px rgba(255, 184, 77, 0.45), 0 3px 5px #000;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(232, 220, 196, 0.14), 0 3px 6px rgba(0, 0, 0, 0.7);
 }
 .kart-speed i {
-  font-size: 15px; font-style: italic; font-weight: 700;
-  color: var(--ink-dim); margin-left: 6px; letter-spacing: 0.2em;
+  font-size: 14px; font-style: normal; font-weight: 700;
+  font-variant: small-caps;
+  color: var(--ink-dim); margin-left: 6px; letter-spacing: 0.24em;
+  text-shadow: var(--engrave);
 }
 
-/* drift tier flash */
+/* ---------- drift tier flash ---------- */
 .kart-drift {
   position: absolute; left: 50%; top: 56%; transform: translateX(-50%) scale(0.6);
   font-family: var(--font-display); font-size: 46px; font-weight: 800; font-style: italic;
   letter-spacing: 0.12em; color: #ffb84d;
-  text-shadow: 0 0 26px rgba(255, 184, 77, 0.9), 0 3px 0 rgba(0, 0, 0, 0.5);
+  -webkit-text-stroke: 1px rgba(24, 14, 6, 0.85);
+  text-shadow: 0 -1px 0 rgba(255, 240, 210, 0.2), 0 3px 0 rgba(20, 10, 4, 0.85), 0 0 26px rgba(255, 184, 77, 0.9);
   opacity: 0; pointer-events: none; z-index: 20;
 }
 .kart-drift.on { animation: kartDrift 1s cubic-bezier(0.16, 1.4, 0.4, 1) forwards; }
-.kart-drift.super { color: #ff5a26; text-shadow: 0 0 30px rgba(255, 90, 38, 0.95), 0 3px 0 rgba(0, 0, 0, 0.5); }
+.kart-drift.super {
+  color: #ff5a26;
+  text-shadow: 0 -1px 0 rgba(255, 240, 210, 0.2), 0 3px 0 rgba(20, 10, 4, 0.85), 0 0 30px rgba(255, 90, 38, 0.95);
+}
 @keyframes kartDrift {
   0% { opacity: 0; transform: translateX(-50%) scale(1.9); }
   18% { opacity: 1; transform: translateX(-50%) scale(1); }
@@ -89,22 +187,36 @@
   100% { opacity: 0; transform: translateX(-50%) translateY(-26px) scale(0.9); }
 }
 
-/* position change popups — slide-in from the right edge, settle, drift up */
-.kart-popups { position: absolute; right: 30px; top: 148px; z-index: 14; text-align: right; }
+/* ---------- position popups: forged iron tags, arrow sigils ---------- */
+.kart-popups {
+  position: absolute; right: 26px; top: 198px; z-index: 14;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+}
 .kart-popup {
-  font-family: var(--font-display); font-size: 34px; font-weight: 800; font-style: italic;
+  display: inline-flex; align-items: center; gap: 8px;
+  clip-path: var(--clip-tag);
+  background:
+    linear-gradient(180deg, rgba(232, 220, 196, 0.1), transparent 45%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #221a12;
+  box-shadow: inset 0 0 0 1px rgba(176, 121, 58, 0.4), inset 0 -6px 10px rgba(0, 0, 0, 0.4);
+  padding: 4px 18px 5px;
+  font-family: var(--font-display); font-size: 24px; font-weight: 800;
   letter-spacing: 0.1em;
   animation: kartPopup 1.7s cubic-bezier(0.16, 1.3, 0.4, 1) forwards;
 }
-.kart-popup.up { color: #b8cf5e; text-shadow: 0 0 20px rgba(184, 207, 94, 0.75), 0 2px 4px #000; }
-.kart-popup.down { color: #c23b2e; text-shadow: 0 0 20px rgba(194, 59, 46, 0.85), 0 2px 4px #000; }
+.kart-popup .kp-sig { display: flex; font-style: normal; filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)); }
+.kart-popup.up { color: #b8cf5e; text-shadow: var(--engrave), 0 0 10px rgba(184, 207, 94, 0.5); }
+.kart-popup.down { color: #d0503a; text-shadow: var(--engrave), 0 0 10px rgba(194, 59, 46, 0.55); }
 .kart-popup.rival {
-  font-size: 40px; color: #ffb84d;
-  text-shadow: 0 0 26px rgba(255, 140, 59, 0.9), 0 3px 0 rgba(0, 0, 0, 0.55);
+  font-size: 27px; color: #ffb84d;
+  box-shadow: inset 0 0 0 1px rgba(255, 184, 77, 0.55), inset 0 -6px 10px rgba(0, 0, 0, 0.4);
+  text-shadow: var(--engrave), 0 0 14px rgba(255, 140, 59, 0.7);
 }
 .kart-popup.rival-warn {
-  font-size: 36px; color: #ff5a26;
-  text-shadow: 0 0 24px rgba(255, 90, 38, 0.9), 0 3px 0 rgba(0, 0, 0, 0.55);
+  font-size: 25px; color: #ff5a26;
+  box-shadow: inset 0 0 0 1px rgba(255, 90, 38, 0.5), inset 0 -6px 10px rgba(0, 0, 0, 0.4);
+  text-shadow: var(--engrave), 0 0 12px rgba(255, 90, 38, 0.7);
 }
 @keyframes kartPopup {
   0% { opacity: 0; transform: translateX(110px) skewX(-8deg) scale(1.25); }
@@ -113,16 +225,29 @@
   100% { opacity: 0; transform: translateY(-20px); }
 }
 
-/* rival plate under the position counter */
+/* ---------- rival plate: crimson-inked parchment scrap ---------- */
 .kart-rival {
-  position: absolute; top: 112px; right: 30px; z-index: 12;
-  font-family: var(--font-display); font-size: 15px; font-weight: 800; font-style: italic;
-  letter-spacing: 0.18em; color: #e06a52;
-  text-shadow: 0 0 14px rgba(194, 59, 46, 0.75), 0 2px 4px #000;
+  position: absolute; top: 144px; right: 26px; z-index: 12;
+  display: flex; align-items: center; gap: 7px;
+  transform: rotate(1.6deg);
+  clip-path: var(--clip-torn);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.3), rgba(0, 0, 0, 0) 40%, rgba(96, 72, 40, 0.24)),
+    var(--tex-parchment),
+    #d3c19a;
+  padding: 8px 16px 9px;
+  font-family: var(--font-display); font-size: 13px; font-weight: 800;
+  letter-spacing: 0.18em; font-variant: small-caps;
+  color: #8a1f18;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.5);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
   opacity: 0; transition: opacity 0.3s;
 }
 .kart-rival.on { opacity: 1; }
-.kart-rival i { font-style: normal; color: #c23b2e; }
+.kart-rival i {
+  display: flex; font-style: normal; color: #a1252c;
+  filter: drop-shadow(0 1px 0 rgba(255, 250, 230, 0.4));
+}
 
 /* cinematic letterbox + chrome fade (intro flyover) */
 .kart-cine {
@@ -135,19 +260,31 @@
 .kart-cine.on { height: 10vh; }
 .kart-chrome-hide { opacity: 0 !important; pointer-events: none; transition: opacity 0.3s; }
 
-/* grid-sweep name plates */
+/* ---------- grid-sweep name plates: forged tags in the racer's color ---------- */
 .kart-plate {
   --pc: #ffb84d;
   position: absolute; z-index: 19;
   transform: translate(-50%, -100%) scale(0.4);
   opacity: 0; pointer-events: none;
-  padding: 4px 12px 5px;
-  background: linear-gradient(180deg, rgba(50, 40, 28, 0.5), transparent 40%), rgba(20, 15, 10, 0.85);
-  border: 1px solid color-mix(in srgb, var(--pc) 55%, #4a3416);
-  border-bottom: 2px solid var(--pc);
-  border-radius: 4px;
+  isolation: isolate;
+  padding: 5px 15px 7px;
+  clip-path: var(--clip-plaque-sm);
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--pc) 42%, #4a3416) 0%,
+    color-mix(in srgb, var(--pc) 16%, #241808) 46%,
+    #120c06 100%);
   text-align: center; white-space: nowrap;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55), 0 0 18px color-mix(in srgb, var(--pc) 16%, transparent);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
+}
+.kart-plate::before {
+  content: ''; position: absolute; inset: 2px; z-index: -1;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.1), transparent 45%),
+    var(--tex-iron),
+    #191410;
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--pc) 75%, transparent);
+  pointer-events: none;
 }
 .kart-plate.on { animation: kartPlatePop 0.4s cubic-bezier(0.16, 1.5, 0.4, 1) forwards; }
 @keyframes kartPlatePop {
@@ -158,14 +295,15 @@
   font-family: var(--font-display); font-size: 17px; font-weight: 800;
   letter-spacing: 0.14em; font-variant: small-caps;
   color: color-mix(in srgb, var(--pc) 75%, #ffe9c4);
-  text-shadow: 0 0 12px color-mix(in srgb, var(--pc) 45%, transparent), 0 2px 3px #000;
+  text-shadow: var(--engrave), 0 0 10px color-mix(in srgb, var(--pc) 40%, transparent);
 }
 .kart-plate span {
   display: block;
   font-family: var(--font-display); font-size: 9px; font-weight: 700;
   letter-spacing: 0.34em; color: var(--gold); margin-top: 1px;
+  text-shadow: var(--engrave);
 }
-.kart-plate.you { border-bottom-width: 3px; }
+.kart-plate.you::before { box-shadow: inset 0 -3px 0 var(--pc); }
 
 /* wreck-cam impact vignette */
 .kart-impact {
@@ -184,7 +322,8 @@
   position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
   font-family: var(--font-display); font-size: 58px; font-weight: 800; font-style: italic;
   letter-spacing: 0.14em; color: #c23b2e;
-  text-shadow: 0 0 30px rgba(161, 37, 44, 0.95), 0 4px 0 rgba(0, 0, 0, 0.5);
+  -webkit-text-stroke: 1.5px rgba(24, 8, 5, 0.85);
+  text-shadow: 0 -1px 0 rgba(255, 240, 210, 0.18), 0 4px 0 rgba(16, 6, 4, 0.85), 0 0 30px rgba(161, 37, 44, 0.95);
   opacity: 0; pointer-events: none; z-index: 22;
 }
 .kart-wrongway.on { opacity: 1; animation: kartWrong 0.55s ease-in-out infinite; }
@@ -203,35 +342,64 @@
 }
 .kart-speedlines.on { opacity: 1; }
 
-/* minimap — parchment chart in a bronze frame */
+/* ---------- minimap: war chart in a riveted bronze frame ---------- */
 .kart-minimap {
-  position: absolute; right: 22px; bottom: 168px; z-index: 11;
+  position: absolute; right: 22px; bottom: 236px; z-index: 11;
+  isolation: isolate;
+  padding: 7px;
+  clip-path: var(--clip-plaque);
   background:
-    radial-gradient(ellipse at 30% 20%, rgba(232, 220, 196, 0.08), transparent 70%),
-    rgba(26, 20, 14, 0.68);
-  border: 1px solid rgba(176, 121, 58, 0.65);
-  outline: 1px solid rgba(0, 0, 0, 0.6);
-  border-radius: 6px;
-  backdrop-filter: blur(8px);
-  padding: 4px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), inset 0 0 22px rgba(74, 53, 42, 0.5);
+    linear-gradient(165deg, rgba(255, 226, 168, 0.4), rgba(255, 255, 255, 0) 32%, rgba(0, 0, 0, 0.4)),
+    var(--tex-bronze),
+    linear-gradient(165deg, #b0793a 0%, #82551f 55%, #4a2c10 100%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 9px 24px rgba(0, 0, 0, 0.5));
 }
-.kart-minimap canvas { display: block; }
+/* the dark chart field set into the frame */
+.kart-minimap::before {
+  content: ''; position: absolute; inset: 6px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(232, 220, 196, 0.07), transparent 70%),
+    var(--tex-stone),
+    rgba(18, 13, 9, 0.94);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.75), inset 0 2px 14px rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+}
+/* rivets punched through the frame corners */
+.kart-minimap::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 12px 12px, rgba(255, 232, 190, 0.6) 0 1.1px, #57390f 1.5px 2.7px, rgba(0, 0, 0, 0.65) 3.3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 12px) 12px, rgba(255, 232, 190, 0.6) 0 1.1px, #57390f 1.5px 2.7px, rgba(0, 0, 0, 0.65) 3.3px, transparent 4px),
+    radial-gradient(circle at 12px calc(100% - 12px), rgba(255, 232, 190, 0.6) 0 1.1px, #57390f 1.5px 2.7px, rgba(0, 0, 0, 0.65) 3.3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 12px) calc(100% - 12px), rgba(255, 232, 190, 0.6) 0 1.1px, #57390f 1.5px 2.7px, rgba(0, 0, 0, 0.65) 3.3px, transparent 4px);
+  pointer-events: none;
+}
+.kart-minimap canvas { display: block; position: relative; z-index: 1; }
 
-/* finish panel — stone tablet */
+/* ---------- finish panel: stone tablet, parchment ledger ---------- */
 .kart-finish {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: 420px; z-index: 34;
-  background:
-    linear-gradient(180deg, rgba(50, 40, 28, 0.35), transparent 30%),
-    rgba(24, 19, 14, 0.9);
-  border: 1px solid rgba(176, 121, 58, 0.6);
-  outline: 1px solid rgba(0, 0, 0, 0.65);
-  border-radius: 8px;
-  backdrop-filter: blur(16px);
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 140, 59, 0.14), inset 0 0 34px rgba(0, 0, 0, 0.45);
-  padding: 22px 26px;
+  width: 430px; z-index: 34;
+  isolation: isolate;
+  clip-path: var(--clip-plaque);
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 80%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 18px 50px rgba(0, 0, 0, 0.65));
+  padding: 20px 24px 22px;
   animation: kartFinishIn 0.5s cubic-bezier(0.16, 1.3, 0.4, 1);
+}
+.kart-finish::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    radial-gradient(circle at 11px 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at 11px calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 34%, transparent 62%, rgba(0, 0, 0, 0.42)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    var(--panel-bg);
+  pointer-events: none;
 }
 @keyframes kartFinishIn {
   from { opacity: 0; transform: translate(-50%, -44%) scale(0.85); }
@@ -240,44 +408,98 @@
 .kart-finish.kart-finish-side { left: 26%; }
 @media (max-width: 1100px) { .kart-finish.kart-finish-side { left: 50%; } }
 .kart-finish-title {
-  font-family: var(--font-display); font-size: 20px; font-weight: 800; font-style: italic;
-  letter-spacing: 0.3em; text-align: center; color: var(--gold);
-  text-shadow: 0 0 18px rgba(255, 184, 77, 0.5);
-  margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--font-display); font-size: 19px; font-weight: 800;
+  letter-spacing: 0.26em; font-variant: small-caps;
+  text-align: center; color: var(--gold);
+  text-shadow: var(--engrave), 0 0 14px rgba(255, 184, 77, 0.35);
+  margin-bottom: 12px;
+}
+.kart-finish-title .kft-sig {
+  display: flex; color: rgba(200, 150, 84, 0.9);
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.12));
+}
+/* the standings: an inked parchment ledger pinned to the stone */
+.kart-finish-list {
+  clip-path: var(--clip-torn);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.28), rgba(0, 0, 0, 0) 38%, rgba(96, 72, 40, 0.22)),
+    var(--tex-parchment),
+    #d3c19a;
+  padding: 12px 14px 13px;
 }
 .kart-finish-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 7px 12px; margin-top: 4px;
-  border-radius: 5px;
-  background: rgba(232, 220, 196, 0.045);
-  border: 1px solid rgba(176, 121, 58, 0.14);
-  font-family: var(--font-display); font-size: 16px; letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 11px;
+  padding: 4px 6px;
+  border-bottom: 1px solid rgba(90, 65, 35, 0.35);
+  font-family: var(--font-display); font-size: 15px; letter-spacing: 0.07em;
 }
-.kart-finish-row b { width: 44px; font-style: italic; font-size: 18px; color: var(--ink-dim); }
-.kart-finish-row.first b { color: var(--gold); }
-.kart-finish-row .kn { flex: 1; font-weight: 700; color: var(--kc, var(--ink)); text-shadow: 0 0 10px color-mix(in srgb, var(--kc, #fff) 50%, transparent); }
-.kart-finish-row .kt { color: var(--ink-dim); font-size: 14px; }
+.kart-finish-row:last-child { border-bottom: none; }
+/* place: a struck bronze coin bearing the numeral, ordinal scribed beneath */
+.kart-finish-row .kf-place {
+  display: flex; flex-direction: column; align-items: center;
+  width: 46px; flex: none;
+}
+.kart-finish-row .kf-rn {
+  display: flex; align-items: center; justify-content: center;
+  width: 25px; height: 25px; border-radius: 50%;
+  font-style: normal; font-weight: 800; font-size: 12px; letter-spacing: 0.04em;
+  color: #2e1a06;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255, 232, 190, 0.5), rgba(255, 255, 255, 0) 55%),
+    var(--tex-bronze),
+    radial-gradient(circle, #c08c48 0%, #a8763a 58%, #6a4318 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 232, 190, 0.55), inset 0 -2px 3px rgba(30, 14, 2, 0.55), 0 1px 2px rgba(60, 40, 16, 0.5);
+  text-shadow: 0 1px 0 rgba(255, 232, 190, 0.4);
+}
+.kart-finish-row b {
+  font-size: 8.5px; font-weight: 700; letter-spacing: 0.16em;
+  color: var(--sepia-dim); margin-top: 2px;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4);
+}
+.kart-finish-row.first .kf-rn {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255, 246, 214, 0.75), rgba(255, 255, 255, 0) 55%),
+    var(--tex-bronze),
+    radial-gradient(circle, #ffd489 0%, #d9a055 58%, #8a5a26 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 200, 0.7), inset 0 -2px 3px rgba(60, 30, 4, 0.5), 0 0 8px rgba(255, 184, 77, 0.55);
+}
+.kart-finish-row .kn {
+  flex: 1; font-weight: 700;
+  color: color-mix(in srgb, var(--kc, #52412c) 52%, #3a2c18);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
+}
+.kart-finish-row .kt { color: var(--sepia-dim); font-size: 13px; text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4); }
+/* the challenger's line: a gold-leafed band pressed into the sheet */
 .kart-finish-row.you {
-  background: rgba(255, 184, 77, 0.1);
-  border: 1px solid rgba(255, 184, 77, 0.4);
-  box-shadow: 0 0 16px rgba(255, 140, 59, 0.18);
+  background: linear-gradient(90deg, rgba(255, 184, 77, 0.32), rgba(255, 184, 77, 0.14));
+  box-shadow: inset 0 0 0 1px rgba(138, 90, 30, 0.45);
 }
-/* race-report stat lines under the standings */
+/* race-report stat lines engraved in the stone under the sheet */
 .kart-finish-stats {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px;
-  margin-top: 14px; padding-top: 12px;
-  border-top: 1px solid rgba(176, 121, 58, 0.28);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5px 16px;
+  margin-top: 13px; padding-top: 11px;
+  border-top: 1px solid rgba(176, 121, 58, 0.3);
 }
 .kart-stat {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
   font-family: var(--font-display); letter-spacing: 0.08em;
 }
 .kart-stat:last-child { grid-column: 1 / -1; }
-.kart-stat span { font-size: 10.5px; font-weight: 700; letter-spacing: 0.22em; color: var(--ink-dim); }
+.kart-stat span {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.2em;
+  font-variant: small-caps; color: var(--ink-dim);
+  text-shadow: var(--engrave);
+}
+.kart-stat .ks-sig {
+  display: flex; font-style: normal; color: rgba(200, 150, 84, 0.85);
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.1));
+}
 .kart-stat b {
-  font-size: 15px; font-weight: 800; font-style: italic; color: var(--gold);
-  text-shadow: 0 0 12px rgba(255, 184, 77, 0.35);
+  font-size: 15px; font-weight: 800; color: var(--gold);
+  text-shadow: var(--engrave), 0 0 10px rgba(255, 184, 77, 0.3);
 }
 
 .kart-finish-btns { display: flex; gap: 12px; justify-content: center; margin-top: 18px; }
-.kart-finish-btns button { font-size: 14px; padding: 11px 22px; }
+.kart-finish-btns button { font-size: 13px; padding: 11px 18px; white-space: nowrap; letter-spacing: 0.16em; }

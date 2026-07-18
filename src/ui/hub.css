@@ -1,6 +1,9 @@
-/* ============ HUB scene UI — carved stone & torch gold (classes prefixed hub-) ============ */
+/* ============ HUB scene UI — forged & engraved (classes prefixed hub-) ============
+   Craft language: chamfered stone plaques (clip-plaque), forged iron tags
+   (clip-tag), engraved type (--engrave), bronze background-clip lockups.
+   No rounded rects, no flat rgba fills. */
 
-/* ---- top-left logo lockup ---- */
+/* ---- top-left logo lockup: engraved bronze, matches the boot lockup ---- */
 .hub-logo {
   position: absolute; top: 20px; left: 28px;
   z-index: 11;
@@ -8,36 +11,61 @@
 }
 .hub-logo-main {
   font-family: var(--font-display);
-  font-size: 46px; font-weight: 800; letter-spacing: 0.12em;
+  font-size: 46px; font-weight: 800; letter-spacing: 0.14em;
   line-height: 1;
-  background: linear-gradient(175deg, #ffd89a 8%, #ffb84d 38%, #b0793a 68%, #7a4c22 96%);
+  background:
+    linear-gradient(175deg, rgba(255, 226, 168, 0.85) 6%, rgba(255, 184, 77, 0.55) 32%, rgba(122, 76, 34, 0.4) 62%, rgba(58, 34, 12, 0.55) 95%),
+    var(--tex-bronze),
+    linear-gradient(175deg, #ffd89a 8%, #b0793a 55%, #6a4318 95%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0 16px rgba(255, 140, 59, 0.45)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.6));
+  -webkit-text-stroke: 1px rgba(24, 12, 4, 0.75);
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 232, 190, 0.35))
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.8))
+    drop-shadow(0 2px 1px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 14px rgba(255, 140, 59, 0.3));
 }
 .hub-logo-sub {
-  margin-top: 3px;
+  margin-top: 4px;
   font-family: var(--font-display);
   font-size: 10px; font-weight: 600; letter-spacing: 0.4em;
   font-variant: small-caps;
   color: var(--ink-dim);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  text-shadow: var(--engrave), 0 2px 6px rgba(0, 0, 0, 0.7);
 }
+.hub-logo-rule {
+  margin-top: 3px;
+  color: rgba(176, 121, 58, 0.85);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.8));
+}
+.hub-logo-rule svg { display: block; }
 
-/* ---- top-right player plate: stone slab ---- */
+/* ---- top-right player chip: forged stone plaque, sigils on iron tags ---- */
 .hub-player {
   position: absolute; top: 20px; right: 26px;
-  z-index: 11;
-  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
-  padding: 12px 16px;
-  background:
-    linear-gradient(160deg, rgba(58, 50, 40, 0.35), rgba(0, 0, 0, 0.3)),
-    rgba(26, 20, 14, 0.72);
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.1), inset 0 0 20px rgba(0, 0, 0, 0.45), 0 8px 30px rgba(0, 0, 0, 0.45);
+  z-index: 11; isolation: isolate;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 9px;
+  padding: 13px 17px 14px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-plaque);
+  /* the element is the forged bronze rim… */
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 80%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
   animation: hubFadeDown 0.7s 0.08s ease both;
+}
+/* …and the chiseled stone face set into it, pinned by corner rivets */
+.hub-player::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    radial-gradient(circle at 10px 10px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
+    radial-gradient(circle at calc(100% - 10px) 10px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
+    radial-gradient(circle at 10px calc(100% - 10px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
+    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 36%, transparent 64%, rgba(0, 0, 0, 0.42)),
+    var(--tex-stone),
+    var(--panel-bg);
+  pointer-events: none;
 }
 .hub-player-name {
   display: flex; align-items: center; gap: 9px;
@@ -45,32 +73,45 @@
   font-size: 18px; font-weight: 700; letter-spacing: 0.2em;
   font-variant: small-caps;
   color: var(--ink);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--engrave), 0 2px 5px rgba(0, 0, 0, 0.6);
 }
+/* forged ember gem — a quenched diamond stud, not a neon dot */
 .hub-player-dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--dot, #ffb84d);
-  box-shadow: 0 0 10px var(--dot, #ffb84d), 0 0 22px var(--dot, #ffb84d);
+  width: 9px; height: 9px; border-radius: 0;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #ffe2ad, var(--dot, #ffb84d) 55%, color-mix(in srgb, var(--dot, #ffb84d) 45%, #000));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 210, 0.6),
+    inset -1px -1px 1px rgba(0, 0, 0, 0.5),
+    0 0 9px var(--dot, #ffb84d);
   animation: hubDotPulse 2.4s ease-in-out infinite;
 }
 @keyframes hubDotPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.25); }
+  0%, 100% { transform: rotate(45deg) scale(1); }
+  50% { transform: rotate(45deg) scale(1.22); }
 }
-.hub-skills { display: flex; gap: 6px; }
+.hub-skills { display: flex; gap: 7px; }
+/* battle-art sigils riveted onto forged iron tags */
 .hub-skill-ico {
   --sc: #ffb84d;
-  width: 32px; height: 32px;
+  min-width: 40px; height: 26px;
+  padding: 0 9px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 17px;
-  background: linear-gradient(165deg, rgba(58, 48, 36, 0.9), rgba(20, 15, 10, 0.92));
-  border: 1px solid color-mix(in srgb, var(--sc) 50%, #3a2c1a);
-  border-radius: 6px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.55), 0 0 9px color-mix(in srgb, var(--sc) 26%, transparent);
-  filter: drop-shadow(0 0 4px var(--sc));
+  font-size: 16px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-tag);
+  background:
+    linear-gradient(180deg, rgba(232, 220, 196, 0.14), transparent 45%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #262a30;
+  box-shadow:
+    inset 0 1px 0 rgba(232, 220, 196, 0.16),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 5px color-mix(in srgb, var(--sc) 30%, transparent));
 }
 
-/* ---- bottom-center customize button ---- */
+/* ---- bottom-center customize button (forged plaque inherited from styles.css) ---- */
 .hub-customize {
   position: absolute; left: 50%; bottom: 26px;
   transform: translateX(-50%);
@@ -82,7 +123,7 @@
 .hub-customize:hover { transform: translateX(-50%) translateY(-2px) scale(1.03); }
 .hub-customize:active { transform: translateX(-50%) scale(0.98); }
 
-/* ---- channel title plates (positioned per-frame from JS) ---- */
+/* ---- channel title plates: carved stone slabs, side-pinned (positioned per-frame from JS) ---- */
 .hub-plate {
   --acc: #ffb84d;
   position: absolute; left: -999px; top: -999px;
@@ -94,85 +135,118 @@
   transition: opacity 0.25s ease;
 }
 .hub-plate.gone { opacity: 0; }
+.hub-plate-row { display: flex; align-items: center; justify-content: center; gap: 9px; }
 .hub-plate-title {
   display: inline-block;
   font-family: var(--font-display);
   font-size: 16px; font-weight: 800; letter-spacing: 0.16em;
   font-variant: small-caps;
   color: var(--ink);
-  padding: 3px 15px;
-  background: linear-gradient(160deg, rgba(50, 42, 32, 0.55), rgba(0, 0, 0, 0.35)), rgba(18, 13, 9, 0.68);
-  border: 1px solid rgba(176, 121, 58, 0.4);
-  border-radius: 5px;
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.08);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  padding: 5px 19px 6px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    /* mounting pins chiseled into each end of the slab */
+    radial-gradient(circle at 8px 50%, rgba(228, 196, 138, 0.45) 0 1px, #443422 1.3px 2px, rgba(0, 0, 0, 0.6) 2.6px, transparent 3.2px),
+    radial-gradient(circle at calc(100% - 8px) 50%, rgba(228, 196, 138, 0.45) 0 1px, #443422 1.3px 2px, rgba(0, 0, 0, 0.6) 2.6px, transparent 3.2px),
+    linear-gradient(160deg, rgba(232, 220, 196, 0.1), transparent 38%, transparent 62%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    rgba(22, 17, 12, 0.9);
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.45),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.55);
+  text-shadow: var(--engrave), 0 2px 6px rgba(0, 0, 0, 0.8);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55));
   transition: all 0.18s ease;
 }
 .hub-plate-sub {
-  margin-top: 3px;
+  margin-top: 4px;
   font-family: var(--font-display);
   font-size: 9px; font-weight: 600; letter-spacing: 0.34em;
   color: var(--ink-dim);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: var(--engrave), 0 1px 4px rgba(0, 0, 0, 0.8);
   transition: color 0.18s ease;
 }
+/* focused: the engraving catches the torchlight */
 .hub-plate.hot .hub-plate-title {
   color: #fff6e4;
-  transform: translateY(-3px) scale(1.08);
-  border-color: var(--acc);
-  background: linear-gradient(160deg, rgba(60, 48, 34, 0.7), rgba(0, 0, 0, 0.4)), rgba(24, 17, 11, 0.88);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--acc) 45%, transparent), inset 0 1px 0 rgba(232, 220, 196, 0.12);
-  text-shadow: 0 0 14px var(--acc), 0 2px 6px rgba(0, 0, 0, 0.9);
+  transform: translateY(-3px) scale(1.06);
+  box-shadow:
+    inset 0 0 0 1px var(--acc),
+    inset 0 1px 0 rgba(232, 220, 196, 0.14),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.5);
+  filter:
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--acc) 55%, transparent));
+  text-shadow: 0 0 12px var(--acc), var(--engrave);
 }
 .hub-plate.hot .hub-plate-sub { color: var(--acc); }
 
-/* ---- flagship plate (THE CRUCIBLE): grander, ornate ember-gold + crimson trim ---- */
+/* ---- flagship plate (THE CRUCIBLE): double-ring forged slab + ornament finials ---- */
+.hub-plate-finial {
+  display: flex; flex: none;
+  color: color-mix(in srgb, var(--acc) 70%, #f4e2b8);
+  opacity: 0.9;
+  filter:
+    drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8))
+    drop-shadow(0 1px 0 rgba(255, 240, 210, 0.12))
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+.hub-plate-finial svg { display: block; }
+.hub-plate-finial-r { transform: scaleX(-1); }
 .hub-plate-flag .hub-plate-title {
   font-size: 22px; letter-spacing: 0.22em;
-  padding: 6px 22px;
+  padding: 9px 27px 10px;
   color: #ffe8c4;
   background:
-    linear-gradient(160deg, rgba(72, 50, 30, 0.72), rgba(10, 5, 3, 0.55)),
-    rgba(16, 10, 6, 0.85);
-  border: 1px solid rgba(255, 140, 59, 0.75);
-  border-radius: 4px;
+    /* ember studs seated in the chamfer corners */
+    radial-gradient(circle at 12px 9px, rgba(255, 184, 77, 0.8) 0 1.2px, rgba(120, 52, 14, 0.9) 1.8px 2.4px, transparent 3px),
+    radial-gradient(circle at calc(100% - 12px) 9px, rgba(255, 184, 77, 0.8) 0 1.2px, rgba(120, 52, 14, 0.9) 1.8px 2.4px, transparent 3px),
+    radial-gradient(circle at 12px calc(100% - 9px), rgba(255, 184, 77, 0.8) 0 1.2px, rgba(120, 52, 14, 0.9) 1.8px 2.4px, transparent 3px),
+    radial-gradient(circle at calc(100% - 12px) calc(100% - 9px), rgba(255, 184, 77, 0.8) 0 1.2px, rgba(120, 52, 14, 0.9) 1.8px 2.4px, transparent 3px),
+    linear-gradient(160deg, rgba(255, 226, 168, 0.12), transparent 40%, transparent 60%, rgba(0, 0, 0, 0.5)),
+    var(--tex-stone),
+    rgba(16, 10, 6, 0.94);
   box-shadow:
-    0 0 0 3px rgba(18, 10, 6, 0.85),
-    0 0 0 4px rgba(194, 59, 46, 0.65),
-    0 0 26px rgba(255, 140, 59, 0.35),
+    /* double forged ring: gold outer, crimson inner */
+    inset 0 0 0 1px rgba(255, 140, 59, 0.8),
+    inset 0 0 0 3px rgba(18, 10, 6, 0.9),
+    inset 0 0 0 4px rgba(194, 59, 46, 0.7),
+    inset 0 0 0 5px rgba(10, 5, 3, 0.8),
     inset 0 1px 0 rgba(255, 226, 173, 0.18),
-    inset 0 0 14px rgba(0, 0, 0, 0.5);
-  text-shadow: 0 0 16px rgba(255, 140, 59, 0.55), 0 2px 6px rgba(0, 0, 0, 0.9);
+    inset 0 -4px 7px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 0 16px rgba(255, 140, 59, 0.55), var(--engrave);
   animation: hubFlagEmber 3.2s ease-in-out infinite;
-}
-.hub-plate-flag .hub-plate-title::before { content: '◆'; margin-right: 12px; }
-.hub-plate-flag .hub-plate-title::after { content: '◆'; margin-left: 12px; }
-.hub-plate-flag .hub-plate-title::before,
-.hub-plate-flag .hub-plate-title::after {
-  font-size: 11px; vertical-align: 3px;
-  color: #c23b2e;
-  text-shadow: 0 0 8px rgba(194, 59, 46, 0.8);
 }
 .hub-plate-flag .hub-plate-sub {
   margin-top: 5px;
   font-size: 10.5px; letter-spacing: 0.36em;
   color: #ff8c3b;
-  text-shadow: 0 0 10px rgba(255, 140, 59, 0.45), 0 1px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: var(--engrave), 0 0 10px rgba(255, 140, 59, 0.45);
 }
 .hub-plate-flag.hot .hub-plate-title {
   color: #fff9ec;
-  border-color: #ffb84d;
+  transform: translateY(-3px) scale(1.04);
   box-shadow:
-    0 0 0 3px rgba(18, 10, 6, 0.85),
-    0 0 0 4px rgba(255, 140, 59, 0.8),
-    0 0 34px rgba(255, 140, 59, 0.6),
-    inset 0 1px 0 rgba(255, 226, 173, 0.22);
-  text-shadow: 0 0 18px #ff8c3b, 0 2px 6px rgba(0, 0, 0, 0.95);
+    inset 0 0 0 1px rgba(255, 184, 77, 0.95),
+    inset 0 0 0 3px rgba(18, 10, 6, 0.9),
+    inset 0 0 0 4px rgba(255, 140, 59, 0.8),
+    inset 0 0 0 5px rgba(10, 5, 3, 0.8),
+    inset 0 1px 0 rgba(255, 226, 173, 0.22),
+    inset 0 -4px 7px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 18px #ff8c3b, var(--engrave);
+  animation: hubFlagEmberHot 3.2s ease-in-out infinite;
 }
 .hub-plate-flag.hot .hub-plate-sub { color: #ffb84d; }
+/* keyframes own the filter channel, so the plate's drop-shadows live here */
 @keyframes hubFlagEmber {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.14); }
+  0%, 100% { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 10px rgba(255, 140, 59, 0.25)) brightness(1); }
+  50% { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 18px rgba(255, 140, 59, 0.5)) brightness(1.1); }
+}
+@keyframes hubFlagEmberHot {
+  0%, 100% { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 18px rgba(255, 140, 59, 0.55)) brightness(1.04); }
+  50% { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 26px rgba(255, 140, 59, 0.75)) brightness(1.12); }
 }
 
 /* ---- entrance animations ---- */

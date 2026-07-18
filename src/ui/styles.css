@@ -1,4 +1,10 @@
-/* ============ IWL global design system — stone, iron, bronze, torchlight ============ */
+/* ============================================================
+   IWL global design system — FORGED & ENGRAVED
+   Every widget reads as material: chiseled stone plaques, forged
+   iron/bronze fittings, inked parchment. No default rounded-rect
+   boxes, no flat rgba fills. Surface textures (--tex-*) are
+   canvas-generated data URIs installed on :root by src/ui/craft.js.
+   ============================================================ */
 :root {
   --ink: #e8dcc4;                          /* bone / parchment */
   --ink-dim: #a8987e;                      /* faded parchment */
@@ -6,10 +12,32 @@
   --accent2: #c23b2e;                      /* blood crimson */
   --gold: #ffb84d;
   --danger: #c23b2e;
-  --panel-bg: rgba(26, 22, 17, 0.88);      /* charcoal stone */
+  --panel-bg: rgba(26, 22, 17, 0.92);      /* charcoal stone */
   --panel-border: rgba(176, 121, 58, 0.45); /* aged bronze */
   --font-display: 'Palatino', 'Palatino Linotype', 'Book Antiqua', Georgia, 'Times New Roman', serif;
   --font-body: 'Iowan Old Style', 'Palatino', Georgia, 'Times New Roman', serif;
+
+  /* ---- craft language ---- */
+  /* engraved = cut INTO the surface: shade above the cut, light catching the lower lip */
+  --engrave: 0 -1px 1px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(232, 220, 196, 0.12);
+  /* embossed = raised metal: highlight above, deep shade below */
+  --emboss: 0 -1px 0 rgba(255, 236, 200, 0.3), 0 1px 1px rgba(12, 6, 2, 0.9), 0 2px 3px rgba(0, 0, 0, 0.55);
+  /* chamfered plaque (stone slabs, buttons, toasts) */
+  --clip-plaque: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+  --clip-plaque-sm: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
+  /* shield slot (ability plates) */
+  --clip-shield: polygon(4px 0, calc(100% - 4px) 0, 100% 7px, 100% 68%, 50% 100%, 0 68%, 0 7px);
+  /* tapered blade (stat bars) */
+  --clip-blade: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+  /* forged key/rivet tag */
+  --clip-tag: polygon(4px 0, calc(100% - 4px) 0, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0 50%);
+  /* torn parchment (tooltips, hint scroll) */
+  --clip-torn: polygon(0 7px, 5% 3px, 11% 8px, 18% 2px, 26% 6px, 34% 3px, 42% 8px, 50% 4px, 58% 8px, 66% 3px, 74% 7px, 82% 2px, 90% 7px, 96% 4px, 100% 8px,
+    100% calc(100% - 7px), 95% calc(100% - 3px), 89% calc(100% - 8px), 82% calc(100% - 2px), 74% calc(100% - 6px), 66% calc(100% - 3px), 58% calc(100% - 8px),
+    50% calc(100% - 4px), 42% calc(100% - 8px), 34% calc(100% - 3px), 26% calc(100% - 7px), 18% calc(100% - 2px), 10% calc(100% - 7px), 4% calc(100% - 4px), 0 calc(100% - 8px));
+  /* sepia ink for parchment surfaces */
+  --sepia: #52412c;
+  --sepia-dim: #8a7350;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,7 +54,7 @@ html, body {
 
 #app, #app canvas { position: fixed; inset: 0; display: block; }
 
-#ui { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+#ui { position: fixed; inset: 0; z-index: 10; pointer-events: none; font-variant-numeric: tabular-nums; }
 #ui .ui-interactive, #ui button, #ui input { pointer-events: auto; }
 
 /* ---------- fader ---------- */
@@ -38,12 +66,14 @@ html, body {
 }
 #fader.on { opacity: 1; pointer-events: auto; }
 
-/* ---------- boot screen ---------- */
+/* ---------- boot screen: cold forge ---------- */
 #boot {
   position: fixed; inset: 0; z-index: 100;
   display: flex; align-items: center; justify-content: center;
   background:
-    radial-gradient(ellipse at 50% 120%, #2c1810 0%, #1a1210 40%, #120d09 100%);
+    radial-gradient(ellipse at 50% 120%, rgba(44, 24, 16, 0.85) 0%, rgba(26, 18, 16, 0.5) 40%, rgba(18, 13, 9, 0.35) 100%),
+    var(--tex-stone),
+    #171310;
   transition: opacity 0.6s ease;
 }
 #boot.out { opacity: 0; pointer-events: none; }
@@ -66,33 +96,59 @@ html, body {
 .boot-logo {
   font-family: var(--font-display);
   font-size: 120px; font-weight: 800; letter-spacing: 0.14em;
-  background: linear-gradient(175deg, #ffd89a 8%, #ffb84d 34%, #b0793a 62%, #7a4c22 95%);
+  background:
+    linear-gradient(175deg, rgba(255, 226, 168, 0.85) 6%, rgba(255, 184, 77, 0.55) 32%, rgba(122, 76, 34, 0.4) 62%, rgba(58, 34, 12, 0.55) 95%),
+    var(--tex-bronze),
+    linear-gradient(175deg, #ffd89a 8%, #b0793a 55%, #6a4318 95%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0 30px rgba(255, 140, 59, 0.45)) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.55));
+  -webkit-text-stroke: 1.5px rgba(24, 12, 4, 0.75);
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 232, 190, 0.35))
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.8))
+    drop-shadow(0 4px 2px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 26px rgba(255, 140, 59, 0.3));
   animation: logoPulse 3.2s ease-in-out infinite;
 }
 @keyframes logoPulse {
-  0%, 100% { filter: drop-shadow(0 0 18px rgba(255, 140, 59, 0.35)) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.55)); }
-  50% { filter: drop-shadow(0 0 42px rgba(255, 90, 38, 0.6)) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.55)); }
+  0%, 100% {
+    filter:
+      drop-shadow(0 1px 0 rgba(255, 232, 190, 0.35)) drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.8))
+      drop-shadow(0 4px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 18px rgba(255, 140, 59, 0.25));
+  }
+  50% {
+    filter:
+      drop-shadow(0 1px 0 rgba(255, 232, 190, 0.35)) drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.8))
+      drop-shadow(0 4px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 38px rgba(255, 90, 38, 0.5));
+  }
 }
 .boot-title {
   font-family: var(--font-display);
   font-size: 26px; font-weight: 700; letter-spacing: 0.42em; margin-top: 6px;
   font-variant: small-caps;
   color: var(--ink);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--engrave), 0 2px 6px rgba(0, 0, 0, 0.7);
 }
+.boot-rule {
+  width: 300px; margin: 14px auto 0;
+  color: rgba(176, 121, 58, 0.85);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.8));
+}
+.boot-rule svg { display: block; margin: 0 auto; }
 .boot-sub {
   font-family: var(--font-display);
   font-size: 13px; letter-spacing: 0.34em; text-transform: uppercase;
-  color: var(--accent); margin-top: 10px;
-  text-shadow: 0 0 14px rgba(255, 140, 59, 0.4);
+  color: var(--accent); margin-top: 12px;
+  text-shadow: var(--engrave), 0 0 14px rgba(255, 140, 59, 0.35);
 }
 .boot-bar {
-  width: 320px; height: 5px; margin: 34px auto 0;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(176, 121, 58, 0.35);
-  border-radius: 2px; overflow: hidden;
+  position: relative;
+  width: 320px; height: 8px; margin: 32px auto 0;
+  clip-path: var(--clip-tag);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.25) 70%),
+    var(--tex-iron),
+    #1a1712;
+  overflow: hidden;
 }
 .boot-fill {
   height: 100%; width: 0%;
@@ -108,211 +164,351 @@ html, body {
 
 /* ---------- buttons: forged bronze plaques ---------- */
 button {
+  position: relative; isolation: isolate;
   font-family: var(--font-display);
   font-size: 18px; font-weight: 700; letter-spacing: 0.22em;
   font-variant: small-caps;
-  color: #241505;
-  background: linear-gradient(180deg, #d99e55 0%, #b0793a 45%, #8a5a26 100%);
-  border: 1px solid #5c3d1a;
-  border-radius: 6px;
+  color: #2a1808;
+  background:
+    linear-gradient(180deg, rgba(255, 226, 168, 0.5), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(30, 14, 2, 0.45)),
+    linear-gradient(180deg, #d9a055 0%, #b0793a 48%, #82551f 100%);
+  border: none; border-radius: 0;
+  clip-path: var(--clip-plaque-sm);
   padding: 14px 44px;
   cursor: pointer;
-  text-shadow: 0 1px 0 rgba(255, 224, 170, 0.4);
+  text-shadow: 0 1px 0 rgba(255, 232, 190, 0.45), 0 -1px 1px rgba(40, 18, 4, 0.45);
   box-shadow:
-    inset 0 1px 0 rgba(255, 226, 173, 0.55),
-    inset 0 -2px 3px rgba(40, 20, 5, 0.5),
-    0 3px 10px rgba(0, 0, 0, 0.55);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    inset 0 1px 0 rgba(255, 230, 180, 0.5),
+    inset 1px 0 0 rgba(255, 230, 180, 0.18),
+    inset 0 -3px 5px rgba(40, 18, 4, 0.55),
+    inset -1px 0 0 rgba(30, 14, 2, 0.4);
+  filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.9)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+/* brushed-bronze grain over ANY plaque color (survives per-game bg overrides) */
+button::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: var(--tex-bronze);
+  opacity: 0.32; mix-blend-mode: overlay;
+  pointer-events: none;
+}
+/* ember under-glow, lit on hover */
+button::after {
+  content: ''; position: absolute; left: 10%; right: 10%; bottom: 0; height: 12px; z-index: -1;
+  background: radial-gradient(60% 130% at 50% 100%, rgba(255, 110, 38, 0.8), transparent 72%);
+  opacity: 0; transition: opacity 0.18s ease;
+  pointer-events: none;
 }
 button:hover {
-  transform: translateY(-2px) scale(1.02);
-  filter: brightness(1.1);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 226, 173, 0.55),
-    inset 0 -2px 3px rgba(40, 20, 5, 0.5),
-    0 4px 22px rgba(255, 122, 40, 0.45);
+  transform: translateY(-1px);
+  filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.9)) drop-shadow(0 4px 12px rgba(255, 110, 40, 0.4)) brightness(1.08);
 }
-button:active { transform: translateY(0) scale(0.98); filter: brightness(0.88); }
+button:hover::after { opacity: 1; }
+button:active {
+  transform: translateY(1px);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)) brightness(0.85);
+}
+/* ghost = etched into stone, not forged */
 button.ghost {
-  background: linear-gradient(180deg, rgba(58, 48, 38, 0.5), rgba(30, 24, 18, 0.5));
   color: var(--ink);
-  border: 1px solid var(--panel-border);
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.08), 0 2px 8px rgba(0, 0, 0, 0.4);
-  text-shadow: none;
-}
-button.ghost:hover {
-  border-color: var(--accent); color: var(--accent);
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.08), 0 0 18px rgba(255, 140, 59, 0.28);
-}
-
-/* ---------- panels: chiseled stone slabs ---------- */
-.ui-panel {
-  position: absolute;
   background:
-    linear-gradient(160deg, rgba(58, 50, 40, 0.35), rgba(16, 12, 9, 0.25) 55%, rgba(0, 0, 0, 0.3)),
-    var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
+    linear-gradient(160deg, rgba(66, 56, 44, 0.5), rgba(22, 17, 12, 0.62)),
+    rgba(20, 16, 12, 0.4);
   box-shadow:
-    inset 0 1px 0 rgba(232, 220, 196, 0.1),
-    inset 0 0 26px rgba(0, 0, 0, 0.55),
-    0 10px 34px rgba(0, 0, 0, 0.6);
-  padding: 14px 18px;
+    inset 0 0 0 1px rgba(176, 121, 58, 0.5),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(232, 220, 196, 0.08);
+  text-shadow: var(--engrave);
+}
+button.ghost::before { background: var(--tex-stone); opacity: 0.5; }
+button.ghost:hover {
+  color: var(--accent);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 184, 77, 0.65),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(232, 220, 196, 0.08);
 }
 
-/* ---------- ability bar: rune-carved stone tiles ---------- */
+/* ---------- panels: chamfered stone plaques, bronze rim, corner rivets ---------- */
+.ui-panel {
+  position: absolute; isolation: isolate;
+  padding: 15px 19px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-plaque);
+  /* the element itself is the forged rim… */
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 80%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
+}
+/* …and ::before is the chiseled stone face set into it */
+.ui-panel::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    radial-gradient(circle at 11px 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at 11px calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 34%, transparent 62%, rgba(0, 0, 0, 0.42)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    var(--panel-bg);
+  pointer-events: none;
+}
+
+/* ---------- ability bar: forged shield plates ---------- */
 .ability-bar {
-  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
-  display: flex; gap: 10px; z-index: 12;
+  --slot-w: 64px; --slot-gap: 12px;
+  position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
+  display: flex; gap: var(--slot-gap); z-index: 12;
 }
 .ability-slot {
   --skill-color: #ffb84d;
-  position: relative;
-  width: 62px; height: 62px;
-  background:
-    linear-gradient(165deg, rgba(66, 56, 44, 0.9), rgba(24, 19, 14, 0.94) 60%),
-    rgba(20, 16, 12, 0.9);
-  border: 2px solid color-mix(in srgb, var(--skill-color) 45%, #3a2c1a);
-  border-radius: 7px;
-  box-shadow:
-    inset 0 1px 0 rgba(232, 220, 196, 0.12),
-    inset 0 0 16px rgba(0, 0, 0, 0.65),
-    0 0 12px color-mix(in srgb, var(--skill-color) 22%, transparent),
-    0 4px 10px rgba(0, 0, 0, 0.5);
+  position: relative; isolation: isolate;
+  width: var(--slot-w); height: 68px;
+  padding-top: 8px;
+  clip-path: var(--clip-shield);
+  /* forged rim, quenched in the skill's color */
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--skill-color) 55%, #6a4c24) 0%,
+    color-mix(in srgb, var(--skill-color) 26%, #2c1d0e) 46%,
+    #150f08 100%);
   display: flex; align-items: center; justify-content: center;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 9px color-mix(in srgb, var(--skill-color) 16%, transparent));
   transition: transform 0.1s ease;
 }
-.ability-slot:hover { transform: translateY(-3px); }
-.ability-slot:hover .ability-tip { opacity: 1; transform: translate(-50%, -6px); }
-.ability-icon { font-size: 28px; filter: drop-shadow(0 0 8px var(--skill-color)) drop-shadow(0 2px 2px rgba(0,0,0,0.6)); }
-.key-badge {
-  position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-  font-family: var(--font-display); font-weight: 800; font-size: 12px;
-  color: #1c1206;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--skill-color) 80%, #fff 10%), color-mix(in srgb, var(--skill-color) 75%, #000 20%));
-  padding: 1px 8px; border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.45);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--skill-color) 45%, transparent), 0 1px 2px rgba(0,0,0,0.6);
+/* engraved iron face */
+.ability-slot::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-shield);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.1), transparent 42%),
+    radial-gradient(95% 72% at 50% 20%, rgba(66, 56, 44, 0.5), transparent 74%),
+    radial-gradient(130% 130% at 50% 112%, rgba(0, 0, 0, 0.6), transparent 58%),
+    var(--tex-iron),
+    #1c1610;
 }
+.ability-slot:hover { transform: translateY(-3px); }
+.ability-icon {
+  display: flex;
+  font-size: 33px; line-height: 1;
+  color: var(--skill-color);
+  filter:
+    drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85))
+    drop-shadow(0 1px 0 rgba(232, 220, 196, 0.16))
+    drop-shadow(0 0 7px color-mix(in srgb, var(--skill-color) 45%, transparent));
+}
+/* key badge: a small forged rivet-tag pinned at the plate's crown */
+.key-badge {
+  position: absolute; top: 2.5px; left: 50%; transform: translateX(-50%);
+  clip-path: var(--clip-tag);
+  font-family: var(--font-display); font-weight: 800; font-size: 11px; line-height: 1.25;
+  color: #241505;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--skill-color) 72%, #f0d9a8),
+    color-mix(in srgb, var(--skill-color) 78%, #241505) 85%);
+  padding: 1px 9px 2px;
+  text-shadow: 0 1px 0 rgba(255, 236, 200, 0.4);
+  box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.45);
+}
+/* cooldown: stone goes dark, an ember rim smolders around the sweep edge */
 .cd-sweep {
   --cd: 0;
-  position: absolute; inset: 0; border-radius: 5px;
-  background: conic-gradient(rgba(10, 7, 4, 0.88) calc(var(--cd) * 360deg), transparent 0);
+  position: absolute; inset: 0;
+  clip-path: var(--clip-shield);
+  background: conic-gradient(
+    rgba(10, 7, 4, 0.62) 0turn,
+    rgba(16, 10, 6, 0.88) calc(var(--cd) * 1turn - 24deg),
+    rgba(140, 52, 16, 0.9) calc(var(--cd) * 1turn - 5deg),
+    rgba(255, 158, 66, 0.95) calc(var(--cd) * 1turn - 0.5deg),
+    transparent calc(var(--cd) * 1turn));
   pointer-events: none;
 }
 .cd-text {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
+  padding-top: 6px;
   font-family: var(--font-display); font-weight: 800; font-size: 22px;
-  color: var(--ink); text-shadow: 0 0 8px #000;
+  color: var(--ink); text-shadow: 0 -1px 1px #000, 0 1px 0 rgba(232, 220, 196, 0.12), 0 0 8px #000;
   pointer-events: none;
 }
-.ability-slot.on-cd .ability-icon { filter: grayscale(1) brightness(0.45); }
+.ability-slot.on-cd .ability-icon { filter: grayscale(1) brightness(0.4); }
 .ability-slot.cast-flash { animation: castFlash 0.35s ease; }
 @keyframes castFlash {
-  0% { box-shadow: 0 0 30px var(--skill-color), inset 0 0 24px var(--skill-color); transform: scale(1.12); }
+  0% {
+    filter:
+      drop-shadow(0 0 4px #fff)
+      drop-shadow(0 0 16px var(--skill-color))
+      drop-shadow(0 0 30px rgba(255, 110, 38, 0.9))
+      brightness(1.7);
+    transform: scale(1.1);
+  }
   100% {
-    box-shadow:
-      inset 0 1px 0 rgba(232, 220, 196, 0.12),
-      inset 0 0 16px rgba(0, 0, 0, 0.65),
-      0 0 12px color-mix(in srgb, var(--skill-color) 22%, transparent),
-      0 4px 10px rgba(0, 0, 0, 0.5);
+    filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 9px color-mix(in srgb, var(--skill-color) 16%, transparent));
+    transform: scale(1);
   }
 }
-.ability-slot.active { border-color: var(--ink); box-shadow: 0 0 26px var(--skill-color), inset 0 0 12px rgba(0, 0, 0, 0.55); }
+.ability-slot.active {
+  background: linear-gradient(165deg, #f4e0b0 0%, var(--skill-color) 55%, #3a2410 100%);
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px color-mix(in srgb, var(--skill-color) 60%, transparent));
+}
+/* tooltip: an inked parchment scrap with torn edges (sibling of its slot) */
 .ability-tip {
-  position: absolute; bottom: 74px; left: 50%; transform: translate(-50%, 0);
-  width: 210px; padding: 10px 12px;
+  position: absolute;
+  bottom: calc(100% + 16px);
+  left: calc(var(--slot-i, 0) * (var(--slot-w) + var(--slot-gap)) + var(--slot-w) / 2);
+  transform: translate(-50%, 0);
+  width: 224px; padding: 13px 15px 15px;
+  clip-path: var(--clip-torn);
   background:
-    linear-gradient(160deg, rgba(48, 40, 31, 0.55), rgba(0, 0, 0, 0.3)),
-    rgba(20, 15, 11, 0.96);
-  border: 1px solid color-mix(in srgb, var(--skill-color) 45%, #3a2c1a);
-  border-radius: 7px;
-  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.5), 0 6px 18px rgba(0, 0, 0, 0.6);
+    linear-gradient(172deg, rgba(255, 248, 224, 0.28), rgba(0, 0, 0, 0) 38%, rgba(96, 72, 40, 0.22)),
+    var(--tex-parchment),
+    #d3c19a;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.5));
   opacity: 0; pointer-events: none;
   transition: opacity 0.15s, transform 0.15s;
-  font-size: 12px; line-height: 1.45; color: var(--ink-dim);
+  font-size: 12px; line-height: 1.45; color: var(--sepia);
   z-index: 20;
 }
-.ability-tip b { display: block; color: var(--skill-color); font-family: var(--font-display); font-size: 13px; letter-spacing: 0.08em; font-variant: small-caps; margin-bottom: 3px; }
-.ability-tip i { display: block; margin-top: 5px; color: #7d6f58; font-size: 11px; }
+.ability-slot:hover + .ability-tip { opacity: 1; transform: translate(-50%, -6px); }
+.ability-tip b {
+  display: block;
+  color: color-mix(in srgb, var(--skill-color, #b0793a) 52%, #3a2413);
+  font-family: var(--font-display); font-size: 13px; letter-spacing: 0.08em; font-variant: small-caps;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.5);
+  border-bottom: 1px solid rgba(90, 65, 35, 0.4);
+  padding-bottom: 3px; margin-bottom: 5px;
+}
+.ability-tip i { display: block; margin-top: 5px; color: var(--sepia-dim); font-size: 11px; }
 
-/* ---------- stat bars: iron troughs ---------- */
-.stat-bar { --bar-color: #8fae4a; position: absolute; width: 260px; }
+/* ---------- stat bars: tapered blades in iron troughs ---------- */
+.stat-bar {
+  --bar-color: #8fae4a;
+  position: absolute; width: 260px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+}
 .stat-bar-label {
   font-family: var(--font-display); font-size: 11px; font-weight: 700;
-  letter-spacing: 0.28em; font-variant: small-caps; color: var(--ink-dim); margin-bottom: 4px;
+  letter-spacing: 0.28em; font-variant: small-caps; color: var(--ink-dim);
+  text-shadow: var(--engrave);
+  margin-bottom: 4px;
 }
 .stat-bar-track {
   position: relative; height: 16px;
-  background: linear-gradient(180deg, rgba(8, 6, 4, 0.92), rgba(28, 22, 16, 0.88));
-  border: 1px solid var(--panel-border);
-  border-radius: 4px; overflow: hidden;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+  clip-path: var(--clip-blade);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.2) 55%, rgba(0, 0, 0, 0.5)),
+    var(--tex-iron),
+    #14100b;
+  box-shadow: inset 0 0 0 1px rgba(176, 121, 58, 0.35), inset 0 2px 4px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+}
+/* etched tick notches every 25% */
+.stat-bar-track::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 1px, rgba(232, 220, 196, 0.09) 1px 2px, transparent 2px);
+  background-size: 25% 100%;
+  pointer-events: none;
 }
 .stat-bar-fill {
   position: absolute; inset: 0 auto 0 0; width: 100%;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--bar-color) 100%, #fff 22%), var(--bar-color) 55%, color-mix(in srgb, var(--bar-color) 70%, #000 30%));
-  box-shadow: 0 0 10px color-mix(in srgb, var(--bar-color) 50%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  border-radius: 3px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--bar-color) 78%, #fff) 0%,
+    var(--bar-color) 48%,
+    color-mix(in srgb, var(--bar-color) 62%, #000) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 1px rgba(0, 0, 0, 0.4);
   transition: width 0.12s ease;
+}
+/* hammered grain in the metal of the fill */
+.stat-bar-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--tex-stone);
+  opacity: 0.45; mix-blend-mode: overlay;
 }
 .stat-bar-ghost {
   position: absolute; inset: 0 auto 0 0; width: 100%;
   background: rgba(232, 220, 196, 0.3);
-  border-radius: 3px;
 }
 .stat-bar-text {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 11px; font-weight: 700;
-  letter-spacing: 0.1em; color: var(--ink); text-shadow: 0 1px 2px #000;
+  letter-spacing: 0.1em; color: var(--ink);
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
+  z-index: 1;
+}
+/* forged pommel end-cap (span injected by hud.bar) */
+.stat-bar-cap {
+  position: absolute; left: -5px; bottom: 2.5px;
+  width: 11px; height: 11px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #e0b26a, #a8763a 55%, #6a4318);
+  box-shadow: inset 0 1px 0 rgba(255, 232, 190, 0.55), inset -1px -1px 1px rgba(30, 14, 2, 0.6), 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-/* ---------- banners: tournament proclamations ---------- */
+/* ---------- banners: struck-metal proclamations ---------- */
 .big-banner {
   --banner-color: #ffb84d;
   position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
   text-align: center; z-index: 30;
-  animation: bannerIn 0.45s cubic-bezier(0.16, 1.4, 0.4, 1);
+  animation: bannerIn 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .big-banner.out { animation: bannerOut 0.5s ease forwards; }
+.banner-row { display: flex; align-items: center; justify-content: center; gap: 20px; }
+.banner-orn {
+  display: flex; flex: none;
+  color: color-mix(in srgb, var(--banner-color) 75%, #f4e2b8);
+  opacity: 0.85;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 1px 0 rgba(255, 240, 210, 0.14)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+.banner-orn svg { width: 110px; height: auto; }
+.banner-orn-r { transform: scaleX(-1); }
 .banner-main {
   font-family: var(--font-display);
   font-size: 84px; font-weight: 800; letter-spacing: 0.08em;
   font-variant: small-caps;
   color: var(--banner-color);
+  -webkit-text-stroke: 1.5px rgba(24, 14, 6, 0.85);
   text-shadow:
-    0 0 34px color-mix(in srgb, var(--banner-color) 60%, transparent),
-    0 0 12px rgba(255, 90, 38, 0.35),
-    0 5px 0 rgba(20, 10, 4, 0.7);
-  -webkit-text-stroke: 2px rgba(24, 14, 6, 0.9);
+    0 -2px 0 rgba(255, 240, 210, 0.22),
+    0 -1px 0 rgba(255, 240, 210, 0.16),
+    0 2px 0 rgba(26, 13, 5, 0.95),
+    0 4px 0 rgba(18, 9, 3, 0.8),
+    0 6px 1px rgba(12, 6, 2, 0.6),
+    0 9px 16px rgba(0, 0, 0, 0.65),
+    0 0 30px color-mix(in srgb, var(--banner-color) 38%, transparent);
 }
 .banner-sub {
   font-family: var(--font-display);
   font-size: 20px; font-weight: 600; letter-spacing: 0.4em;
   font-variant: small-caps;
-  color: var(--ink); margin-top: 2px;
-  text-shadow: 0 2px 8px #000;
+  color: var(--ink); margin-top: 4px;
+  text-shadow: var(--engrave), 0 2px 8px #000;
 }
+/* slam and settle: overshoot small, land heavy */
 @keyframes bannerIn {
-  from { transform: translateX(-50%) scale(2.4); opacity: 0; filter: blur(6px); }
-  to { transform: translateX(-50%) scale(1); opacity: 1; filter: blur(0); }
+  0% { transform: translateX(-50%) scale(2.1); opacity: 0; filter: blur(5px); }
+  52% { transform: translateX(-50%) scale(0.965); opacity: 1; filter: blur(0); }
+  76% { transform: translateX(-50%) scale(1.04); }
+  100% { transform: translateX(-50%) scale(1); }
 }
 @keyframes bannerOut {
   to { transform: translateX(-50%) translateY(-30px); opacity: 0; }
 }
 
-/* ---------- toast / hints / countdown ---------- */
+/* ---------- toast: iron strap ---------- */
 .ui-toast {
   position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%);
+  isolation: isolate;
+  clip-path: var(--clip-plaque-sm);
   background:
-    linear-gradient(160deg, rgba(52, 44, 34, 0.5), rgba(0, 0, 0, 0.3)),
-    rgba(22, 17, 12, 0.92);
-  border: 1px solid var(--panel-border);
-  border-radius: 7px; padding: 10px 22px;
-  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.5), 0 6px 16px rgba(0, 0, 0, 0.5);
+    linear-gradient(160deg, rgba(232, 220, 196, 0.07), transparent 40%, rgba(0, 0, 0, 0.4)),
+    var(--tex-iron),
+    rgba(24, 20, 15, 0.94);
+  padding: 11px 26px;
+  box-shadow: inset 0 0 0 1px rgba(176, 121, 58, 0.35), inset 0 0 14px rgba(0, 0, 0, 0.5);
+  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.55));
   font-size: 14px; letter-spacing: 0.06em;
+  text-shadow: var(--engrave);
   animation: toastIn 0.3s ease;
   transition: opacity 0.4s;
   z-index: 25;
@@ -320,43 +516,65 @@ button.ghost:hover {
 .ui-toast.out { opacity: 0; }
 @keyframes toastIn { from { transform: translate(-50%, 12px); opacity: 0; } }
 
+/* ---------- hints: a field scribe's parchment ---------- */
 .hint-box {
   position: absolute; right: 22px; bottom: 22px;
+  clip-path: var(--clip-torn);
   background:
-    linear-gradient(160deg, rgba(52, 44, 34, 0.4), rgba(0, 0, 0, 0.28)),
-    rgba(22, 17, 12, 0.82);
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.08), inset 0 0 18px rgba(0, 0, 0, 0.45);
-  padding: 12px 16px;
-  font-size: 12px; color: var(--ink-dim);
+    linear-gradient(168deg, rgba(255, 248, 224, 0.26), rgba(0, 0, 0, 0) 40%, rgba(96, 72, 40, 0.2)),
+    var(--tex-parchment),
+    #cfbd94;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45));
+  padding: 14px 16px 15px;
+  font-size: 12px; color: var(--sepia);
   z-index: 11;
 }
 .hint-title {
   font-family: var(--font-display); font-weight: 700; font-size: 11px;
-  letter-spacing: 0.3em; font-variant: small-caps; color: var(--accent); margin-bottom: 7px;
+  letter-spacing: 0.3em; font-variant: small-caps;
+  color: #8a3b1c;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.5);
+  border-bottom: 1px solid rgba(90, 65, 35, 0.4);
+  padding-bottom: 5px; margin-bottom: 7px;
 }
-.hint-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+.hint-row { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
 .hint-key {
   min-width: 46px; text-align: center;
-  font-family: var(--font-display); font-weight: 700; font-size: 11px;
+  clip-path: var(--clip-tag);
+  font-family: var(--font-display); font-weight: 800; font-size: 11px; line-height: 1.4;
   color: var(--ink);
-  background: linear-gradient(180deg, rgba(120, 90, 50, 0.3), rgba(30, 22, 14, 0.5));
-  border: 1px solid var(--panel-border);
-  border-radius: 4px; padding: 2px 6px;
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.1);
+  background:
+    linear-gradient(180deg, rgba(232, 220, 196, 0.12), transparent 45%, rgba(0, 0, 0, 0.4)),
+    var(--tex-iron),
+    #2e2a24;
+  padding: 2px 8px;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9);
+  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.14), inset 0 -1px 1px rgba(0, 0, 0, 0.5);
 }
 
+/* ---------- countdown ---------- */
 .count-num {
   position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%);
   font-family: var(--font-display); font-size: 160px; font-weight: 800;
   font-variant: small-caps;
   color: var(--gold);
-  text-shadow: 0 0 50px rgba(255, 140, 59, 0.55), 0 6px 0 rgba(20, 10, 4, 0.65);
+  -webkit-text-stroke: 2px rgba(24, 14, 6, 0.8);
+  text-shadow:
+    0 -3px 0 rgba(255, 240, 210, 0.2),
+    0 4px 0 rgba(20, 10, 4, 0.9),
+    0 7px 1px rgba(12, 6, 2, 0.6),
+    0 0 44px rgba(255, 140, 59, 0.5);
   animation: countPop 0.85s cubic-bezier(0.16, 1.3, 0.4, 1) forwards;
   z-index: 40;
 }
-.count-num.go { color: #ff5a26; text-shadow: 0 0 50px rgba(255, 90, 38, 0.75), 0 6px 0 rgba(20, 10, 4, 0.65); }
+.count-num.go {
+  color: #ff5a26;
+  text-shadow:
+    0 -3px 0 rgba(255, 240, 210, 0.2),
+    0 4px 0 rgba(20, 10, 4, 0.9),
+    0 7px 1px rgba(12, 6, 2, 0.6),
+    0 0 50px rgba(255, 90, 38, 0.75);
+}
 @keyframes countPop {
   0% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
   22% { transform: translate(-50%, -50%) scale(1); opacity: 1; }

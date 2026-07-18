@@ -1,8 +1,12 @@
+import { icon } from '../../ui/craft.js'
+
 /**
- * THE CRUCIBLE HUD — MK layout: two opposing angled health bars with ghost
- * damage trails, round pips, center timer, surge-meter segments in the bottom
- * corners, tower-progress chips, combo ticker, vs-plates, finisher overlay
- * and the defeat/champion tablets. All DOM, all classes "duel-" prefixed.
+ * THE CRUCIBLE HUD — MK layout: two opposing tapered-blade health bars with
+ * forged finial caps, ghost damage trails, rivet-gem round pips, an engraved
+ * stone timer block with hourglass finial, ember-quenched surge gauges in the
+ * bottom corners, carved tower-ladder plaques, a stamped-parchment combo
+ * ticker, vs-plates, finisher overlay and the defeat/champion tablets.
+ * All DOM, all classes "duel-" prefixed.
  */
 export class DuelHud {
   constructor(hud) {
@@ -18,21 +22,28 @@ export class DuelHud {
       const plate = hud.el('div', 'duel-nameplate', '', wrap)
       const sigil = hud.el('span', 'duel-sigil', '', plate)
       const name = hud.el('span', 'duel-name', '', plate)
-      const bar = hud.el('div', 'duel-hp', '', wrap)
+      // blade assembly: forged pommel finial + tapered trough (ghost, fill, etched ticks)
+      const blade = hud.el('div', 'duel-blade', '', wrap)
+      hud.el('span', 'duel-hpcap', '', blade)
+      const bar = hud.el('div', 'duel-hp', '', blade)
       const ghost = hud.el('div', 'duel-hpghost', '', bar)
       const fill = hud.el('div', 'duel-hpfill', '', bar)
+      hud.el('div', 'duel-hpticks', '', bar)
       const pips = hud.el('div', 'duel-pips', '', wrap)
       const pipEls = [hud.el('span', 'duel-pip', '', pips), hud.el('span', 'duel-pip', '', pips)]
       this.sides[side] = { wrap, sigil, name, fill, ghost, pipEls, hpFrac: 1 }
     }
-    this.timerEl = hud.el('div', 'duel-timer', '60', top)
+    // engraved stone numeral block, hourglass finial at its crown
+    const timerBlock = hud.el('div', 'duel-timerblock', '', top)
+    hud.el('div', 'duel-timer-finial', icon('hourglass', { size: 13 }), timerBlock)
+    this.timerEl = hud.el('div', 'duel-timer', '60', timerBlock)
 
     // surge meters, bottom corners
     for (const side of ['L', 'R']) {
       const m = hud.el('div', `duel-meter ${side === 'L' ? 'duel-left' : 'duel-right'}`)
       const segs = []
       for (let i = 0; i < 4; i++) segs.push(hud.el('span', 'duel-meter-seg', '<i></i>', m))
-      const label = hud.el('div', 'duel-meter-label', 'SURGE', m)
+      const label = hud.el('div', 'duel-meter-label', `${icon('flame', { size: 11 })}SURGE`, m)
       this.sides[side].meter = { root: m, segs, label }
     }
 
@@ -144,14 +155,18 @@ export class DuelHud {
   /** "RAVAGER vs GOREHOWL" title-card slam. Returns a remover. */
   showVs(pName, pTitle, foe) {
     const v = this.hud.el('div', 'duel-vs')
+    const buildPlate = (el, name, title) => {
+      this.hud.el('div', 'duel-vs-name', name, el)
+      this.hud.el('div', 'duel-vs-orn', icon('ornament-divider', { size: 150 }), el)
+      this.hud.el('div', 'duel-vs-title', title, el)
+    }
     const l = this.hud.el('div', 'duel-vs-plate duel-vsl', '', v)
-    this.hud.el('div', 'duel-vs-name', pName, l)
-    this.hud.el('div', 'duel-vs-title', pTitle, l)
-    this.hud.el('div', 'duel-vs-mid', 'VS', v)
+    buildPlate(l, pName, pTitle)
+    this.hud.el('div', 'duel-vs-mid',
+      `<span class="duel-vs-swords">${icon('crossed-swords', { size: 40 })}</span><span class="duel-vs-text">VS</span>`, v)
     const r = this.hud.el('div', 'duel-vs-plate duel-vsr', '', v)
     r.style.setProperty('--fc', foe.color)
-    this.hud.el('div', 'duel-vs-name', foe.name, r)
-    this.hud.el('div', 'duel-vs-title', foe.title, r)
+    buildPlate(r, foe.name, foe.title)
     return () => { v.classList.add('out'); setTimeout(() => v.remove(), 450) }
   }
 
@@ -162,7 +177,10 @@ export class DuelHud {
   }
 
   showOblitPrompt() {
-    this.oblitEl = this.hud.el('div', 'duel-oblit', 'OBLITERATE!')
+    this.oblitEl = this.hud.el('div', 'duel-oblit',
+      `<span class="duel-oblit-orn">${icon('ornament-divider', { size: 170 })}</span>` +
+      '<span class="duel-oblit-text">OBLITERATE!</span>' +
+      `<span class="duel-oblit-orn duel-oblit-orn-b">${icon('ornament-divider', { size: 170 })}</span>`)
     return () => { this.oblitEl?.remove(); this.oblitEl = null }
   }
 
@@ -178,7 +196,9 @@ export class DuelHud {
 
   defeatPanel({ foeName, onRetry, onAbandon }) {
     const p = this.hud.el('div', 'duel-panel ui-interactive')
+    this.hud.el('div', 'duel-panel-crest duel-crest-lose', icon('skull', { size: 38 }), p)
     this.hud.el('div', 'duel-panel-title lose', 'DEFEATED', p)
+    this.hud.el('div', 'duel-panel-orn', icon('ornament-divider', { size: 180 }), p)
     this.hud.el('div', 'duel-panel-sub', `${foeName} HOLDS THE CRUCIBLE`, p)
     const row = this.hud.el('div', 'duel-panel-row', '', p)
     const retry = document.createElement('button')
@@ -195,7 +215,9 @@ export class DuelHud {
 
   championPanel({ name, onHub }) {
     const p = this.hud.el('div', 'duel-panel ui-interactive')
+    this.hud.el('div', 'duel-panel-crest', icon('laurel', { size: 40 }), p)
     this.hud.el('div', 'duel-panel-title', 'CRUCIBLE CHAMPION', p)
+    this.hud.el('div', 'duel-panel-orn', icon('ornament-divider', { size: 180 }), p)
     this.hud.el('div', 'duel-panel-sub', `${name} STANDS ALONE ATOP THE TOWER`, p)
     const btn = document.createElement('button')
     btn.className = 'duel-btn'

@@ -1,103 +1,220 @@
-/* ============ WAR RIFT HUD — stone, bronze, torchlight ============ */
+/* ============================================================
+   WAR RIFT HUD — forged & engraved game chrome.
+   Built on the craft kit (styles.css + craft.js): chamfered
+   plaques, tapered blades, forged tags, parchment scraps.
+   No rounded-rects, no flat rgba panels, no text-only labels.
+   ============================================================ */
 
+/* ---------- level: forged rivet medallion ---------- */
 .moba-level {
   position: absolute; left: 22px; bottom: 26px;
-  width: 48px; height: 48px; border-radius: 50%;
+  width: 52px; height: 52px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 24px; font-weight: 800;
   color: var(--ink);
-  background: radial-gradient(circle at 35% 30%, rgba(90, 62, 24, 0.92), rgba(22, 17, 11, 0.96));
-  border: 2px solid rgba(176, 121, 58, 0.8);
-  box-shadow: 0 0 16px rgba(255, 184, 77, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.75);
+  text-shadow: var(--engrave), 0 0 10px rgba(255, 184, 77, 0.3);
+  /* struck bronze disc: bright crown, quenched base, rivet ring */
+  background:
+    radial-gradient(circle at 50% 50%, transparent 17px, rgba(0, 0, 0, 0.5) 17.5px 18.5px, rgba(232, 200, 140, 0.22) 19px 19.5px, transparent 20.5px),
+    radial-gradient(circle at 35% 28%, rgba(255, 226, 168, 0.5), rgba(255, 255, 255, 0) 42%),
+    var(--tex-bronze),
+    radial-gradient(circle at 50% 40%, #8a6230, #4a3216 62%, #241605 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 180, 0.45),
+    inset 0 -3px 5px rgba(20, 8, 2, 0.7),
+    0 0 0 2px #17100a,
+    0 0 0 3.5px rgba(176, 121, 58, 0.55),
+    0 3px 8px rgba(0, 0, 0, 0.6),
+    0 0 16px rgba(255, 184, 77, 0.22);
   z-index: 12;
+}
+/* four crown rivets pinning the medallion */
+.moba-level::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 4px, rgba(255, 232, 190, 0.7) 0 1px, #3a2810 1.4px 2px, rgba(0, 0, 0, 0.6) 2.6px, transparent 3.2px),
+    radial-gradient(circle at 50% calc(100% - 4px), rgba(255, 232, 190, 0.45) 0 1px, #3a2810 1.4px 2px, rgba(0, 0, 0, 0.6) 2.6px, transparent 3.2px),
+    radial-gradient(circle at 4px 50%, rgba(255, 232, 190, 0.55) 0 1px, #3a2810 1.4px 2px, rgba(0, 0, 0, 0.6) 2.6px, transparent 3.2px),
+    radial-gradient(circle at calc(100% - 4px) 50%, rgba(255, 232, 190, 0.55) 0 1px, #3a2810 1.4px 2px, rgba(0, 0, 0, 0.6) 2.6px, transparent 3.2px);
+  pointer-events: none;
 }
 .moba-level.moba-lv-pop { animation: mobaLvPop 0.7s cubic-bezier(0.16, 1.4, 0.4, 1); }
 @keyframes mobaLvPop {
-  0% { transform: scale(1.7); box-shadow: 0 0 40px rgba(255, 184, 77, 0.9); }
+  0% { transform: scale(1.7); filter: drop-shadow(0 0 26px rgba(255, 184, 77, 0.95)) brightness(1.6); }
   100% { transform: scale(1); }
 }
 
+/* ---------- clock: forged hourglass tag ---------- */
 .moba-clock {
-  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-  font-family: var(--font-display); font-size: 20px; font-weight: 800; letter-spacing: 0.22em;
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px;
+  clip-path: var(--clip-tag);
+  padding: 5px 20px 6px;
+  background:
+    linear-gradient(160deg, rgba(232, 220, 196, 0.1), transparent 42%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #1e1a14;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.4),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.55);
+  font-family: var(--font-display); font-size: 19px; font-weight: 800; letter-spacing: 0.18em;
   color: var(--ink);
-  text-shadow: 0 0 14px rgba(255, 184, 77, 0.35), 0 2px 5px #000;
+  text-shadow: var(--engrave), 0 0 12px rgba(255, 184, 77, 0.25);
   z-index: 12;
 }
+.moba-clock-sigil {
+  display: flex; font-size: 14px; font-style: normal;
+  color: var(--accent);
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.14));
+}
 
+/* ---------- scoreboard: carved stone plaque with sigil columns ---------- */
 .moba-stats {
   top: 14px; right: 22px;
-  display: flex; gap: 20px;
-  padding: 10px 18px;
+  display: flex; gap: 19px;
+  padding: 9px 20px 10px;
   z-index: 12;
 }
 .moba-stat { text-align: center; }
 .moba-stat span {
-  display: block;
-  font-family: var(--font-display); font-size: 10px; font-weight: 700; letter-spacing: 0.3em;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  font-family: var(--font-display); font-size: 10px; font-weight: 700; letter-spacing: 0.24em;
   color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
+.moba-stat-sigil {
+  display: flex; font-size: 13px; font-style: normal;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.12));
+}
+.moba-stat:nth-child(1) .moba-stat-sigil { color: var(--gold); }
+.moba-stat:nth-child(2) .moba-stat-sigil { color: #c9b083; }
+.moba-stat:nth-child(3) .moba-stat-sigil { color: #d86a50; }
 .moba-stat b {
   font-family: var(--font-display); font-size: 22px; font-weight: 800; font-style: italic;
   color: var(--ink);
+  text-shadow: var(--engrave), 0 2px 3px rgba(0, 0, 0, 0.6);
 }
-.moba-stat .moba-gold { color: var(--gold); text-shadow: 0 0 12px rgba(255, 184, 77, 0.5); }
+.moba-stat .moba-gold { color: var(--gold); text-shadow: var(--engrave), 0 0 12px rgba(255, 184, 77, 0.4); }
 
+/* ---------- minimap: bronze-riveted iron frame (canvas untouched) ----------
+   The chamfered frame lives on a SIBLING (.moba-minimap-frame) behind the
+   canvas — never clip an ancestor of a canvas that repaints every frame,
+   or the compositor masks that layer per frame (measured fps hit at DPR2). */
 .moba-minimap {
   position: absolute; right: 18px; bottom: 18px;
-  padding: 5px;
-  background: rgba(20, 16, 11, 0.8);
-  border: 1px solid rgba(176, 121, 58, 0.5);
-  border-radius: 6px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55), inset 0 0 8px rgba(0, 0, 0, 0.6);
+  padding: 9px;
   z-index: 12;
 }
-.moba-minimap canvas { display: block; width: 210px; height: 105px; border-radius: 3px; }
+.moba-minimap-frame {
+  position: absolute; inset: 0; z-index: 0; isolation: isolate;
+  clip-path: var(--clip-plaque-sm);
+  /* forged bronze rim… */
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 40%, #150f09 85%);
+}
+/* …iron face set into it */
+.moba-minimap-frame::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.08), transparent 40%, rgba(0, 0, 0, 0.42)),
+    var(--tex-iron),
+    #191510;
+}
+/* corner rivets pinning the map plate down (drawn over the frame padding) */
+.moba-minimap-frame::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 10px 10px, rgba(228, 196, 138, 0.55) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.6) 2.9px, transparent 3.5px),
+    radial-gradient(circle at calc(100% - 10px) 10px, rgba(228, 196, 138, 0.55) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.6) 2.9px, transparent 3.5px),
+    radial-gradient(circle at 10px calc(100% - 10px), rgba(228, 196, 138, 0.55) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.6) 2.9px, transparent 3.5px),
+    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), rgba(228, 196, 138, 0.55) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.6) 2.9px, transparent 3.5px);
+  pointer-events: none;
+}
+.moba-minimap canvas {
+  position: relative; z-index: 1;
+  display: block; width: 210px; height: 105px;
+  outline: 1px solid rgba(0, 0, 0, 0.75);
+  box-shadow: 0 0 0 2px rgba(176, 121, 58, 0.28);
+}
 
+/* ---------- recall: engraved channel trough ---------- */
 .moba-recall {
   position: absolute; left: 50%; bottom: 128px; transform: translateX(-50%);
-  width: 220px; text-align: center;
+  width: 230px; text-align: center;
   opacity: 0; transition: opacity 0.15s;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
   z-index: 14;
 }
 .moba-recall.on { opacity: 1; }
 .moba-recall span {
   font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: 0.4em;
-  color: #c8dce8; text-shadow: 0 0 12px rgba(184, 212, 232, 0.6);
+  font-variant: small-caps;
+  color: #c8dce8;
+  text-shadow: var(--engrave), 0 0 12px rgba(184, 212, 232, 0.5);
 }
 .moba-recall-track {
-  margin-top: 5px; height: 8px; border-radius: 4px; overflow: hidden;
-  background: rgba(14, 11, 8, 0.9);
-  border: 1px solid rgba(184, 212, 232, 0.45);
+  position: relative;
+  margin-top: 5px; height: 11px;
+  clip-path: var(--clip-tag);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.22) 58%, rgba(0, 0, 0, 0.5)),
+    var(--tex-iron),
+    #14100b;
+  box-shadow: inset 0 0 0 1px rgba(168, 204, 224, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+/* etched channel ticks */
+.moba-recall-track::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 1px, rgba(232, 220, 196, 0.08) 1px 2px, transparent 2px);
+  background-size: 20% 100%;
+  pointer-events: none;
 }
 .moba-recall-fill {
   height: 100%; width: 0%;
-  background: linear-gradient(90deg, #7fa4c4, #d8ecf8);
-  box-shadow: 0 0 12px #a8cce0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 45%, rgba(0, 0, 0, 0.3)),
+    linear-gradient(90deg, #7fa4c4, #d8ecf8);
+  box-shadow: 0 0 12px #a8cce0, inset 0 -1px 1px rgba(0, 0, 0, 0.35);
 }
 
+/* ---------- death: engraved letterpress ---------- */
 .moba-death {
   position: absolute; inset: 0; pointer-events: none;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: rgba(18, 12, 10, 0.6);
+  background:
+    radial-gradient(ellipse at center, rgba(18, 12, 10, 0.35) 30%, rgba(10, 6, 5, 0.72) 100%);
   opacity: 0; transition: opacity 0.5s;
   z-index: 28;
 }
 .moba-death.on { opacity: 1; }
 .moba-death-title {
   font-family: var(--font-display); font-size: 58px; font-weight: 800; font-style: italic; letter-spacing: 0.1em;
-  color: #c23b2e;
-  text-shadow: 0 0 34px rgba(194, 59, 46, 0.6), 0 4px 0 rgba(0, 0, 0, 0.6);
+  font-variant: small-caps;
+  color: #a1252c;
+  -webkit-text-stroke: 1px rgba(16, 6, 4, 0.8);
+  text-shadow:
+    0 -2px 1px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(232, 220, 196, 0.14),
+    0 3px 6px rgba(0, 0, 0, 0.7),
+    0 0 34px rgba(194, 59, 46, 0.4);
 }
 .moba-death-count {
   font-family: var(--font-display); font-size: 96px; font-weight: 800;
   color: var(--ink);
-  text-shadow: 0 0 30px rgba(255, 184, 77, 0.3), 0 4px 10px #000;
+  text-shadow:
+    0 -3px 2px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(232, 220, 196, 0.18),
+    0 4px 10px #000,
+    0 0 26px rgba(255, 184, 77, 0.22);
   margin-top: -8px;
 }
 .moba-death-sub {
   font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: 0.5em;
+  font-variant: small-caps;
   color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
 
 .moba-vignette {
@@ -110,65 +227,77 @@
   100% { opacity: 0; }
 }
 
-/* ---------- end-of-war tally (duel-style tablet) ---------- */
+/* ---------- end-of-war tally: parchment-and-iron ledger ---------- */
 .moba-end {
   position: absolute; left: 50%; top: 54%; transform: translateX(-50%);
-  width: 440px; padding: 20px 26px 16px;
-  text-align: center; z-index: 35;
-  background:
-    linear-gradient(180deg, rgba(84, 74, 60, 0.4), rgba(0, 0, 0, 0.25) 26%, rgba(0, 0, 0, 0.42)),
-    rgba(26, 21, 16, 0.94);
-  border: 1px solid rgba(176, 121, 58, 0.5);
-  border-top-color: rgba(232, 220, 196, 0.25);
-  border-radius: 10px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(232, 220, 196, 0.12), inset 0 0 44px rgba(0, 0, 0, 0.5);
+  width: 452px; padding: 0 0 21px;
+  text-align: center; z-index: 35; isolation: isolate;
+  clip-path: var(--clip-plaque);
+  /* forged iron frame… */
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 82%);
   animation: mobaPanelIn 0.35s ease;
 }
+/* …holding an inked parchment leaf */
+.moba-end::before {
+  content: ''; position: absolute; inset: 3px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.3), rgba(0, 0, 0, 0) 30%, rgba(96, 72, 40, 0.28) 92%),
+    radial-gradient(130% 90% at 50% 108%, rgba(96, 72, 40, 0.35), transparent 55%),
+    var(--tex-parchment),
+    #cdbb92;
+}
 @keyframes mobaPanelIn { from { opacity: 0; transform: translate(-50%, 16px); } }
+/* title: iron strap riveted across the ledger's crown */
 .moba-end-title {
   font-family: var(--font-display);
   font-size: 17px; font-weight: 800; font-style: italic; letter-spacing: 0.26em;
   color: var(--gold);
-  text-shadow: 0 0 20px rgba(255, 184, 77, 0.5), 0 2px 3px #000;
-  margin-bottom: 14px;
-}
-.moba-end-title.lose { color: #e04a3a; text-shadow: 0 0 20px rgba(194, 59, 46, 0.6), 0 2px 3px #000; }
-.moba-end-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 14px;
+  text-shadow: var(--engrave), 0 0 16px rgba(255, 184, 77, 0.35);
+  background:
+    linear-gradient(160deg, rgba(232, 220, 196, 0.08), transparent 45%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #1c1712;
+  box-shadow:
+    inset 0 -1px 0 rgba(176, 121, 58, 0.5),
+    inset 0 1px 0 rgba(232, 220, 196, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  padding: 13px 18px 12px;
   margin-bottom: 16px;
+}
+.moba-end-title.lose { color: #e04a3a; text-shadow: var(--engrave), 0 0 16px rgba(194, 59, 46, 0.45); }
+.moba-end-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px 12px;
+  margin: 0 26px 16px;
+}
+.moba-end-sigil {
+  display: block; font-size: 15px; font-style: normal; line-height: 1;
+  color: #7a5a30;
+  filter: drop-shadow(0 1px 0 rgba(255, 250, 230, 0.55));
+  margin-bottom: 3px;
 }
 .moba-end-stat span {
   display: block;
   font-family: var(--font-display); font-size: 10px; font-weight: 700; letter-spacing: 0.26em;
-  color: var(--ink-dim);
+  color: var(--sepia-dim);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
+  border-bottom: 1px solid rgba(90, 65, 35, 0.35);
+  padding-bottom: 3px; margin-bottom: 3px;
 }
 .moba-end-stat b {
   font-family: var(--font-display); font-size: 21px; font-weight: 800; font-style: italic;
-  color: var(--ink);
+  color: var(--sepia);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4);
 }
-.moba-end-stat.fav b { font-size: 14px; color: var(--gold); letter-spacing: 0.06em; }
-.moba-end button {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 800; letter-spacing: 0.18em;
-  font-variant: small-caps;
-  color: #1c1108;
-  background: linear-gradient(180deg, #e0aa5e, #b0793a 55%, #8a5a26);
-  border: 1px solid #5c3d1a;
-  border-top-color: #f0cf9a;
-  border-radius: 6px;
-  padding: 11px 24px;
-  cursor: pointer;
-  text-shadow: 0 1px 0 rgba(255, 226, 178, 0.5);
-  box-shadow: 0 0 20px rgba(255, 140, 59, 0.28), 0 3px 8px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(90, 50, 12, 0.55);
-  transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
+.moba-end-stat.fav .moba-end-sigil { color: #8a3b1c; }
+.moba-end-stat.fav b { font-size: 14px; color: #8a3b1c; letter-spacing: 0.06em; }
+/* the RETURN button is the kit's forged bronze plaque; just scale it to the ledger */
+.moba-end button { font-size: 14px; padding: 11px 30px; }
+.moba-end-auto {
+  margin-top: 10px; font-size: 11px; letter-spacing: 0.14em; font-style: italic;
+  color: var(--sepia-dim);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4);
 }
-.moba-end button:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.12);
-  box-shadow: 0 0 30px rgba(255, 140, 59, 0.5), 0 5px 12px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(90, 50, 12, 0.55);
-}
-.moba-end-auto { margin-top: 10px; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim); }
 
 /* not-enough-energy deny pulse on the energy bar */
 .stat-bar.moba-deny { animation: mobaDeny 0.4s ease; }
@@ -209,7 +338,11 @@
   font-size: 92px; font-weight: 800; font-style: italic; letter-spacing: 0.12em;
   color: #ffb84d;
   -webkit-text-stroke: 2px rgba(30, 14, 4, 0.9);
-  text-shadow: 0 0 46px rgba(255, 140, 59, 0.55), 0 6px 0 rgba(20, 10, 4, 0.85);
+  text-shadow:
+    0 -2px 0 rgba(255, 240, 210, 0.2),
+    0 4px 0 rgba(20, 10, 4, 0.85),
+    0 7px 1px rgba(12, 6, 2, 0.55),
+    0 0 46px rgba(255, 140, 59, 0.55);
   animation: mobaTitleIn 0.5s cubic-bezier(0.16, 1.4, 0.4, 1);
 }
 .moba-title-sub {
@@ -217,12 +350,12 @@
   font-family: var(--font-display);
   font-size: 15px; font-weight: 700; letter-spacing: 0.55em;
   font-variant: small-caps; color: var(--ink-dim);
-  text-shadow: 0 2px 4px #000;
+  text-shadow: var(--engrave), 0 2px 4px #000;
   animation: mobaTitleIn 0.5s ease 0.1s backwards;
 }
 @keyframes mobaTitleIn { from { transform: scale(1.6); opacity: 0; } }
 
-/* ---------- vs plates ---------- */
+/* ---------- vs plates: chamfered war-stone tablets ---------- */
 .moba-vs {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center; gap: 34px;
@@ -232,19 +365,25 @@
 .moba-vs.out { opacity: 0; }
 .moba-vs-plate {
   --fc: #ffb84d;
+  position: relative; isolation: isolate;
   width: 300px; padding: 20px 24px;
   text-align: center;
+  clip-path: var(--clip-plaque);
+  /* rim quenched in the fighter's color… */
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--fc) 42%, #4a3416) 0%,
+    color-mix(in srgb, var(--fc) 16%, #241a10) 42%,
+    #120d08 100%);
+}
+/* …around a chiseled stone face */
+.moba-vs-plate::before {
+  content: ''; position: absolute; inset: 3px; z-index: -1;
+  clip-path: var(--clip-plaque);
   background:
-    linear-gradient(170deg, rgba(80, 68, 52, 0.55), rgba(14, 10, 7, 0.55) 55%, rgba(0, 0, 0, 0.6)),
-    rgba(24, 19, 14, 0.94);
-  border: 1px solid color-mix(in srgb, var(--fc) 45%, #4a3416);
-  border-top-color: color-mix(in srgb, var(--fc) 60%, #a88a4a);
-  border-radius: 6px;
-  box-shadow:
-    0 0 34px color-mix(in srgb, var(--fc) 18%, transparent),
-    inset 0 1px 0 rgba(232, 220, 196, 0.14),
-    inset 0 0 44px rgba(0, 0, 0, 0.55),
-    0 16px 44px rgba(0, 0, 0, 0.7);
+    linear-gradient(135deg, rgba(232, 220, 196, 0.08), transparent 36%, rgba(0, 0, 0, 0.45)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.4)),
+    var(--tex-stone),
+    rgba(24, 19, 14, 0.96);
 }
 .moba-vsl { animation: mobaSlamL 0.45s cubic-bezier(0.16, 1.3, 0.4, 1); }
 .moba-vsr { animation: mobaSlamR 0.45s cubic-bezier(0.16, 1.3, 0.4, 1); }
@@ -255,69 +394,92 @@
   font-size: 30px; font-weight: 800; letter-spacing: 0.1em;
   font-variant: small-caps;
   color: color-mix(in srgb, var(--fc) 80%, #ffe9c4);
-  text-shadow: 0 0 22px color-mix(in srgb, var(--fc) 45%, transparent), 0 3px 0 rgba(16, 8, 3, 0.8);
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(232, 220, 196, 0.14),
+    0 3px 0 rgba(16, 8, 3, 0.8),
+    0 0 22px color-mix(in srgb, var(--fc) 40%, transparent);
 }
 .moba-vs-title {
   margin-top: 4px;
   font-family: var(--font-display);
   font-size: 11px; font-weight: 700; letter-spacing: 0.3em;
   font-variant: small-caps; color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
 .moba-vs-mid {
   font-family: var(--font-display);
   font-size: 56px; font-weight: 800; font-style: italic;
   color: #c23b2e;
-  text-shadow: 0 0 30px rgba(194, 59, 46, 0.7), 0 4px 0 rgba(16, 6, 4, 0.85);
+  text-shadow:
+    0 -2px 0 rgba(255, 240, 210, 0.14),
+    0 4px 0 rgba(16, 6, 4, 0.85),
+    0 0 30px rgba(194, 59, 46, 0.7);
   animation: mobaVsPop 0.5s cubic-bezier(0.16, 1.5, 0.4, 1) 0.12s backwards;
 }
 @keyframes mobaVsPop { from { transform: scale(3.2); opacity: 0; } }
 
-/* ---------- enemy warlord portrait + taunts ---------- */
+/* ---------- enemy warlord: forged iron strap + parchment taunt scrap ---------- */
 .moba-foeplate {
-  position: absolute; top: 14px; left: 22px;
+  position: absolute; top: 14px; left: 22px; isolation: isolate;
   display: flex; align-items: center; gap: 9px;
-  padding: 7px 14px;
-  background: linear-gradient(160deg, rgba(56, 20, 14, 0.55), rgba(14, 8, 6, 0.85));
-  border: 1px solid rgba(194, 59, 46, 0.4);
-  border-radius: 5px;
-  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.08), 0 3px 8px rgba(0, 0, 0, 0.45);
+  padding: 8px 16px;
+  clip-path: var(--clip-plaque-sm);
+  /* crimson-quenched iron strap */
+  background: linear-gradient(165deg, #6a2a1c 0%, #38160e 45%, #140906 100%);
   z-index: 12;
+}
+.moba-foeplate::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.08), transparent 42%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #1a100c;
 }
 .moba-foe-sigil {
   width: 20px; height: 20px; flex: none;
   display: flex; align-items: center; justify-content: center;
   transform: rotate(45deg);
-  background: linear-gradient(160deg, #8a1638, #4a0d1c);
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 10px rgba(255, 90, 38, 0.35);
+  background:
+    linear-gradient(135deg, rgba(255, 200, 160, 0.35), transparent 45%),
+    linear-gradient(160deg, #8a1638, #4a0d1c);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 210, 180, 0.3),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.7),
+    0 0 10px rgba(255, 90, 38, 0.3);
 }
 .moba-foe-sigil i {
   transform: rotate(-45deg);
   font-family: var(--font-display); font-style: normal;
   font-size: 11px; font-weight: 800; color: #ffd9c4;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.8);
 }
 .moba-foe-name {
   font-family: var(--font-display);
   font-size: 12px; font-weight: 800; letter-spacing: 0.2em;
   font-variant: small-caps; color: var(--ink);
+  text-shadow: var(--engrave);
 }
+/* the warlord's words, scrawled on a torn parchment scrap */
 .moba-taunt {
-  position: absolute; top: 58px; left: 22px;
-  max-width: 320px; padding: 8px 14px;
+  position: absolute; top: 60px; left: 22px;
+  max-width: 320px; padding: 10px 16px 11px;
   font-family: var(--font-display);
   font-size: 13px; font-weight: 700; font-style: italic; letter-spacing: 0.08em;
-  color: #ffd9c4;
-  background: rgba(20, 10, 8, 0.88);
-  border: 1px solid rgba(194, 59, 46, 0.5);
-  border-left: 3px solid #c23b2e;
-  border-radius: 4px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  color: #6a1d12;
+  clip-path: var(--clip-torn);
+  background:
+    linear-gradient(168deg, rgba(255, 248, 224, 0.28), rgba(0, 0, 0, 0) 40%, rgba(96, 72, 40, 0.24)),
+    var(--tex-parchment),
+    #cfbd94;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
   z-index: 13;
   animation: mobaTauntIn 0.3s cubic-bezier(0.16, 1.3, 0.4, 1);
   transition: opacity 0.35s;
 }
 .moba-taunt.out { opacity: 0; }
-@keyframes mobaTauntIn { from { transform: translateX(-24px); opacity: 0; } }
+@keyframes mobaTauntIn { from { transform: translateX(-24px) rotate(-1.5deg); opacity: 0; } }
 
 /* ---------- low-HP heartbeat vignette ---------- */
 .moba-lowhp {

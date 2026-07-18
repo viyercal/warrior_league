@@ -1,4 +1,5 @@
 import { HUD } from '../../ui/hud.js'
+import { icon } from '../../ui/craft.js'
 import { TEAMS, RIVER_ANGLE, LANE_HALF } from './constants.js'
 
 const MAP_W = 116, MAP_H = 52 // world span the minimap covers
@@ -10,17 +11,21 @@ export function buildMobaHud(g) {
 
   // ---- bottom-left: level chip + HP / energy ----
   const lvChip = hud.el('div', 'moba-level', '1')
-  const hpBar = hud.bar({ label: 'HP', color: '#8fc25a' })
+  const hpBar = hud.bar({ label: 'HP', color: '#8fae4a' }) // kit moss green — quenched blade
   Object.assign(hpBar.root.style, { left: '84px', bottom: '64px', width: '300px' })
   const enBar = hud.bar({ label: 'ENERGY', color: '#ff8c3b' })
   Object.assign(enBar.root.style, { left: '84px', bottom: '18px', width: '300px' })
 
-  // ---- top-center clock / top-right stats ----
-  const clockEl = hud.el('div', 'moba-clock', '0:00')
+  // ---- top-center clock (forged hourglass tag) / top-right scoreboard plaque ----
+  const clockBox = hud.el('div', 'moba-clock',
+    `<i class="moba-clock-sigil">${icon('hourglass', { size: '1em' })}</i><span class="moba-clock-time">0:00</span>`)
+  const clockEl = clockBox.querySelector('.moba-clock-time')
+  const statCell = (sigil, label, valCls, val) =>
+    `<div class="moba-stat"><span><i class="moba-stat-sigil">${icon(sigil, { size: '1em' })}</i>${label}</span><b class="${valCls}">${val}</b></div>`
   const stats = hud.el('div', 'moba-stats ui-panel',
-    '<div class="moba-stat"><span>GOLD</span><b class="moba-gold">0</b></div>' +
-    '<div class="moba-stat"><span>CS</span><b class="moba-cs">0</b></div>' +
-    '<div class="moba-stat"><span>K / D</span><b class="moba-kd">0 / 0</b></div>')
+    statCell('coin', 'GOLD', 'moba-gold', '0') +
+    statCell('crossed-swords', 'CS', 'moba-cs', '0') +
+    statCell('skull', 'K / D', 'moba-kd', '0 / 0'))
   const goldEl = stats.querySelector('.moba-gold')
   const csEl = stats.querySelector('.moba-cs')
   const kdEl = stats.querySelector('.moba-kd')
@@ -47,7 +52,11 @@ export function buildMobaHud(g) {
   const vgEl = hud.el('div', 'moba-vignette')
 
   // ---- minimap ----
+  // The forged frame is a SIBLING layer behind the canvas, not an ancestor:
+  // the canvas repaints every frame, and a clip-path on an ancestor would
+  // force a GPU mask over that repainting layer each frame (measured fps hit).
   const mapBox = hud.el('div', 'moba-minimap')
+  hud.el('div', 'moba-minimap-frame', '', mapBox)
   const canvas = document.createElement('canvas')
   canvas.width = 420
   canvas.height = 210
@@ -136,15 +145,18 @@ export function buildMobaHud(g) {
       void lvChip.offsetWidth
       lvChip.classList.add('moba-lv-pop')
     },
+    // called every frame — only touch the DOM when the engraving actually changes
     setStats: (gold, cs, k, d) => {
-      goldEl.textContent = String(gold)
-      csEl.textContent = String(cs)
-      kdEl.textContent = `${k} / ${d}`
+      const g = String(gold), c = String(cs), kd = `${k} / ${d}`
+      if (goldEl.textContent !== g) goldEl.textContent = g
+      if (csEl.textContent !== c) csEl.textContent = c
+      if (kdEl.textContent !== kd) kdEl.textContent = kd
     },
     setClock: sec => {
       const m = Math.floor(sec / 60)
       const s = Math.floor(sec % 60)
-      clockEl.textContent = `${m}:${String(s).padStart(2, '0')}`
+      const t = `${m}:${String(s).padStart(2, '0')}`
+      if (clockEl.textContent !== t) clockEl.textContent = t
     },
     recall: {
       show: () => { recallEl.classList.add('on') },
@@ -204,23 +216,24 @@ export function buildMobaHud(g) {
   }
 }
 
-/** Duel-style end-of-war tally under VICTORY/DEFEAT + RETURN TO HUB. */
+/** End-of-war tally: a parchment-and-iron ledger under VICTORY/DEFEAT. */
 export function endPanel(hud, ctx, stats) {
   const panel = hud.el('div', 'moba-end ui-interactive')
   hud.el('div', `moba-end-title${stats.won ? '' : ' lose'}`,
     stats.won ? 'THE RIFT STANDS CONQUERED' : 'THE RIFT LIES IN ASHES', panel)
   const grid = hud.el('div', 'moba-end-grid', '', panel)
-  const stat = (label, val, cls = '') => {
+  const stat = (label, val, cls = '', sigil = null) => {
     const cell = hud.el('div', `moba-end-stat ${cls}`, '', grid)
+    if (sigil) hud.el('i', 'moba-end-sigil', icon(sigil, { size: '1em' }), cell)
     hud.el('span', '', label, cell)
     hud.el('b', '', String(val), cell)
   }
-  stat('K / D', `${stats.kills} / ${stats.deaths}`)
-  stat('CS', stats.cs)
-  stat('GOLD', stats.gold)
-  stat('TOWERS', stats.towers)
-  stat('DAMAGE DEALT', stats.dmg)
-  stat('FAVORITE ART', stats.fav, 'fav')
+  stat('K / D', `${stats.kills} / ${stats.deaths}`, '', 'skull')
+  stat('CS', stats.cs, '', 'crossed-swords')
+  stat('GOLD', stats.gold, '', 'coin')
+  stat('TOWERS', stats.towers, '', 'gate')
+  stat('DAMAGE DEALT', stats.dmg, '', 'flame')
+  stat('FAVORITE ART', stats.fav, 'fav', 'laurel')
   const btn = document.createElement('button')
   btn.textContent = 'RETURN TO HUB'
   btn.onclick = () => { ctx.audio.play('click'); ctx.goTo('hub') }

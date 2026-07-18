@@ -1,7 +1,10 @@
+import { icon } from '../../ui/craft.js'
+
 /**
- * Mortal Arena DOM HUD: carved-stone fighter plaques (damage % + stock studs,
- * crack states, heartbeat at high %), kill feed, cinematic letterbox, intro
- * name plates and the podium results tablet. Built on the shared HUD toolkit.
+ * Mortal Arena DOM HUD: carved-stone fighter plaques (damage % + forged stock
+ * rivets, fracture states, heartbeat at high %), parchment kill feed,
+ * cinematic letterbox, intro name plates and the podium results ledger.
+ * Built on the shared HUD toolkit.
  */
 export class BrawlHud {
   constructor(hud, fighters) {
@@ -11,13 +14,16 @@ export class BrawlHud {
     for (const f of fighters) {
       const chip = hud.el('div', 'brawl-chip', '', this.wrap)
       chip.style.setProperty('--fc', f.color)
-      hud.el('div', 'brawl-chip-name', `<span class="brawl-dot"></span>${f.name}`, chip)
-      const pct = hud.el('div', 'brawl-pct', '0%', chip)
+      const face = hud.el('div', 'brawl-chip-face', '', chip)
+      hud.el('div', 'brawl-chip-name', `<span class="brawl-dot"></span>${f.name}`, face)
+      const pct = hud.el('div', 'brawl-pct', '0%', face)
       // drop the pop class when its animation ends so the 100%+ heartbeat resumes
       pct.addEventListener('animationend', e => { if (e.animationName === 'brawlPctPop') pct.classList.remove('pop') })
-      const pips = hud.el('div', 'brawl-pips', '', chip)
+      const pips = hud.el('div', 'brawl-pips', '', face)
       const pipEls = []
       for (let i = 0; i < 3; i++) pipEls.push(hud.el('span', 'brawl-pip on', '', pips))
+      // fracture overlay: seams appear as the plaque takes stock losses / 200%+
+      hud.el('div', 'brawl-chip-cracks', '', chip)
       this.rows.push({ f, chip, pct, pipEls, lastDmg: 0, lastStocks: 3 })
     }
     this.feedBox = hud.el('div', 'brawl-feed')
@@ -82,14 +88,19 @@ export class BrawlHud {
     const p = this.hud.el('div', 'brawl-plate')
     p.style.setProperty('--fc', color)
     this.hud.el('div', 'brawl-plate-name', name, p)
-    if (title) this.hud.el('div', 'brawl-plate-title', title, p)
+    if (title) {
+      this.hud.el('div', 'brawl-plate-orn', icon('ornament-divider', { size: 150 }), p)
+      this.hud.el('div', 'brawl-plate-title', title, p)
+    }
     return () => { p.classList.add('out'); setTimeout(() => p.remove(), 300) }
   }
 
-  /** Podium results tablet: ordered stat rows, the winner's plaque glowing. */
+  /** Podium results ledger: ordered stat rows, laurel + glow for the champion. */
   results({ rows, won, onHub }) {
     const p = this.hud.el('div', 'brawl-results ui-interactive')
+    this.hud.el('div', 'brawl-results-crest' + (won ? '' : ' lose'), icon(won ? 'laurel' : 'skull', { size: 34 }), p)
     this.hud.el('div', `brawl-results-title${won ? '' : ' lose'}`, won ? 'CHAMPION' : 'DEFEATED', p)
+    this.hud.el('div', 'brawl-results-orn', icon('ornament-divider', { size: 190 }), p)
     const table = this.hud.el('div', 'brawl-results-table', '', p)
     this.hud.el('div', 'brawl-results-row brawl-results-head',
       '<span>FIGHTER</span><span>KOs</span><span>FALLS</span><span>PEAK %</span><span>SURV</span><span>FAV ART</span>', table)
@@ -97,7 +108,9 @@ export class BrawlHud {
       const row = this.hud.el('div', `brawl-results-row${r.winner ? ' brawl-results-winner' : ''}`, '', table)
       row.style.setProperty('--fc', r.color)
       row.innerHTML =
-        `<span class="brawl-results-name"><b class="brawl-place">${r.place}</b><i class="brawl-dot"></i>${r.name}</span>` +
+        `<span class="brawl-results-name"><b class="brawl-place">${r.place}</b><i class="brawl-dot"></i>${r.name}` +
+        (r.winner ? `<span class="brawl-laurel">${icon('laurel', { size: 14 })}</span>` : '') +
+        '</span>' +
         `<span>${r.kos}</span><span>${r.taken}</span><span>${r.maxDmg}%</span><span>${r.survived}</span>` +
         `<span class="brawl-results-fav">${r.fav}</span>`
     }

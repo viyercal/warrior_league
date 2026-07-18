@@ -1,25 +1,43 @@
-/* ============ LOADOUT — WAR FORGE (carved stone & parchment) ============ */
+/* ============ LOADOUT — WAR FORGE, forged & engraved ============
+   Craft language: the panel is a chamfered stone slab in a forged bronze rim;
+   swatches are gem sockets, segments are carved stone toggles, slots and
+   skill tiles share the ability bar's shield/plaque silhouettes, the name
+   input is an engraved brass nameplate, tooltips are inked parchment. */
 
 .loadout-panel {
+  /* small chamfers for chips/tiles (plaque-sm's 7px is too coarse at this scale) */
+  --clip-chip: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+  --clip-gem: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
+
   position: absolute;
   top: 18px; right: 18px; bottom: 18px;
   width: min(438px, 42vw);
   display: flex; flex-direction: column;
-  background:
-    linear-gradient(160deg, rgba(66, 54, 40, 0.4), rgba(18, 13, 9, 0.3) 55%, rgba(0, 0, 0, 0.35)),
-    rgba(26, 21, 15, 0.86);
-  border: 1px solid rgba(176, 121, 58, 0.5);
-  border-radius: 12px;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow:
-    inset 0 1px 0 rgba(232, 220, 196, 0.12),
-    inset 0 0 34px rgba(0, 0, 0, 0.55),
-    0 18px 60px rgba(0, 0, 0, 0.6);
+  isolation: isolate;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-plaque);
+  /* forged bronze rim… */
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 80%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 14px 40px rgba(0, 0, 0, 0.55));
   padding: 20px 20px 16px;
   animation: loadoutIn 0.55s cubic-bezier(0.22, 1.2, 0.36, 1);
   overflow: hidden;
   z-index: 12;
+}
+/* …around a chiseled stone face pinned by corner rivets */
+.loadout-panel::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    radial-gradient(circle at 11px 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at 11px calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.08), transparent 34%, transparent 62%, rgba(0, 0, 0, 0.42)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    rgba(26, 21, 15, 0.94);
+  pointer-events: none;
 }
 @keyframes loadoutIn { from { transform: translateX(48px); opacity: 0; } }
 
@@ -29,208 +47,375 @@
   font-size: 11px; font-weight: 700; letter-spacing: 0.42em;
   font-variant: small-caps;
   color: var(--accent); opacity: 0.9;
-  text-shadow: 0 0 12px rgba(255, 140, 59, 0.35);
+  text-shadow: var(--engrave), 0 0 12px rgba(255, 140, 59, 0.3);
 }
 .loadout-title {
   font-family: var(--font-display);
   font-size: 36px; font-weight: 800; letter-spacing: 0.08em;
   font-variant: small-caps;
   line-height: 1.05;
-  background: linear-gradient(175deg, #ffe2ad 10%, #ffb84d 42%, #b0793a 75%, #8a5a26 98%);
+  background:
+    linear-gradient(175deg, rgba(255, 226, 168, 0.85) 6%, rgba(255, 184, 77, 0.55) 32%, rgba(122, 76, 34, 0.4) 62%, rgba(58, 34, 12, 0.55) 95%),
+    var(--tex-bronze),
+    linear-gradient(175deg, #ffd89a 8%, #b0793a 55%, #6a4318 95%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0 16px rgba(255, 140, 59, 0.3)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.55));
+  -webkit-text-stroke: 1px rgba(24, 12, 4, 0.75);
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 232, 190, 0.35))
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.8))
+    drop-shadow(0 2px 1px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 12px rgba(255, 140, 59, 0.25));
 }
-.loadout-namerow { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.loadout-namerow { display: flex; align-items: center; gap: 12px; margin-top: 9px; }
 .loadout-namelabel {
   font-family: var(--font-display);
   font-size: 10px; font-weight: 700; letter-spacing: 0.34em;
   font-variant: small-caps;
   color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
+/* engraved brass nameplate */
 .loadout-name {
   flex: 1; min-width: 0;
-  background: rgba(0, 0, 0, 0.32);
-  border: 1px solid rgba(176, 121, 58, 0.35);
-  border-bottom: 2px solid var(--accent);
-  border-radius: 5px 5px 2px 2px;
-  color: var(--ink);
+  border: none; border-radius: 0;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    linear-gradient(180deg, rgba(255, 226, 168, 0.5), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(30, 14, 2, 0.45)),
+    var(--tex-bronze),
+    linear-gradient(180deg, #d9a055 0%, #b0793a 48%, #82551f 100%);
+  color: #2a1808; caret-color: #2a1808;
   font-family: var(--font-display);
-  font-weight: 700; font-size: 20px; letter-spacing: 0.18em;
+  font-weight: 800; font-size: 20px; letter-spacing: 0.18em;
   text-transform: uppercase;
-  padding: 5px 10px;
+  padding: 6px 14px;
   outline: none;
-  transition: box-shadow 0.18s, background 0.18s;
+  text-shadow: 0 1px 0 rgba(255, 232, 190, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 180, 0.5),
+    inset 0 -3px 5px rgba(40, 18, 4, 0.55),
+    inset 0 0 0 1px rgba(60, 30, 8, 0.35);
+  filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.9)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+  transition: box-shadow 0.18s, filter 0.18s;
 }
-.loadout-name:focus { box-shadow: 0 0 18px rgba(255, 184, 77, 0.3); background: rgba(255, 184, 77, 0.08); }
+.loadout-name::selection { background: rgba(122, 60, 16, 0.85); color: #ffe9c4; }
+.loadout-name:focus {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 180, 0.5),
+    inset 0 -3px 5px rgba(40, 18, 4, 0.55),
+    inset 0 0 0 2px rgba(255, 110, 38, 0.75);
+  filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.9)) drop-shadow(0 0 10px rgba(255, 140, 59, 0.5));
+}
 
+/* forged strap chip announcing the destination battle */
 .loadout-next {
-  margin-top: 10px; padding: 7px 12px; border-radius: 6px;
+  position: relative; isolation: isolate;
+  margin-top: 10px; padding: 8px 12px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-plaque-sm);
   font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: 0.3em;
   font-variant: small-caps;
   text-align: center; color: #1c1206;
   background: linear-gradient(90deg, var(--accent), var(--accent2));
-  box-shadow: 0 0 20px rgba(255, 140, 59, 0.35), inset 0 1px 0 rgba(255, 226, 173, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 173, 0.5),
+    inset 0 -2px 4px rgba(30, 10, 2, 0.45),
+    inset 0 0 0 1px rgba(40, 16, 4, 0.3);
+  text-shadow: 0 1px 0 rgba(255, 236, 200, 0.4);
   animation: loadoutNextPulse 2.4s ease-in-out infinite;
 }
-.loadout-next.loadout-g-moba { background: linear-gradient(90deg, #b5cc72, #6b8a34); box-shadow: 0 0 20px rgba(143, 174, 74, 0.4); }
-.loadout-next.loadout-g-hoops { background: linear-gradient(90deg, #e0604a, #a1252c); box-shadow: 0 0 20px rgba(194, 59, 46, 0.45); }
-.loadout-next.loadout-g-arena { background: linear-gradient(90deg, #ff9a52, #ff5a26); box-shadow: 0 0 20px rgba(255, 90, 38, 0.45); }
-.loadout-next.loadout-g-kart { background: linear-gradient(90deg, #ffd98a, #d9922e); box-shadow: 0 0 20px rgba(255, 184, 77, 0.45); }
-.loadout-next.loadout-g-brawl { background: linear-gradient(90deg, #f2e8d2, #b5a276); box-shadow: 0 0 20px rgba(232, 220, 196, 0.4); }
-.loadout-next.loadout-g-siege { background: linear-gradient(90deg, #c2d4e0, #7a92a8); box-shadow: 0 0 20px rgba(159, 184, 200, 0.45); }
+.loadout-next::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: var(--tex-bronze);
+  opacity: 0.3; mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.loadout-next svg { margin-right: 8px; }
+.loadout-next.loadout-g-moba { background: linear-gradient(90deg, #b5cc72, #6b8a34); }
+.loadout-next.loadout-g-hoops { background: linear-gradient(90deg, #e0604a, #a1252c); }
+.loadout-next.loadout-g-arena { background: linear-gradient(90deg, #ff9a52, #ff5a26); }
+.loadout-next.loadout-g-kart { background: linear-gradient(90deg, #ffd98a, #d9922e); }
+.loadout-next.loadout-g-brawl { background: linear-gradient(90deg, #f2e8d2, #b5a276); }
+.loadout-next.loadout-g-siege { background: linear-gradient(90deg, #c2d4e0, #7a92a8); }
 .loadout-next.loadout-g-duel {
   background: linear-gradient(90deg, #ffc27d, #ff8c3b 62%, #d9531f);
-  box-shadow: 0 0 22px rgba(255, 140, 59, 0.55), inset 0 0 0 1px rgba(122, 20, 16, 0.55), inset 0 1px 0 rgba(255, 226, 173, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 173, 0.5),
+    inset 0 -2px 4px rgba(30, 10, 2, 0.45),
+    inset 0 0 0 1px rgba(122, 20, 16, 0.55);
 }
-@keyframes loadoutNextPulse { 50% { filter: brightness(1.18); } }
+/* keyframes own the filter channel — keep the strap's drop shadow in them */
+@keyframes loadoutNextPulse {
+  0%, 100% { filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.85)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45)) brightness(1); }
+  50% { filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.85)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45)) brightness(1.15); }
+}
 
 /* ---------- scroll body ---------- */
 .loadout-scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 12px -8px 10px 0; padding-right: 8px; }
 .loadout-scroll::-webkit-scrollbar { width: 5px; }
-.loadout-scroll::-webkit-scrollbar-thumb { background: rgba(255, 184, 77, 0.3); border-radius: 3px; }
-.loadout-scroll::-webkit-scrollbar-track { background: rgba(232, 220, 196, 0.05); }
+.loadout-scroll::-webkit-scrollbar-thumb { background: rgba(176, 121, 58, 0.55); border-radius: 0; }
+.loadout-scroll::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.35); }
 
-.loadout-sec { margin-top: 13px; }
+.loadout-sec { margin-top: 14px; }
 .loadout-sec:first-child { margin-top: 2px; }
+/* section header: engraved title + bronze ornament rule + chiseled groove */
 .loadout-sec-title {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 9px;
   font-family: var(--font-display);
   font-size: 12px; font-weight: 700; letter-spacing: 0.4em;
   font-variant: small-caps;
   color: var(--ink);
-  margin-bottom: 10px;
+  text-shadow: var(--engrave);
+  margin-bottom: 11px;
 }
-.loadout-sec-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255, 184, 77, 0.5), transparent); }
+.loadout-sec-orn {
+  display: flex; flex: none;
+  color: rgba(176, 121, 58, 0.85);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.75));
+}
+.loadout-sec-orn svg { display: block; }
+.loadout-sec-title::after {
+  content: ''; flex: 1; height: 2px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0 1px, rgba(232, 220, 196, 0.12) 1px 2px);
+}
 
 /* ---------- appearance rows ---------- */
-.loadout-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.loadout-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .loadout-label {
   width: 62px; flex: none;
   font-family: var(--font-display);
   font-size: 10px; font-weight: 700; letter-spacing: 0.22em;
   color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
 .loadout-swatches { display: flex; gap: 7px; flex-wrap: wrap; }
+/* forged gem socket: chamfered stone cut holding a faceted war gem */
 .loadout-swatch {
   --sw: #e8dcc4;
-  width: 22px; height: 22px; border-radius: 5px;
-  background: var(--sw);
-  border: 2px solid rgba(232, 220, 196, 0.18);
+  width: 24px; height: 24px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-gem);
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0) 42%, rgba(0, 0, 0, 0.4) 88%),
+    radial-gradient(120% 120% at 32% 26%, color-mix(in srgb, var(--sw) 78%, #fff) 0%, var(--sw) 46%, color-mix(in srgb, var(--sw) 52%, #000) 100%);
   cursor: pointer;
-  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s, border-color 0.18s;
+  box-shadow:
+    inset 0 0 0 2px rgba(18, 13, 8, 0.9),
+    inset 0 0 0 3px rgba(176, 121, 58, 0.45),
+    inset 0 2px 3px rgba(0, 0, 0, 0.5);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55));
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s, filter 0.18s;
 }
-.loadout-swatch:hover { transform: translateY(-2px) scale(1.12); }
+.loadout-swatch:hover {
+  transform: translateY(-2px) scale(1.1);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 6px color-mix(in srgb, var(--sw) 55%, transparent));
+}
+/* chosen gem: quenched ember rim */
 .loadout-swatch.sel {
-  border-color: #f4e8cc;
-  transform: scale(1.16);
-  box-shadow: 0 0 14px var(--sw), inset 0 -4px 8px rgba(0, 0, 0, 0.25);
+  transform: scale(1.14);
+  box-shadow:
+    inset 0 0 0 2px #ff8c3b,
+    inset 0 0 0 3px rgba(24, 10, 4, 0.9),
+    inset 0 2px 3px rgba(0, 0, 0, 0.4);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 7px rgba(255, 140, 59, 0.75));
 }
 
-.loadout-seg { display: flex; gap: 5px; flex-wrap: wrap; }
+.loadout-seg { display: flex; gap: 6px; flex-wrap: wrap; }
+/* carved stone toggle plaques */
 .loadout-seg-btn {
   font-family: var(--font-display);
   font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
   color: var(--ink-dim);
-  padding: 4px 11px; border-radius: 5px;
-  background: rgba(232, 220, 196, 0.05);
-  border: 1px solid rgba(176, 121, 58, 0.3);
+  padding: 4px 12px 5px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-chip);
+  background:
+    linear-gradient(160deg, rgba(232, 220, 196, 0.07), transparent 42%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    #201a13;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.35),
+    inset 0 1px 0 rgba(232, 220, 196, 0.08),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.5);
+  text-shadow: var(--engrave);
   cursor: pointer;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
   transition: all 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.loadout-seg-btn:hover { color: var(--ink); border-color: rgba(255, 184, 77, 0.6); transform: translateY(-1px); }
+.loadout-seg-btn:hover {
+  color: var(--ink);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 184, 77, 0.6),
+    inset 0 1px 0 rgba(232, 220, 196, 0.08),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.5);
+  transform: translateY(-1px);
+}
+/* struck toggle: forged bronze, raised lettering */
 .loadout-seg-btn.sel {
   color: #241505;
-  background: linear-gradient(180deg, #d99e55, #b0793a);
-  border-color: #5c3d1a;
-  box-shadow: 0 0 14px rgba(255, 140, 59, 0.4), inset 0 1px 0 rgba(255, 226, 173, 0.5);
+  background:
+    linear-gradient(180deg, rgba(255, 226, 168, 0.45), rgba(255, 255, 255, 0) 34%, rgba(30, 14, 2, 0.4)),
+    var(--tex-bronze),
+    linear-gradient(180deg, #d99e55 0%, #b0793a 52%, #82551f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 173, 0.5),
+    inset 0 -2px 4px rgba(40, 18, 4, 0.5),
+    inset 0 0 0 1px rgba(60, 30, 8, 0.4);
   transform: scale(1.05);
-  text-shadow: 0 1px 0 rgba(255, 224, 170, 0.35);
+  text-shadow: 0 1px 0 rgba(255, 224, 170, 0.4);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 8px rgba(255, 140, 59, 0.3));
 }
 
 /* ---------- skillset ---------- */
-.loadout-hintline { font-size: 10px; letter-spacing: 0.14em; color: #8a7a62; margin: -4px 0 12px; }
+.loadout-hintline {
+  font-size: 10px; letter-spacing: 0.14em; color: #8a7a62;
+  text-shadow: var(--engrave);
+  margin: -4px 0 14px;
+}
 
 .loadout-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+/* equip slots: forged shield plates, kin to the in-game ability bar */
 .loadout-slot {
   --sw: #6b5a44;
-  position: relative;
-  border-radius: 8px;
-  background:
-    linear-gradient(165deg, rgba(58, 48, 36, 0.85), rgba(20, 15, 10, 0.9) 60%),
-    rgba(16, 12, 8, 0.9);
-  border: 2px solid color-mix(in srgb, var(--sw) 45%, #3a2c1a);
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.55);
-  padding: 12px 4px 6px;
+  position: relative; isolation: isolate;
+  height: 88px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-shield);
+  /* forged rim quenched in the art's color */
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--sw) 55%, #6a4c24) 0%,
+    color-mix(in srgb, var(--sw) 26%, #2c1d0e) 46%,
+    #150f08 100%);
+  padding: 0 4px;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.18s, box-shadow 0.18s;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6));
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s, background 0.18s;
+}
+/* engraved iron face */
+.loadout-slot::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-shield);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.1), transparent 42%),
+    radial-gradient(95% 72% at 50% 20%, rgba(66, 56, 44, 0.5), transparent 74%),
+    radial-gradient(130% 130% at 50% 112%, rgba(0, 0, 0, 0.6), transparent 58%),
+    var(--tex-iron),
+    #1c1610;
+  pointer-events: none;
 }
 .loadout-slot:hover { transform: translateY(-3px); }
+/* chosen slot: quenched ember rim, still smoking from the forge */
 .loadout-slot.active {
-  border-color: var(--ink);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--sw) 70%, transparent), inset 0 0 16px rgba(0, 0, 0, 0.35);
-  transform: translateY(-3px) scale(1.04);
+  background: linear-gradient(165deg, #ffd9a0 0%, #ff7a30 42%, #24100a 100%);
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 14px rgba(255, 110, 38, 0.55));
+  transform: translateY(-3px);
 }
+/* forged rivet-tag key badge pinned at the shield's crown */
 .loadout-slot-key {
-  position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 2.5px; left: 50%; transform: translateX(-50%);
+  border: none; border-radius: 0;
+  clip-path: var(--clip-tag);
   font-family: var(--font-display);
-  font-size: 11px; font-weight: 800;
-  color: #1c1206; background: var(--sw);
-  padding: 1px 9px; border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--sw) 60%, transparent);
+  font-size: 11px; font-weight: 800; line-height: 1.25;
+  color: #241505;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sw) 72%, #f0d9a8),
+    color-mix(in srgb, var(--sw) 78%, #241505) 85%);
+  padding: 1px 9px 2px;
+  text-shadow: 0 1px 0 rgba(255, 236, 200, 0.4);
+  box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.45);
 }
-.loadout-slot-icon { font-size: 24px; line-height: 1.2; filter: drop-shadow(0 0 8px var(--sw)) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6)); }
+.loadout-slot-icon {
+  margin-top: 24px;
+  font-size: 25px; line-height: 1;
+  filter:
+    drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85))
+    drop-shadow(0 1px 0 rgba(232, 220, 196, 0.16))
+    drop-shadow(0 0 7px color-mix(in srgb, var(--sw) 45%, transparent));
+}
 .loadout-slot-name {
   font-family: var(--font-display);
   font-size: 9px; font-weight: 600; letter-spacing: 0.08em;
   color: var(--ink-dim);
-  margin-top: 3px;
+  text-shadow: var(--engrave);
+  margin-top: 4px; padding: 0 8px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .loadout-slot.active .loadout-slot-name { color: var(--ink); }
 
 .loadout-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+/* the 12 arts: chamfered iron plaques, quenched in their color when claimed */
 .loadout-skill {
   --sw: #ffb84d;
-  position: relative;
-  border-radius: 7px;
-  background: rgba(24, 18, 12, 0.62);
-  border: 1px solid rgba(176, 121, 58, 0.25);
-  padding: 7px 3px 6px;
+  position: relative; isolation: isolate;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-chip);
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--sw) 16%, #4a3a26) 0%,
+    color-mix(in srgb, var(--sw) 8%, #241a10) 46%,
+    #120d08 100%);
+  padding: 9px 3px 7px;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.16s, box-shadow 0.16s, background 0.16s;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.16s, background 0.16s;
+}
+.loadout-skill::before {
+  content: ''; position: absolute; inset: 2px; z-index: -1;
+  clip-path: var(--clip-chip);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.08), transparent 42%),
+    radial-gradient(130% 130% at 50% 115%, rgba(0, 0, 0, 0.55), transparent 60%),
+    var(--tex-iron),
+    #1a1510;
+  pointer-events: none;
 }
 .loadout-skill:hover {
   transform: translateY(-3px) scale(1.05);
-  border-color: color-mix(in srgb, var(--sw) 70%, transparent);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 14px color-mix(in srgb, var(--sw) 30%, transparent);
-  background: rgba(42, 32, 22, 0.88);
+  filter:
+    drop-shadow(0 5px 8px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 10px color-mix(in srgb, var(--sw) 40%, transparent));
   z-index: 2;
 }
 .loadout-skill.equipped {
-  border-color: color-mix(in srgb, var(--sw) 65%, transparent);
-  background: color-mix(in srgb, var(--sw) 12%, rgba(24, 18, 12, 0.72));
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--sw) 60%, #6a4c24) 0%,
+    color-mix(in srgb, var(--sw) 28%, #2c1d0e) 46%,
+    #150f08 100%);
+  filter:
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 8px color-mix(in srgb, var(--sw) 25%, transparent));
 }
-.loadout-skill-icon { font-size: 21px; filter: drop-shadow(0 0 7px var(--sw)) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55)); }
+.loadout-skill-icon {
+  font-size: 21px; line-height: 1;
+  filter:
+    drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8))
+    drop-shadow(0 1px 0 rgba(232, 220, 196, 0.14))
+    drop-shadow(0 0 6px color-mix(in srgb, var(--sw) 40%, transparent));
+}
 .loadout-skill-name {
   font-family: var(--font-display);
   font-size: 9px; font-weight: 600; letter-spacing: 0.05em;
   color: var(--ink-dim);
-  margin-top: 3px;
+  text-shadow: var(--engrave);
+  margin-top: 4px;
   white-space: nowrap; overflow: hidden;
 }
+/* claimed-art badge: a forged key tag seated inside the chamfer */
 .loadout-skill-badge {
-  position: absolute; top: -7px; right: -5px;
-  min-width: 17px; height: 17px; line-height: 17px;
+  position: absolute; top: 2px; right: 3px;
+  min-width: 18px; height: 15px; line-height: 15px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-tag);
   font-family: var(--font-display);
   font-size: 10px; font-weight: 800;
-  color: #1c1206; background: var(--sw);
-  border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--sw) 70%, transparent);
+  color: #241505;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sw) 72%, #f0d9a8),
+    color-mix(in srgb, var(--sw) 78%, #241505) 85%);
+  padding: 0 5px;
+  text-shadow: 0 1px 0 rgba(255, 236, 200, 0.4);
+  box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.45);
   opacity: 0; transform: scale(0.4);
   transition: opacity 0.18s, transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -243,72 +428,119 @@
   100% { transform: scale(1); }
 }
 
-/* ---------- footer ---------- */
+/* ---------- footer (buttons inherit the forged plaque from styles.css) ---------- */
 .loadout-foot { display: flex; gap: 10px; margin-top: 4px; }
 .loadout-back { flex: none; padding: 12px 22px; font-size: 14px; letter-spacing: 0.18em; }
-.loadout-go { flex: 1; padding: 12px 10px; font-size: 15px; letter-spacing: 0.14em; animation: loadoutGoGlow 2.6s ease-in-out infinite; }
-@keyframes loadoutGoGlow { 50% { filter: brightness(1.12); } }
-.loadout-go.loadout-g-moba { background: linear-gradient(135deg, #b5cc72, #6b8a34); box-shadow: 0 0 22px rgba(143, 174, 74, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
-.loadout-go.loadout-g-hoops { background: linear-gradient(135deg, #e0604a, #a1252c); box-shadow: 0 0 22px rgba(194, 59, 46, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
-.loadout-go.loadout-g-arena { background: linear-gradient(135deg, #ffa869, #ff5a26); box-shadow: 0 0 22px rgba(255, 90, 38, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
-.loadout-go.loadout-g-kart { background: linear-gradient(135deg, #ffe0a0, #d9922e); box-shadow: 0 0 22px rgba(255, 184, 77, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
-.loadout-go.loadout-g-brawl { background: linear-gradient(135deg, #f4ecd8, #b5a276); box-shadow: 0 0 22px rgba(232, 220, 196, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
-.loadout-go.loadout-g-siege { background: linear-gradient(135deg, #cedeea, #7a92a8); box-shadow: 0 0 22px rgba(159, 184, 200, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
+.loadout-go { flex: 1; padding: 12px 10px; font-size: 15px; letter-spacing: 0.14em; }
+/* per-game quench: same forged bevel, plaque struck in the arena's metal */
+.loadout-go.loadout-g-moba { background:
+  linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(14, 20, 4, 0.45)),
+  linear-gradient(180deg, #b5cc72 0%, #8fae4a 48%, #556f28 100%); }
+.loadout-go.loadout-g-hoops { background:
+  linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(30, 4, 4, 0.45)),
+  linear-gradient(180deg, #e0604a 0%, #c23b2e 48%, #7e1d20 100%); }
+.loadout-go.loadout-g-arena { background:
+  linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(40, 12, 2, 0.45)),
+  linear-gradient(180deg, #ffa869 0%, #ff5a26 48%, #b03a14 100%); }
+.loadout-go.loadout-g-kart { background:
+  linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(40, 26, 4, 0.45)),
+  linear-gradient(180deg, #ffe0a0 0%, #e8a83e 48%, #a06a1e 100%); }
+.loadout-go.loadout-g-brawl { background:
+  linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(34, 28, 16, 0.4)),
+  linear-gradient(180deg, #f4ecd8 0%, #cbbb96 48%, #8a7a58 100%); }
+.loadout-go.loadout-g-siege { background:
+  linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(14, 22, 30, 0.45)),
+  linear-gradient(180deg, #cedeea 0%, #9fb8c8 48%, #5c7386 100%); }
 .loadout-go.loadout-g-duel {
-  background: linear-gradient(135deg, #ffcf94, #ff8c3b 58%, #d9531f);
-  box-shadow: 0 0 26px rgba(255, 140, 59, 0.6), inset 0 0 0 1px rgba(122, 20, 16, 0.55), inset 0 1px 0 rgba(255, 236, 200, 0.55);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 62%, rgba(44, 12, 2, 0.45)),
+    linear-gradient(180deg, #ffcf94 0%, #ff8c3b 48%, #c24a18 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 200, 0.55),
+    inset 1px 0 0 rgba(255, 230, 180, 0.18),
+    inset 0 -3px 5px rgba(40, 18, 4, 0.55),
+    inset 0 0 0 1px rgba(122, 20, 16, 0.55);
 }
 
-/* ---------- skill tooltip: aged parchment slab ---------- */
+/* ---------- skill tooltip: inked parchment scrap, torn edges ---------- */
 .loadout-tip {
   --sw: #ffb84d;
   position: fixed;
-  width: 272px;
+  width: 276px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-torn);
   background:
-    linear-gradient(160deg, rgba(52, 42, 30, 0.5), rgba(0, 0, 0, 0.3)),
-    rgba(22, 16, 11, 0.97);
-  border: 1px solid color-mix(in srgb, var(--sw) 50%, #3a2c1a);
-  border-radius: 8px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px color-mix(in srgb, var(--sw) 16%, transparent), inset 0 0 18px rgba(0, 0, 0, 0.45);
-  padding: 12px 14px;
-  font-size: 11.5px; line-height: 1.5; color: var(--ink-dim);
+    linear-gradient(172deg, rgba(255, 248, 224, 0.28), rgba(0, 0, 0, 0) 38%, rgba(96, 72, 40, 0.22)),
+    var(--tex-parchment),
+    #d3c19a;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5));
+  padding: 14px 15px 15px;
+  font-size: 11.5px; line-height: 1.5; color: var(--sepia);
   opacity: 0; transform: translateX(8px);
   pointer-events: none;
   transition: opacity 0.15s, transform 0.15s;
   z-index: 60;
 }
 .loadout-tip.on { opacity: 1; transform: none; }
-.loadout-tip-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.loadout-tip-head span { font-size: 20px; filter: drop-shadow(0 0 6px var(--sw)); }
-.loadout-tip-head b { flex: 1; color: var(--sw); font-family: var(--font-display); font-size: 15px; letter-spacing: 0.08em; font-variant: small-caps; }
-.loadout-tip-head i { font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); }
-.loadout-tip p { color: var(--ink); margin-bottom: 8px; }
-.loadout-tip-game { padding: 6px 8px; border-radius: 6px; margin-top: 4px; background: rgba(232, 220, 196, 0.04); border: 1px solid transparent; }
-.loadout-tip-game b { display: block; font-family: var(--font-display); font-size: 9.5px; font-weight: 700; letter-spacing: 0.22em; color: var(--accent); margin-bottom: 1px; }
+.loadout-tip-head {
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid rgba(90, 65, 35, 0.4);
+  padding-bottom: 5px; margin-bottom: 6px;
+}
+.loadout-tip-head span { display: flex; font-size: 20px; filter: drop-shadow(0 1px 0 rgba(255, 250, 230, 0.55)); }
+/* ink the sigil in the skill's color, darkened to read on parchment */
+.loadout-tip-head span svg { color: color-mix(in srgb, var(--sw) 55%, #3a2413) !important; }
+.loadout-tip-head b {
+  flex: 1;
+  color: color-mix(in srgb, var(--sw) 52%, #3a2413);
+  font-family: var(--font-display); font-size: 15px; letter-spacing: 0.08em; font-variant: small-caps;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.5);
+}
+.loadout-tip-head i {
+  font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  color: #8a3b1c;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
+}
+.loadout-tip p { color: var(--sepia); margin-bottom: 8px; }
+.loadout-tip-game {
+  padding: 6px 8px; margin-top: 4px;
+  border: none; border-radius: 0;
+  background: rgba(90, 65, 35, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(90, 65, 35, 0.22);
+}
+.loadout-tip-game b {
+  display: block;
+  font-family: var(--font-display); font-size: 9.5px; font-weight: 700; letter-spacing: 0.22em;
+  color: #8a3b1c; margin-bottom: 1px;
+}
 .loadout-tip-game span { font-size: 10.5px; }
-.loadout-tip-game.hot { background: color-mix(in srgb, var(--sw) 14%, rgba(232, 220, 196, 0.04)); border-color: color-mix(in srgb, var(--sw) 45%, transparent); }
-.loadout-tip-game.hot b { color: var(--sw); }
+/* destination row: a wax-seal press in the art's ink */
+.loadout-tip-game.hot {
+  background: color-mix(in srgb, var(--sw) 16%, rgba(255, 248, 224, 0.25));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sw) 55%, rgba(90, 65, 35, 0.5));
+}
+.loadout-tip-game.hot b { color: color-mix(in srgb, var(--sw) 55%, #3a2413); }
 .loadout-tip-game.dim { opacity: 0.38; }
 
 /* compact per-game rows: destination game gets the full row above, the other
-   five stack here dimmed; with no destination all six use the .all variant */
+   six stack here dimmed; with no destination all seven use the .all variant */
 .loadout-tip-others {
   margin: 8px 0 1px;
   font-family: var(--font-display);
   font-size: 8.5px; font-weight: 700; letter-spacing: 0.3em;
-  color: #8a7a62;
+  color: var(--sepia-dim);
 }
-.loadout-tip-mini { display: flex; gap: 8px; align-items: baseline; padding: 2px 2px; opacity: 0.5; }
+.loadout-tip-mini { display: flex; gap: 8px; align-items: baseline; padding: 2px 2px; opacity: 0.55; }
 .loadout-tip-mini b {
   flex: none; width: 56px;
   font-family: var(--font-display);
   font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
-  color: var(--accent);
+  color: #8a3b1c;
 }
 .loadout-tip-mini span { font-size: 10px; line-height: 1.4; }
 .loadout-tip-mini.all { opacity: 1; padding: 3px 2px; }
-.loadout-tip-mini.all b { color: var(--sw); }
-.loadout-tip-mini.all span { font-size: 10.5px; color: var(--ink-dim); }
+.loadout-tip-mini.all b { color: color-mix(in srgb, var(--sw) 52%, #3a2413); }
+.loadout-tip-mini.all span { font-size: 10.5px; color: var(--sepia); }
 
 /* ---------- stage overlay ---------- */
 .loadout-stagebar {
@@ -320,17 +552,32 @@
   font-family: var(--font-display);
   font-size: 10px; font-weight: 700; letter-spacing: 0.3em;
   color: rgba(200, 184, 150, 0.55);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
   padding-left: 4px;
 }
 .loadout-dance { padding: 9px 18px; font-size: 12px; letter-spacing: 0.2em; display: flex; align-items: center; gap: 8px; }
+/* the P key rides on a little iron tag */
 .loadout-dance span {
-  font-size: 10px; padding: 1px 7px;
-  border: 1px solid rgba(232, 220, 196, 0.3); border-radius: 4px;
-  color: var(--ink-dim);
+  font-size: 10px; line-height: 1.4;
+  min-width: 24px; text-align: center;
+  padding: 1px 8px;
+  border: none; border-radius: 0;
+  clip-path: var(--clip-tag);
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(232, 220, 196, 0.12), transparent 45%, rgba(0, 0, 0, 0.4)),
+    var(--tex-iron),
+    #2e2a24;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9);
+  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.14), inset 0 -1px 1px rgba(0, 0, 0, 0.5);
 }
 .loadout-dance.on {
-  border-color: var(--accent); color: var(--accent);
-  box-shadow: 0 0 18px rgba(255, 184, 77, 0.35);
+  color: var(--accent);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 184, 77, 0.8),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(232, 220, 196, 0.08);
+  filter: drop-shadow(0 1px 0 rgba(16, 8, 2, 0.9)) drop-shadow(0 0 12px rgba(255, 184, 77, 0.5));
   animation: loadoutDanceBop 0.5s ease-in-out infinite alternate;
 }
 @keyframes loadoutDanceBop { from { transform: translateY(0); } to { transform: translateY(-3px); } }

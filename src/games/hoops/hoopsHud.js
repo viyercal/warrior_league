@@ -1,9 +1,25 @@
 import * as THREE from 'three'
 import { HUD } from '../../ui/hud.js'
+import { icon } from '../../ui/craft.js'
 import { clamp } from '../../core/utils.js'
 import { AI_NAME } from './constants.js'
 
 const _v = new THREE.Vector3()
+
+/** Forged pointer sigil (arrow-up rotated toward the holder via CSS). */
+const POSS_SIGIL = icon('arrow-up', { size: 13 })
+
+/** Ledger sigils engraved next to each stat row (svg only — no text). */
+const ROW_SIGILS = {
+  '2-POINTERS': 'court-ring',
+  '3-POINTERS': 'court-ring',
+  DUNKS: 'flame',
+  SHOOTING: 'coin',
+  STEALS: 'skull',
+  BLOCKS: 'aegis',
+  'LONGEST RUN': 'overdrive',
+  'FAVORITE ART': 'crossed-swords',
+}
 
 /** All DOM for BLOOD COURT: scoreboard, shot clock, shot meter, stamina,
  *  banners, cinematic intro card, micro shot-labels and the end stats panel. */
@@ -17,8 +33,8 @@ export class HoopsHud {
     sb.innerHTML = `
       <div class="hs-team hs-you"><span class="hs-name">YOU</span><span class="hs-pts" data-you>0</span></div>
       <div class="hs-mid">
-        <div class="hs-poss" data-poss>&#9664;</div>
-        <div class="hs-clock" data-clock>14</div>
+        <div class="hs-poss" data-poss>${POSS_SIGIL}</div>
+        <div class="hs-clock-tag"><span class="hs-hg">${icon('hourglass', { size: 11 })}</span><div class="hs-clock" data-clock>14</div></div>
       </div>
       <div class="hs-team hs-cpu"><span class="hs-pts" data-cpu>0</span><span class="hs-name">${AI_NAME}</span></div>`
     this.elYou = sb.querySelector('[data-you]')
@@ -38,9 +54,10 @@ export class HoopsHud {
     this.stamina.root.style.left = '22px'
     this.stamina.root.style.bottom = '24px'
 
-    // --- fire indicator ---
+    // --- fire indicator: flame-sigil iron tag ---
     this.fireTag = this.hud.el('div', 'hoops-fire')
-    this.fireTag.textContent = '🔥 ON FIRE 🔥'
+    this.fireTag.innerHTML =
+      `<i class="hf-sig">${icon('flame', { size: 15 })}</i>ON FIRE<i class="hf-sig">${icon('flame', { size: 15 })}</i>`
     this.fireTag.style.display = 'none'
 
     this.hints = this.hud.hints([
@@ -55,7 +72,7 @@ export class HoopsHud {
   }
 
   setPossession(who) {
-    this.elPoss.innerHTML = who === 'player' ? '&#9664;' : '&#9654;'
+    this.elPoss.innerHTML = POSS_SIGIL
     this.elPoss.className = 'hs-poss ' + (who === 'player' ? 'hp-you' : 'hp-cpu')
   }
 
@@ -147,14 +164,16 @@ export class HoopsHud {
   /** Duel-style end-of-game stats tablet. Returns the panel element. */
   statsPanel({ won, score, match, favorite, onHub }) {
     const p = this.hud.el('div', 'hoops-panel ui-interactive')
+    const laurel = won ? `<i class="hp-laurel">${icon('laurel', { size: 20 })}</i>` : ''
     this.hud.el('div', `hoops-panel-title${won ? '' : ' lose'}`,
-      won ? 'BLOOD COURT CHAMPION' : `${AI_NAME} TAKES THE COURT`, p)
+      `${laurel}${won ? 'BLOOD COURT CHAMPION' : `${AI_NAME} TAKES THE COURT`}${laurel}`, p)
     this.hud.el('div', 'hoops-panel-score',
       `<span class="hps-you">${score.you}</span><i>—</i><span class="hps-cpu">${score.cpu}</span>`, p)
     const grid = this.hud.el('div', 'hoops-panel-grid', '', p)
     const row = (k, v) => {
       const r = this.hud.el('div', 'hoops-panel-row', '', grid)
-      this.hud.el('span', 'k', k, r)
+      const sig = ROW_SIGILS[k] ? `<i class="hp-sig">${icon(ROW_SIGILS[k], { size: 13 })}</i>` : ''
+      this.hud.el('span', 'k', `${sig}${k}`, r)
       this.hud.el('span', 'v', v, r)
     }
     const pct = match.attempts ? Math.round(100 * match.makes / match.attempts) : 0

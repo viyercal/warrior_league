@@ -1,24 +1,33 @@
 import { HUD } from '../../ui/hud.js'
+import { icon } from '../../ui/craft.js'
 import { WAVE_COUNT } from './raiders.js'
 
-/** Display-only raider glyphs for wave-composition rows + kill tallies. */
+/** Display-only raider sigils (craft.js engravings) for wave rows + tallies. */
 export const RAIDER_CHIPS = {
-  grunt: { glyph: '⚔', color: '#c98d5f', label: 'GRUNT' },
-  sprinter: { glyph: '➤', color: '#dcc296', label: 'SPRINTER' },
-  exploder: { glyph: '✶', color: '#ffb84d', label: 'EXPLODER' },
-  brute: { glyph: '◆', color: '#c23b2e', label: 'BRUTE' },
-  shieldbearer: { glyph: '⛨', color: '#b8c8d8', label: 'SHIELDBEARER' },
-  colossus: { glyph: '♆', color: '#ff5a26', label: 'COLOSSUS' },
+  grunt: { glyph: icon('crossed-swords', { size: '1em' }), color: '#c98d5f', label: 'GRUNT' },
+  sprinter: { glyph: icon('blink', { size: '1em' }), color: '#dcc296', label: 'SPRINTER' },
+  exploder: { glyph: icon('flame', { size: '1em' }), color: '#ffb84d', label: 'EXPLODER' },
+  brute: { glyph: icon('quake', { size: '1em' }), color: '#c23b2e', label: 'BRUTE' },
+  shieldbearer: { glyph: icon('aegis', { size: '1em' }), color: '#b8c8d8', label: 'SHIELDBEARER' },
+  colossus: { glyph: icon('titan', { size: '1em' }), color: '#ff5a26', label: 'COLOSSUS' },
 }
+
+/** Ledger row label -> column sigil for the battle-honors tablet. */
+const HONOR_SIGILS = [
+  [/KILL/, 'crossed-swords'], [/GOLD/, 'coin'], [/BALLISTA/, 'starfire'],
+  [/PERFECT/, 'laurel'], [/GATE/, 'gate'], [/ART/, 'banner'], [/WAVE/, 'banner'],
+]
+const honorSigil = label => (HONOR_SIGILS.find(([re]) => re.test(label)) || [null, null])[1]
 
 /** All LAST BASTION DOM: bastion bar, wave/gold readouts, prompts, boss bar. */
 export class SiegeHud {
   constructor(skillDefs, abilityOpts) {
     const hud = this.hud = new HUD()
 
-    // bastion HP — big segmented bar, top center (stats keys stay "citadel")
+    // bastion HP — the grand tapered blade, top center (stats keys stay "citadel").
+    // Gate-sigil finial medallion caps the hilt; segment divs are etched notches.
     const cit = hud.el('div', 'siege-citadel')
-    hud.el('div', 'siege-citadel-label', '<span class="siege-cit-icon">♜</span> BASTION', cit)
+    hud.el('div', 'siege-citadel-label', '<span class="siege-cit-icon">' + icon('gate', { size: '1em' }) + '</span> BASTION', cit)
     const track = hud.el('div', 'siege-citadel-track', '', cit)
     this.citFill = hud.el('div', 'siege-citadel-fill', '', track)
     for (let i = 1; i < 10; i++) {
@@ -26,21 +35,24 @@ export class SiegeHud {
       seg.style.left = `${i * 10}%`
     }
     this.citText = hud.el('div', 'siege-citadel-text', '', track)
+    hud.el('div', 'siege-cit-finial', icon('gate', { size: '1em' }), cit)
     this.citEl = cit
 
-    // wave + incoming, top left
+    // wave + incoming, top left — engraved war-banner readout
     const wave = hud.el('div', 'siege-wave')
-    this.waveNum = hud.el('div', 'siege-wave-num', 'WAVE 1', wave)
-    this.waveSub = hud.el('div', 'siege-wave-sub', '', wave)
+    hud.el('i', 'siege-wave-sigil', icon('banner', { size: '1em' }), wave)
+    const waveCol = hud.el('div', 'siege-wave-col', '', wave)
+    this.waveNum = hud.el('div', 'siege-wave-num', 'WAVE 1', waveCol)
+    this.waveSub = hud.el('div', 'siege-wave-sub', '', waveCol)
 
-    // gold, top right
+    // gold, top right — coin-sigil forged tag
     const gold = hud.el('div', 'siege-gold')
-    hud.el('div', 'siege-coin', '', gold)
+    hud.el('div', 'siege-coin', icon('coin', { size: '1em' }), gold)
     this.goldNum = hud.el('b', '', '0', gold)
     this.goldEl = gold
 
-    // player hp, bottom left
-    this.hpBar = hud.bar({ label: 'HP', color: '#5cff8a' })
+    // player hp, bottom left — kit moss-green quenched blade
+    this.hpBar = hud.bar({ label: 'HP', color: '#8fae4a' })
     Object.assign(this.hpBar.root.style, { left: '26px', bottom: '34px', width: '300px' })
 
     // abilities
@@ -149,7 +161,7 @@ export class SiegeHud {
     this.prepEl.style.display = ''
     if (this._prep !== secs) {
       this._prep = secs
-      this.prepEl.innerHTML = `PREPARE — <b>${secs}</b>`
+      this.prepEl.innerHTML = `<i class="siege-prep-glass">${icon('hourglass', { size: '1em' })}</i>PREPARE — <b>${secs}</b>`
       this.prepEl.classList.remove('tick')
       void this.prepEl.offsetWidth
       this.prepEl.classList.add('tick')
@@ -187,6 +199,8 @@ export class SiegeHud {
     const box = this.hud.el('div', 'siege-stats', '', p)
     for (const [label, value] of rows) {
       const r = this.hud.el('div', 'siege-stat-row', '', box)
+      const sig = honorSigil(label)
+      if (sig) this.hud.el('i', 'siege-stat-sigil', icon(sig, { size: '1em' }), r)
       this.hud.el('span', 'siege-stat-label', label, r)
       this.hud.el('span', 'siege-stat-value', value, r)
     }
@@ -202,10 +216,15 @@ export class SiegeHud {
     return p
   }
 
+  // called every frame — only touch the DOM when values actually change
   setCitadel(frac, hp, max) {
-    this.citFill.style.width = `${frac * 100}%`
-    this.citText.textContent = `${Math.ceil(hp)} / ${max}`
-    this.citEl.classList.toggle('low', frac < 0.25 && frac > 0)
+    if (this._citFrac !== frac) {
+      this._citFrac = frac
+      this.citFill.style.width = `${frac * 100}%`
+      this.citEl.classList.toggle('low', frac < 0.25 && frac > 0)
+    }
+    const txt = `${Math.ceil(hp)} / ${max}`
+    if (this._citTxt !== txt) { this._citTxt = txt; this.citText.textContent = txt }
   }
 
   citadelHit() {
@@ -214,9 +233,10 @@ export class SiegeHud {
     this.citEl.classList.add('hit')
   }
 
+  // called every frame — only touch the DOM when the engraving changes
   setWave(label, sub) {
-    this.waveNum.textContent = label
-    this.waveSub.textContent = sub
+    if (this._waveLabel !== label) { this._waveLabel = label; this.waveNum.textContent = label }
+    if (this._waveSub !== sub) { this._waveSub = sub; this.waveSub.textContent = sub }
   }
 
   setGold(g) {

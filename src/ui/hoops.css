@@ -1,112 +1,194 @@
 /* ============ BLOOD COURT HUD (all classes prefixed .hoops-/.hs-/.hm-) ============
-   Stone, iron, bronze, bone — glow reads as firelight, never neon. */
+   Forged & engraved: carved stone plaques, iron tags, parchment stamps.
+   Glow reads as firelight, never neon. No rounded rects, no flat fills. */
 
-/* ---------- scoreboard: bronze-bound iron plate ---------- */
+/* ---------- scoreboard: carved stone triptych (YOU | clock | CPU) ---------- */
 .hoops-score {
-  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: stretch; gap: 0;
-  background: linear-gradient(180deg, rgba(42, 32, 24, 0.92), rgba(18, 12, 8, 0.86));
-  border: 1px solid rgba(176, 121, 58, 0.55);
-  border-radius: 10px;
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6), 0 0 24px rgba(255, 140, 59, 0.14),
-    inset 0 1px 0 rgba(232, 220, 196, 0.12);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: stretch; gap: 5px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.65)) drop-shadow(0 9px 22px rgba(0, 0, 0, 0.55));
   z-index: 12;
 }
-.hs-team {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 20px;
+/* each wing is a chamfered slab: forged rim + chiseled stone face set into it */
+.hs-team, .hs-mid {
+  position: relative; isolation: isolate;
+  clip-path: var(--clip-plaque-sm);
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 40%, #17110b 82%);
 }
+.hs-team::before, .hs-mid::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    radial-gradient(circle at 8px 8px, rgba(228, 196, 138, 0.5) 0 0.8px, #4a3820 1.2px 2px, rgba(0, 0, 0, 0.55) 2.6px, transparent 3.2px),
+    radial-gradient(circle at calc(100% - 8px) 8px, rgba(228, 196, 138, 0.5) 0 0.8px, #4a3820 1.2px 2px, rgba(0, 0, 0, 0.55) 2.6px, transparent 3.2px),
+    radial-gradient(circle at 8px calc(100% - 8px), rgba(228, 196, 138, 0.5) 0 0.8px, #4a3820 1.2px 2px, rgba(0, 0, 0, 0.55) 2.6px, transparent 3.2px),
+    radial-gradient(circle at calc(100% - 8px) calc(100% - 8px), rgba(228, 196, 138, 0.5) 0 0.8px, #4a3820 1.2px 2px, rgba(0, 0, 0, 0.55) 2.6px, transparent 3.2px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 36%, transparent 62%, rgba(0, 0, 0, 0.42)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    var(--panel-bg);
+  pointer-events: none;
+}
+/* each champion's wing is quenched in their color */
+.hs-you { background: linear-gradient(165deg, #7a5c2c 0%, #3a2c18 42%, #17110b 84%); }
+.hs-cpu { background: linear-gradient(165deg, #6e3020 0%, #381c12 42%, #150c08 84%); }
+.hs-team { display: flex; align-items: center; gap: 12px; padding: 10px 20px; }
 .hs-name {
   font-family: var(--font-display);
-  font-size: 15px; font-weight: 800; letter-spacing: 0.3em;
+  font-size: 14px; font-weight: 800; letter-spacing: 0.28em;
+  font-variant: small-caps;
+  text-shadow: var(--engrave);
 }
-.hs-you .hs-name { color: #ffb84d; text-shadow: 0 0 12px rgba(255, 184, 77, 0.65); }
-.hs-cpu .hs-name { color: #c9432f; text-shadow: 0 0 12px rgba(194, 59, 46, 0.7); }
+.hs-you .hs-name { color: #ffb84d; }
+.hs-cpu .hs-name { color: #d0503a; }
+/* engraved numerals: cut into the stone, lit from below by the torches */
 .hs-pts {
   font-family: var(--font-display);
-  font-size: 34px; font-weight: 800; font-style: italic;
-  color: #e8dcc4; min-width: 40px; text-align: center;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  font-size: 33px; font-weight: 800;
+  color: var(--ink); min-width: 40px; text-align: center;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(232, 220, 196, 0.14), 0 2px 6px rgba(0, 0, 0, 0.8);
 }
 .hs-mid {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 6px 14px; gap: 2px;
-  background: rgba(10, 7, 4, 0.65);
-  border-left: 1px solid rgba(176, 121, 58, 0.3);
-  border-right: 1px solid rgba(176, 121, 58, 0.3);
+  padding: 7px 13px; gap: 3px;
 }
-.hs-poss { font-size: 13px; line-height: 1; }
-.hs-poss.hp-you { color: #ffb84d; text-shadow: 0 0 10px #ff8c3b; }
-.hs-poss.hp-cpu { color: #c9432f; text-shadow: 0 0 10px #a1252c; }
+/* possession: a forged pointer sigil aimed at the ball holder */
+.hs-poss { display: flex; line-height: 1; }
+.hs-poss svg { transform: rotate(-90deg); }
+.hs-poss.hp-cpu svg { transform: rotate(90deg); }
+.hs-poss.hp-you {
+  color: #ffb84d;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.15)) drop-shadow(0 0 6px rgba(255, 140, 59, 0.6));
+}
+.hs-poss.hp-cpu {
+  color: #d0503a;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.15)) drop-shadow(0 0 6px rgba(161, 37, 44, 0.65));
+}
+/* shot clock: an hourglass-stamped iron tag */
+.hs-clock-tag {
+  display: flex; align-items: center; gap: 5px;
+  clip-path: var(--clip-tag);
+  background:
+    linear-gradient(180deg, rgba(232, 220, 196, 0.1), transparent 45%, rgba(0, 0, 0, 0.45)),
+    var(--tex-iron),
+    #221c15;
+  box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.14), inset 0 -1px 1px rgba(0, 0, 0, 0.6);
+  padding: 1px 12px 2px;
+}
+.hs-hg {
+  display: flex; color: rgba(200, 150, 84, 0.9);
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.12));
+}
 .hs-clock {
   font-family: var(--font-display);
-  font-size: 24px; font-weight: 800;
-  color: #e8dcc4;
-  min-width: 38px; text-align: center;
-  border: 1px solid rgba(232, 220, 196, 0.3);
-  border-radius: 6px; padding: 0 6px;
-  background: rgba(0, 0, 0, 0.5);
+  font-size: 22px; font-weight: 800;
+  color: var(--ink);
+  min-width: 30px; text-align: center;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(232, 220, 196, 0.12);
 }
-.hs-clock.hs-clock-low {
-  color: #e04338; border-color: rgba(224, 67, 56, 0.65);
-  animation: hoopsClockPulse 0.5s ease infinite alternate;
+.hs-clock.hs-clock-low { color: #ff6a4d; animation: hoopsClockInk 0.5s ease infinite alternate; }
+.hs-clock-tag:has(.hs-clock-low) { animation: hoopsClockPulse 0.5s ease infinite alternate; }
+@keyframes hoopsClockInk {
+  from { text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 0 4px rgba(224, 67, 56, 0.3); }
+  to { text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 0 12px rgba(255, 90, 38, 0.9); }
 }
 @keyframes hoopsClockPulse {
-  from { box-shadow: 0 0 4px rgba(224, 67, 56, 0.3); }
-  to { box-shadow: 0 0 16px rgba(224, 67, 56, 0.85); }
+  from { box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.14), inset 0 0 4px rgba(194, 59, 46, 0.3); }
+  to { box-shadow: inset 0 1px 0 rgba(232, 220, 196, 0.14), inset 0 0 14px rgba(224, 67, 56, 0.8); }
 }
 
-/* ---------- shot meter: ember band on charred iron ---------- */
+/* ---------- shot meter: vertical forged gauge (iron trough, ember fill) ---------- */
 .hoops-meter {
   position: absolute; left: 0; top: 0;
-  width: 16px; height: 150px;
+  width: 20px; height: 150px;
   margin-top: -75px;
-  background: rgba(16, 10, 6, 0.85);
-  border: 1px solid rgba(176, 121, 58, 0.6);
-  border-radius: 9px;
+  /* quenched-tip trough: the blade point crowns the gauge */
+  clip-path: polygon(50% 0, 100% 11px, 100% 100%, 0 100%, 0 11px);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.26) 55%, rgba(0, 0, 0, 0.55)),
+    var(--tex-iron),
+    #14100b;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.45),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.5),
+    inset 0 2px 5px rgba(0, 0, 0, 0.8);
   overflow: hidden;
   z-index: 14;
-  box-shadow: 0 0 14px rgba(0, 0, 0, 0.65);
 }
+/* etched gauge notches every quarter */
+.hoops-meter::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.55) 0 1px, rgba(232, 220, 196, 0.1) 1px 2px, transparent 2px);
+  background-size: 100% 25%;
+  pointer-events: none;
+}
+/* PERFECT band: a bright quenched notch scored into the iron */
 .hm-band {
   position: absolute; left: 0; width: 100%;
-  background: linear-gradient(180deg, rgba(255, 140, 59, 0.95), rgba(255, 90, 38, 0.9));
-  box-shadow: 0 0 12px rgba(255, 140, 59, 0.9);
+  background: linear-gradient(180deg, #fffdf4 0%, #ffe2a4 55%, #f0b458 100%);
+  border-top: 1px solid rgba(20, 10, 4, 0.9);
+  border-bottom: 1px solid rgba(20, 10, 4, 0.9);
+  box-shadow: 0 0 16px rgba(255, 224, 160, 1), 0 0 5px rgba(255, 246, 226, 0.9), inset 0 1px 0 #fff;
 }
+/* ember fill rising from the coals */
 .hm-fill {
   position: absolute; left: 2px; right: 2px; bottom: 0;
-  background: linear-gradient(0deg, #e8dcc4, #fff6e2);
-  border-radius: 6px;
-  box-shadow: 0 0 10px rgba(232, 220, 196, 0.7);
+  background: linear-gradient(0deg, #7a1d16 0%, #c23b2e 32%, #ff5a26 68%, #ffb84d 100%);
+  box-shadow: 0 -1px 6px rgba(255, 110, 38, 0.8), inset 0 1px 0 rgba(255, 226, 168, 0.6);
 }
-.hoops-meter.hm-perfect { animation: hmFlash 0.45s ease; border-color: #ffb84d; }
-.hoops-meter.hm-good { animation: hmFlash 0.35s ease; border-color: #b0793a; }
-.hoops-meter.hm-bad { animation: hmShake 0.3s ease; border-color: #c23b2e; }
-@keyframes hmFlash {
-  0% { box-shadow: 0 0 30px rgba(255, 184, 77, 0.9); }
-  100% { box-shadow: 0 0 14px rgba(0, 0, 0, 0.65); }
+.hoops-meter.hm-perfect { animation: hmQuench 0.45s ease; }
+.hoops-meter.hm-good { animation: hmQuench 0.35s ease; }
+.hoops-meter.hm-bad { animation: hmShake 0.3s ease; }
+@keyframes hmQuench {
+  0% { filter: brightness(2) saturate(1.4); }
+  100% { filter: none; }
 }
 @keyframes hmShake {
-  0%, 100% { margin-left: 0; }
-  25% { margin-left: -5px; }
-  75% { margin-left: 5px; }
+  0%, 100% { margin-left: 0; filter: none; }
+  25% { margin-left: -5px; filter: brightness(0.6) saturate(1.6); }
+  75% { margin-left: 5px; filter: brightness(0.6) saturate(1.6); }
 }
 
-/* ---------- on-fire tag: forge fire ---------- */
+/* ---------- on-fire tag: flame-sigil iron tag, ember pulse ---------- */
 .hoops-fire {
-  position: absolute; top: 86px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 84px; left: 50%; transform: translateX(-50%);
+  /* setFire() toggles inline display:block — style for block flow */
+  text-align: center; white-space: nowrap;
+  clip-path: var(--clip-tag);
+  background:
+    radial-gradient(80% 120% at 50% 110%, rgba(255, 90, 38, 0.35), transparent 65%),
+    linear-gradient(180deg, rgba(232, 220, 196, 0.09), transparent 42%, rgba(0, 0, 0, 0.5)),
+    var(--tex-iron),
+    #1f1610;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 110, 38, 0.45),
+    inset 0 -7px 12px rgba(140, 40, 8, 0.5),
+    inset 0 1px 0 rgba(232, 220, 196, 0.14);
+  padding: 5px 20px 6px;
   font-family: var(--font-display);
-  font-size: 16px; font-weight: 800; letter-spacing: 0.24em;
-  color: #ff8c3b;
-  text-shadow: 0 0 16px rgba(255, 90, 38, 0.95), 0 0 34px rgba(255, 140, 59, 0.5);
+  font-size: 15px; font-weight: 800; letter-spacing: 0.26em;
+  font-variant: small-caps;
+  color: #ffb84d;
+  text-shadow: var(--engrave), 0 0 12px rgba(255, 140, 59, 0.7);
   animation: hoopsFirePulse 0.6s ease infinite alternate;
   z-index: 12;
 }
+.hoops-fire .hf-sig {
+  display: inline-flex; vertical-align: -2px;
+  margin: 0 9px; color: #ff5a26;
+  filter: drop-shadow(0 0 5px rgba(255, 90, 38, 0.9));
+  animation: hoopsFlameLick 0.45s ease-in-out infinite alternate;
+}
+.hoops-fire .hf-sig:first-child { margin-left: 0; }
+.hoops-fire .hf-sig:last-child { margin-right: 0; }
+.hoops-fire .hf-sig:last-child { animation-delay: 0.22s; }
+@keyframes hoopsFlameLick {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(1.14) translateY(-1px); }
+}
 @keyframes hoopsFirePulse {
-  from { transform: translateX(-50%) scale(1); filter: brightness(1); }
-  to { transform: translateX(-50%) scale(1.07); filter: brightness(1.35); }
+  from { transform: translateX(-50%) scale(1); filter: drop-shadow(0 0 6px rgba(255, 90, 38, 0.35)); }
+  to { transform: translateX(-50%) scale(1.04); filter: drop-shadow(0 0 16px rgba(255, 90, 38, 0.75)) brightness(1.18); }
 }
 
 /* ---------- announcer banner flavor ---------- */
@@ -165,16 +247,28 @@
   margin-top: 16px;
   animation: hoopsFadeUp 0.45s ease 1.5s backwards;
 }
+/* fighter plates: chamfered stone slabs in forged rims */
 .hoops-vs-plate {
-  width: 270px; padding: 15px 20px; text-align: center;
-  background:
-    linear-gradient(170deg, rgba(80, 68, 52, 0.5), rgba(14, 10, 7, 0.55) 55%, rgba(0, 0, 0, 0.6)),
-    rgba(24, 19, 14, 0.92);
-  border: 1px solid rgba(176, 121, 58, 0.55);
-  border-top-color: rgba(232, 220, 196, 0.3);
-  border-radius: 6px;
-  box-shadow: 0 0 30px rgba(255, 140, 59, 0.12), inset 0 0 34px rgba(0, 0, 0, 0.55), 0 14px 38px rgba(0, 0, 0, 0.7);
+  position: relative; isolation: isolate;
+  width: 270px; padding: 16px 20px; text-align: center;
+  clip-path: var(--clip-plaque);
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 80%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 12px 30px rgba(0, 0, 0, 0.6));
 }
+.hoops-vs-plate::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    radial-gradient(circle at 11px 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at 11px calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 34%, transparent 62%, rgba(0, 0, 0, 0.42)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    var(--panel-bg);
+}
+.hoops-vsr { background: linear-gradient(165deg, #6e3020 0%, #381c12 40%, #150c08 82%); }
 .hoops-vsl { animation: hoopsSlamL 0.45s cubic-bezier(0.16, 1.3, 0.4, 1) 1.5s backwards; }
 .hoops-vsr { animation: hoopsSlamR 0.45s cubic-bezier(0.16, 1.3, 0.4, 1) 1.5s backwards; }
 @keyframes hoopsSlamL { from { transform: translateX(-60vw) rotate(-3deg); opacity: 0; } }
@@ -183,14 +277,15 @@
   font-family: var(--font-display);
   font-size: 27px; font-weight: 800; letter-spacing: 0.09em; font-variant: small-caps;
   color: #ffd489;
-  text-shadow: 0 0 20px rgba(255, 184, 77, 0.45), 0 3px 0 rgba(16, 8, 3, 0.8);
+  text-shadow: var(--engrave), 0 0 18px rgba(255, 184, 77, 0.35), 0 3px 4px rgba(0, 0, 0, 0.8);
 }
-.hoops-vsr .hoops-vs-name { color: #e0604a; text-shadow: 0 0 20px rgba(194, 59, 46, 0.5), 0 3px 0 rgba(16, 8, 3, 0.8); }
+.hoops-vsr .hoops-vs-name { color: #e0604a; text-shadow: var(--engrave), 0 0 18px rgba(194, 59, 46, 0.4), 0 3px 4px rgba(0, 0, 0, 0.8); }
 .hoops-vs-sub {
   margin-top: 3px;
   font-family: var(--font-display);
   font-size: 11px; font-weight: 700; letter-spacing: 0.34em;
   font-variant: small-caps; color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
 .hoops-vs-mid {
   font-family: var(--font-display);
@@ -220,93 +315,120 @@
   50% { opacity: 0.85; }
 }
 
-/* ---------- micro shot labels: OPEN LOOK / CONTESTED! / HEAT CHECK ---------- */
+/* ---------- micro shot labels: small parchment stamps ---------- */
 .hoops-micro {
-  position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
+  position: absolute; left: 50%; top: 30%;
+  transform: translateX(-50%) rotate(-2deg);
   z-index: 15; pointer-events: none;
+  clip-path: var(--clip-torn);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.3), rgba(0, 0, 0, 0) 40%, rgba(96, 72, 40, 0.24)),
+    var(--tex-parchment),
+    #d3c19a;
+  padding: 9px 26px 11px;
   font-family: var(--font-display);
-  font-size: 26px; font-weight: 800; font-style: italic; letter-spacing: 0.22em;
+  font-size: 21px; font-weight: 800; letter-spacing: 0.24em;
   font-variant: small-caps;
-  -webkit-text-stroke: 1px rgba(20, 10, 4, 0.9);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 7px 16px rgba(0, 0, 0, 0.45));
   animation: hoopsMicroIn 0.22s cubic-bezier(0.16, 1.4, 0.4, 1);
   transition: opacity 0.3s, transform 0.3s;
 }
-.hoops-micro.out { opacity: 0; transform: translateX(-50%) translateY(-14px); }
-@keyframes hoopsMicroIn { from { transform: translateX(-50%) scale(1.8); opacity: 0; } }
-.hoops-micro-open { color: #ffd489; text-shadow: 0 0 18px rgba(255, 184, 77, 0.7), 0 2px 0 #000; }
-.hoops-micro-contested { color: #e0604a; text-shadow: 0 0 18px rgba(194, 59, 46, 0.8), 0 2px 0 #000; }
-.hoops-micro-heat { color: #ff8c3b; text-shadow: 0 0 26px rgba(255, 90, 38, 0.95), 0 2px 0 #000; }
+.hoops-micro.out { opacity: 0; transform: translateX(-50%) translateY(-14px) rotate(-2deg); }
+@keyframes hoopsMicroIn { from { transform: translateX(-50%) scale(1.8) rotate(-2deg); opacity: 0; } }
+.hoops-micro-open { color: #6a4a14; text-shadow: 0 1px 0 rgba(255, 250, 230, 0.55); }
+.hoops-micro-contested { color: #8a1f18; text-shadow: 0 1px 0 rgba(255, 250, 230, 0.5); }
+.hoops-micro-heat {
+  color: #a1400e;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.5), 0 0 10px rgba(255, 110, 38, 0.45);
+}
 
-/* ---------- end-of-game stats tablet ---------- */
+/* ---------- end-of-game stats tablet: parchment-and-iron ledger ---------- */
 .hoops-panel {
   position: absolute; left: 50%; top: 54%; transform: translateX(-50%);
-  width: 440px; padding: 20px 26px 16px;
+  width: 446px; padding: 20px 24px 16px;
   text-align: center; z-index: 30;
-  background:
-    linear-gradient(180deg, rgba(84, 74, 60, 0.4), rgba(0, 0, 0, 0.25) 26%, rgba(0, 0, 0, 0.42)),
-    rgba(26, 21, 16, 0.94);
-  border: 1px solid rgba(176, 121, 58, 0.5);
-  border-top-color: rgba(232, 220, 196, 0.25);
-  border-radius: 10px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(232, 220, 196, 0.12), inset 0 0 44px rgba(0, 0, 0, 0.5);
+  isolation: isolate;
+  clip-path: var(--clip-plaque);
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 80%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 16px 44px rgba(0, 0, 0, 0.65));
   animation: hoopsPanelIn 0.35s ease;
+}
+.hoops-panel::before {
+  content: ''; position: absolute; inset: 2.5px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    radial-gradient(circle at 11px 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at 11px calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 34%, transparent 62%, rgba(0, 0, 0, 0.42)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    var(--panel-bg);
 }
 @keyframes hoopsPanelIn { from { opacity: 0; transform: translate(-50%, 16px); } }
 .hoops-panel-title {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
   font-family: var(--font-display);
-  font-size: 19px; font-weight: 800; font-style: italic; letter-spacing: 0.24em;
+  font-size: 19px; font-weight: 800; letter-spacing: 0.2em;
+  font-variant: small-caps;
   color: var(--gold);
-  text-shadow: 0 0 20px rgba(255, 184, 77, 0.5), 0 2px 3px #000;
+  text-shadow: var(--engrave), 0 0 16px rgba(255, 184, 77, 0.4);
 }
-.hoops-panel-title.lose { color: #e04a3a; text-shadow: 0 0 20px rgba(194, 59, 46, 0.6), 0 2px 3px #000; }
+.hoops-panel-title.lose { color: #e04a3a; text-shadow: var(--engrave), 0 0 16px rgba(194, 59, 46, 0.5); }
+.hoops-panel-title .hp-laurel {
+  display: flex; color: rgba(200, 150, 84, 0.9);
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 1px 0 rgba(232, 220, 196, 0.12));
+}
 .hoops-panel-score {
-  margin: 6px 0 10px;
+  margin: 5px 0 10px;
   font-family: var(--font-display);
-  font-size: 40px; font-weight: 800; font-style: italic;
-  color: var(--ink); text-shadow: 0 3px 0 rgba(16, 8, 3, 0.8);
+  font-size: 40px; font-weight: 800;
+  color: var(--ink);
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(232, 220, 196, 0.12), 0 3px 6px rgba(0, 0, 0, 0.7);
 }
 .hoops-panel-score i { font-style: normal; color: var(--ink-dim); margin: 0 12px; font-size: 26px; }
 .hoops-panel-score .hps-you { color: #ffb84d; }
-.hoops-panel-score .hps-cpu { color: #c9432f; }
+.hoops-panel-score .hps-cpu { color: #d0503a; }
+/* the ledger sheet: an inked parchment scrap pinned to the stone */
 .hoops-panel-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 22px;
-  margin-bottom: 14px; text-align: left;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3px 22px;
+  margin-bottom: 13px; padding: 12px 16px 13px;
+  text-align: left;
+  clip-path: var(--clip-torn);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.28), rgba(0, 0, 0, 0) 38%, rgba(96, 72, 40, 0.22)),
+    var(--tex-parchment),
+    #d3c19a;
 }
 .hoops-panel-row {
   display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
   padding: 3px 0;
-  border-bottom: 1px solid rgba(176, 121, 58, 0.18);
+  border-bottom: 1px solid rgba(90, 65, 35, 0.35);
   font-family: var(--font-display);
 }
 .hoops-panel-row .k {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
-  font-variant: small-caps; color: var(--ink-dim);
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+  font-variant: small-caps; color: var(--sepia-dim);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
+}
+.hoops-panel-row .k .hp-sig {
+  display: flex; color: #8a5a26;
+  filter: drop-shadow(0 1px 0 rgba(255, 250, 230, 0.4));
 }
 .hoops-panel-row .v {
-  font-size: 14px; font-weight: 800; color: var(--ink);
-  text-shadow: 0 1px 2px #000; white-space: nowrap;
+  font-size: 14px; font-weight: 800; color: var(--sepia);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.5); white-space: nowrap;
 }
-.hoops-panel-auto { margin-top: 9px; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim); }
+.hoops-panel-auto {
+  margin-top: 9px; font-size: 11px; letter-spacing: 0.14em;
+  color: var(--ink-dim); text-shadow: var(--engrave);
+}
 
-/* ---------- return-to-hub button (bronze, inside the tablet) ---------- */
+/* ---------- return-to-hub button: kit forged-bronze plaque, resized ---------- */
 .hoops-hub-btn {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 800; letter-spacing: 0.18em;
-  font-variant: small-caps;
-  color: #1c1108;
-  background: linear-gradient(180deg, #e0aa5e, #b0793a 55%, #8a5a26);
-  border: 1px solid #5c3d1a;
-  border-top-color: #f0cf9a;
-  border-radius: 6px;
-  padding: 11px 24px;
-  cursor: pointer;
-  text-shadow: 0 1px 0 rgba(255, 226, 178, 0.5);
-  box-shadow: 0 0 20px rgba(255, 140, 59, 0.28), 0 3px 8px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(90, 50, 12, 0.55);
-  transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
-}
-.hoops-hub-btn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.12);
-  box-shadow: 0 0 30px rgba(255, 140, 59, 0.5), 0 5px 12px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(90, 50, 12, 0.55);
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  padding: 11px 28px;
 }

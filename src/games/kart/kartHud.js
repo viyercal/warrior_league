@@ -1,8 +1,21 @@
 import { WASD_KEY_LABELS } from '../../meta/skills.js'
+import { icon } from '../../ui/craft.js'
 import { clamp } from '../../core/utils.js'
 
 const ORD = ['1ST', '2ND', '3RD', '4TH', '5TH', '6TH']
 export const ordinal = p => ORD[p - 1] || `${p}TH`
+
+/** Engraved place numerals for the standings ledger. */
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI']
+
+/** Per-stat sigil glyphs on the results ledger (svg only — no text). */
+const STAT_SIGILS = {
+  'BEST LAP': 'hourglass',
+  'TOP SPEED': 'overdrive',
+  'DRIFT BOOSTS': 'flame',
+  'SHELLS LANDED': 'comet',
+  'FAVORITE ART': 'crossed-swords',
+}
 
 export function fmtTime(sec) {
   const m = Math.floor(sec / 60)
@@ -18,9 +31,12 @@ export function fmtTime(sec) {
 export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
   const ability = hud.abilityBar(skillDefs, { game: 'kart', keys: WASD_KEY_LABELS })
 
-  const posEl = hud.el('div', 'kart-pos', '<b>6</b><span>/6</span>')
+  // position medallion: engraved bronze disc ringed by a laurel
+  const posEl = hud.el('div', 'kart-pos',
+    `<span class="kp-ring">${icon('laurel', { size: 88 })}</span>` +
+    '<span class="kp-num"><b>6</b><span class="kp-of">/6</span></span>')
   const posNum = posEl.querySelector('b')
-  const posTotal = posEl.querySelector('span')
+  const posTotal = posEl.querySelector('.kp-of')
   const rivalEl = hud.el('div', 'kart-rival')
   const topEl = hud.el('div', 'kart-top', '<div class="kart-lap">LAP 1/3</div><div class="kart-clock">0:00.0</div>')
   const lapEl = topEl.querySelector('.kart-lap')
@@ -119,10 +135,11 @@ export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
       clearTimeout(driftEl._t)
       driftEl._t = setTimeout(() => driftEl.classList.remove('on'), 1000)
     },
-    popup(text, cls) {
+    popup(text, cls, sigil = null) {
       const el = document.createElement('div')
       el.className = `kart-popup ${cls || ''}`
       el.textContent = text
+      if (sigil) el.insertAdjacentHTML('beforeend', `<i class="kp-sig">${icon(sigil, { size: '0.8em' })}</i>`)
       popupWrap.appendChild(el)
       setTimeout(() => el.remove(), 1700)
     },
@@ -134,13 +151,13 @@ export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
       if (p !== pendPos) { pendPos = p; pendSince = now; return }
       if (now - pendSince < 300) return
       const up = p < lastPos
-      this.popup(`P${p} ${up ? '▲' : '▼'}`, up ? 'up' : 'down')
+      this.popup(`P${p}`, up ? 'up' : 'down', up ? 'arrow-up' : 'arrow-down')
       audio?.play(up ? 'swish' : 'back', { vol: up ? 0.45 : 0.4 })
       lastPos = p
     },
     setRival(name) {
       rivalEl.classList.toggle('on', !!name)
-      if (name) rivalEl.innerHTML = `<i>⌁</i> RIVAL · ${name}`
+      if (name) rivalEl.innerHTML = `<i>${icon('crossed-swords', { size: 13 })}</i>RIVAL · ${name}`
     },
     /** Fade the gameplay chrome (intro flyover / podium ceremony). */
     hideChrome(on) {
@@ -187,15 +204,20 @@ export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
     },
     finishPanel(rows, { playerPos, onHub, onRetry, stats = null, side = false }) {
       const panel = hud.el('div', `kart-finish ui-interactive${side ? ' kart-finish-side' : ''}`)
-      hud.el('div', 'kart-finish-title', 'FINAL STANDINGS', panel)
+      const wheel = `<i class="kft-sig">${icon('chariot-wheel', { size: 18 })}</i>`
+      hud.el('div', 'kart-finish-title', `${wheel}FINAL STANDINGS${wheel}`, panel)
       const list = hud.el('div', 'kart-finish-list', '', panel)
       rows.forEach((r, i) => {
         hud.el('div', `kart-finish-row${r.isPlayer ? ' you' : ''}${i === 0 ? ' first' : ''}`,
-          `<b>${ordinal(i + 1)}</b><span class="kn" style="--kc:${r.color}">${r.name}</span><span class="kt">${r.time}</span>`, list)
+          `<span class="kf-place"><i class="kf-rn">${ROMAN[i] || i + 1}</i><b>${ordinal(i + 1)}</b></span>` +
+          `<span class="kn" style="--kc:${r.color}">${r.name}</span><span class="kt">${r.time}</span>`, list)
       })
       if (stats) {
         const grid = hud.el('div', 'kart-finish-stats', '', panel)
-        for (const [label, value] of stats) hud.el('div', 'kart-stat', `<span>${label}</span><b>${value}</b>`, grid)
+        for (const [label, value] of stats) {
+          const sig = STAT_SIGILS[label] ? `<i class="ks-sig">${icon(STAT_SIGILS[label], { size: 12 })}</i>` : ''
+          hud.el('div', 'kart-stat', `<span>${sig}${label}</span><b>${value}</b>`, grid)
+        }
       }
       const btns = hud.el('div', 'kart-finish-btns', '', panel)
       const hubBtn = document.createElement('button')

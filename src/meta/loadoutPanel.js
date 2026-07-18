@@ -1,4 +1,5 @@
 import { SKILLS, KEY_LABELS } from './skills.js'
+import { icon } from '../ui/craft.js'
 
 export const GAME_TITLES = {
   moba: 'WAR RIFT', hoops: 'BLOOD COURT', arena: 'THE PIT',
@@ -50,12 +51,14 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
     saveProfile()
   })
   nameInput.addEventListener('focus', () => nameInput.select())
-  if (game) hud.el('div', `loadout-next loadout-g-${game}`, `NEXT BATTLE &nbsp;·&nbsp; ${GAME_TITLES[game]}`, head)
+  if (game) hud.el('div', `loadout-next loadout-g-${game}`,
+    `${icon('crossed-swords', { size: '1em' })}NEXT BATTLE &nbsp;·&nbsp; ${GAME_TITLES[game]}`, head)
 
   const scroll = hud.el('div', 'loadout-scroll', '', root)
   const section = title => {
     const s = hud.el('div', 'loadout-sec', '', scroll)
-    hud.el('div', 'loadout-sec-title', title, s)
+    hud.el('div', 'loadout-sec-title',
+      `${title}<span class="loadout-sec-orn" aria-hidden="true">${icon('ornament-divider', { size: 72 })}</span>`, s)
     return s
   }
 
@@ -118,7 +121,7 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
     profile.loadout.forEach((id, i) => {
       const sk = SKILLS.find(x => x.id === id)
       const { s, ic, nm } = slotEls[i]
-      ic.textContent = sk ? sk.icon : '·'
+      ic.innerHTML = sk ? sk.icon : '·' // icons are SVG sigil strings (craft.js)
       nm.textContent = sk ? sk.name : 'EMPTY'
       s.style.setProperty('--sw', sk ? sk.color : '#6b5a44')
       s.classList.toggle('active', i === active)

@@ -1,29 +1,77 @@
-/* ============ THE PIT HUD — stone, bronze, torchlight ============ */
+/* ============================================================
+   THE PIT HUD — carved stone, forged iron, torchlight.
+   Wave calls sit on a skull-flanked stone plaque, the score is a
+   coin-stamped iron tag, FURY is a forged brazier gauge and the
+   boss bar is an obsidian blade rimmed in crimson.
+   ============================================================ */
 
+/* ---------- wave plaque: carved stone, flanked by skull sigils ---------- */
 .arena-wave {
-  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 20px 9px;
+  clip-path: var(--clip-plaque-sm);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.09), transparent 40%, rgba(0, 0, 0, 0.42)),
+    radial-gradient(120% 130% at 50% -14%, transparent 55%, rgba(0, 0, 0, 0.4)),
+    var(--tex-stone),
+    rgba(24, 20, 15, 0.92);
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.5),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1);
   font-family: var(--font-display);
-  font-size: 22px; font-weight: 800; font-style: italic; letter-spacing: 0.28em;
+  font-size: 19px; font-weight: 800; letter-spacing: 0.26em;
   font-variant: small-caps;
   color: var(--ink);
-  text-shadow: 0 0 14px rgba(255, 140, 59, 0.32), 0 2px 6px #000;
+  text-shadow: var(--engrave), 0 2px 5px #000;
   z-index: 12;
 }
+.arena-wave::before, .arena-wave::after {
+  content: ''; flex: none;
+  width: 16px; height: 16px;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bfae8e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3.2a6.8 6.8 0 0 1 6.8 6.8c0 2-1 3.8-2.4 5v2.7c0 1-.8 1.8-1.8 1.8H9.4c-1 0-1.8-.8-1.8-1.8V15a6.9 6.9 0 0 1-2.4-5A6.8 6.8 0 0 1 12 3.2Z'/><ellipse cx='9.5' cy='10.6' rx='1.35' ry='1.5' fill='%23bfae8e' stroke='none'/><ellipse cx='14.5' cy='10.6' rx='1.35' ry='1.5' fill='%23bfae8e' stroke='none'/><path d='M12 12.7l-.9 1.8h1.8Z'/><path d='M10.1 19.5v-1.9M12 19.5v-1.9M13.9 19.5v-1.9'/></svg>") center / contain no-repeat;
+  opacity: 0.8;
+}
+.arena-wave::after { transform: scaleX(-1); }
 
+/* ---------- score: coin-stamped iron tag, engraved numerals ---------- */
 .arena-score {
-  position: absolute; top: 14px; right: 26px; text-align: right; z-index: 12;
+  position: absolute; top: 16px; right: 26px;
+  padding: 7px 18px 8px 44px;
+  text-align: right; z-index: 12;
+  clip-path: var(--clip-tag);
+  background:
+    linear-gradient(180deg, rgba(232, 220, 196, 0.1), transparent 42%, rgba(0, 0, 0, 0.42)),
+    var(--tex-iron),
+    rgba(26, 22, 17, 0.92);
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.45),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.45);
+}
+.arena-score::before {
+  content: ''; position: absolute; left: 15px; top: 50%;
+  width: 19px; height: 19px; margin-top: -9.5px;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffb84d' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8.4'/><circle cx='12' cy='12' r='5.7'/><path d='M10.4 9.2h3.2M10.4 14.8h3.2M12 9.2v5.6'/></svg>") center / contain no-repeat;
+  opacity: 0.92;
 }
 .arena-score span {
   display: block;
   font-family: var(--font-display);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.34em;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.32em;
   color: var(--ink-dim);
+  text-shadow: var(--engrave);
 }
 .arena-score b {
+  display: block;
   font-family: var(--font-display);
-  font-size: 36px; font-weight: 800; font-style: italic;
+  font-size: 30px; font-weight: 800; line-height: 1.05;
   color: var(--gold);
-  text-shadow: 0 0 14px rgba(255, 184, 77, 0.35), 0 2px 4px #000;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(255, 240, 210, 0.18),
+    0 2px 4px #000;
 }
 
 /* damage flash + low HP heartbeat — blood crimson */
@@ -47,39 +95,73 @@
   50% { opacity: 0.45; }
 }
 
-/* boss HP bar: iron trough, blood fill, bronze fittings */
+/* ---------- boss bar: an obsidian blade, rimmed in crimson ---------- */
 .arena-boss {
-  position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
-  width: 460px; z-index: 12;
+  position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
+  width: 480px; z-index: 12;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 14px rgba(194, 59, 46, 0.3));
 }
 .arena-boss-name {
   font-family: var(--font-display);
   font-size: 13px; font-weight: 800; letter-spacing: 0.42em; text-align: center;
   font-variant: small-caps;
   color: #d8574a;
-  text-shadow: 0 0 12px rgba(194, 59, 46, 0.5), 0 1px 3px #000;
-  margin-bottom: 4px;
+  text-shadow: var(--engrave), 0 0 12px rgba(194, 59, 46, 0.5), 0 1px 3px #000;
+  margin-bottom: 5px;
 }
+/* forged finial studs at the blade's two points */
+.arena-boss::before, .arena-boss::after {
+  content: ''; position: absolute; bottom: 4px;
+  width: 9px; height: 9px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #e0684f, #a1252c 55%, #58120f);
+  box-shadow: inset 0 1px 0 rgba(255, 200, 170, 0.5), 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+.arena-boss::before { left: -3px; }
+.arena-boss::after { right: -3px; }
 .arena-boss-track {
-  height: 14px;
-  background: linear-gradient(180deg, rgba(10, 7, 5, 0.92), rgba(30, 22, 16, 0.88));
-  border: 1px solid rgba(176, 121, 58, 0.6);
-  border-radius: 4px; overflow: hidden;
-  box-shadow: 0 0 18px rgba(194, 59, 46, 0.3), inset 0 2px 8px rgba(0, 0, 0, 0.75);
+  position: relative; height: 17px; overflow: hidden;
+  clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 18px 100%, 0 50%);
+  background:
+    linear-gradient(180deg, rgba(30, 22, 26, 0.9), rgba(8, 5, 7, 0.95) 55%, rgba(16, 10, 13, 0.92)),
+    var(--tex-stone),
+    #070405;
+  box-shadow:
+    inset 0 0 0 1px rgba(194, 59, 46, 0.55),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 2px 7px rgba(0, 0, 0, 0.9);
+}
+/* etched quarter ticks over the fill */
+.arena-boss-track::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 1px, rgba(232, 220, 196, 0.08) 1px 2px, transparent 2px);
+  background-size: 25% 100%;
 }
 .arena-boss-fill {
   height: 100%; width: 100%;
-  background: linear-gradient(180deg, #e0684f, #a1252c 60%, #6e181d);
-  box-shadow: 0 0 12px rgba(194, 59, 46, 0.8), inset 0 1px 0 rgba(255, 200, 160, 0.25);
-  border-radius: 3px;
+  background:
+    var(--tex-stone),
+    linear-gradient(180deg, #ff8a66 0%, #d6452f 26%, #a1252c 62%, #5e1216 100%);
+  background-blend-mode: soft-light, normal;
+  box-shadow: inset 0 1px 0 rgba(255, 200, 160, 0.3), inset 0 -1px 1px rgba(0, 0, 0, 0.5);
   transition: width 0.15s ease;
 }
 
-/* kill-streak popups reuse the banner, smaller + punchier */
+/* ---------- kill-streak popups: stamped parchment proclamations ---------- */
 .arena-streak { top: 24%; }
+.arena-streak .banner-orn { display: none; }
 .arena-streak .banner-main {
-  font-size: 52px;
-  letter-spacing: 0.14em;
+  font-size: 44px; letter-spacing: 0.12em;
+  color: color-mix(in srgb, var(--banner-color) 50%, #5a2410);
+  -webkit-text-stroke: 0;
+  clip-path: var(--clip-torn);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.3), rgba(0, 0, 0, 0) 38%, rgba(96, 72, 40, 0.24)),
+    var(--tex-parchment),
+    #d3c19a;
+  padding: 11px 36px 14px;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
+  transform: rotate(-1.6deg);
 }
 
 /* ---------- cinematic letterbox (intro descent + warden entrance) ---------- */
@@ -118,13 +200,20 @@
 }
 .arena-title.in .arena-title-main { animation: arenaTitleIn 0.5s cubic-bezier(0.16, 1.4, 0.4, 1); }
 .arena-title-plate {
-  display: inline-block; margin-top: 10px; padding: 7px 26px;
+  display: inline-block; margin-top: 12px; padding: 8px 28px 9px;
   font-family: var(--font-display);
   font-size: 15px; font-weight: 800; letter-spacing: 0.5em; font-variant: small-caps;
   color: var(--ink);
-  background: linear-gradient(170deg, rgba(70, 58, 44, 0.55), rgba(12, 9, 7, 0.8));
-  border: 1px solid rgba(176, 121, 58, 0.55); border-radius: 4px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(232, 220, 196, 0.14);
+  clip-path: var(--clip-plaque-sm);
+  background:
+    linear-gradient(150deg, rgba(232, 220, 196, 0.1), transparent 40%, rgba(0, 0, 0, 0.45)),
+    var(--tex-stone),
+    rgba(18, 14, 10, 0.88);
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.55),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(232, 220, 196, 0.12);
+  text-shadow: var(--engrave);
 }
 .arena-title.in .arena-title-plate { animation: arenaPlateIn 0.5s ease 0.12s backwards; }
 .arena-title-hint {
@@ -146,13 +235,25 @@
 }
 .arena-nameslam .banner-sub { font-size: 15px; letter-spacing: 0.48em; color: #d8a878; }
 
-/* ---------- ANNIHILATION multi-kill popup (own slot, clears wave banners) ---------- */
+/* ---------- ANNIHILATION: the grandest stamp (own slot, clears wave banners) ---------- */
 .arena-annihilate { top: 18%; }
+.arena-annihilate .banner-orn { display: none; }
 .arena-annihilate .banner-main {
-  font-size: 74px; font-style: italic; letter-spacing: 0.12em;
+  font-size: 58px; font-style: italic; letter-spacing: 0.12em;
+  color: #8a1c14;
+  -webkit-text-stroke: 0;
+  clip-path: var(--clip-torn);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.3), rgba(0, 0, 0, 0) 38%, rgba(120, 60, 30, 0.28)),
+    var(--tex-parchment),
+    #d3c19a;
+  padding: 13px 44px 17px;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4), 0 0 18px rgba(161, 37, 44, 0.25);
+  box-shadow: inset 0 0 0 3px rgba(150, 26, 24, 0.45), inset 0 0 0 5px rgba(211, 193, 154, 0.7), inset 0 0 0 6.5px rgba(150, 26, 24, 0.35);
+  transform: rotate(-2deg);
   animation: arenaAnnihilate 0.1s ease-in-out 4 alternate;
 }
-@keyframes arenaAnnihilate { from { transform: translateX(-3px); } to { transform: translateX(3px); } }
+@keyframes arenaAnnihilate { from { transform: translateX(-3px) rotate(-2deg); } to { transform: translateX(3px) rotate(-2deg); } }
 
 /* ---------- UNBROKEN (last-stand recovery) ---------- */
 .arena-unbroken .banner-main {
@@ -171,33 +272,77 @@
 .arena-laststand.on { opacity: 1; animation: arenaLastPulse 0.95s ease-in-out infinite; }
 @keyframes arenaLastPulse { 0%, 100% { opacity: 1; } 45% { opacity: 0.5; } }
 
-/* ---------- FURY streak-flame meter (right of the HP bar) ---------- */
+/* ---------- FURY: a forged brazier gauge (right of the HP bar) ---------- */
 .arena-heat {
-  position: absolute; left: 336px; bottom: 34px;
-  width: 15px; height: 62px; z-index: 12;
-  background: linear-gradient(180deg, rgba(8, 5, 4, 0.9), rgba(26, 18, 12, 0.85));
-  border: 1px solid rgba(176, 121, 58, 0.45);
-  border-radius: 3px;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+  position: absolute; left: 338px; bottom: 32px;
+  width: 26px; height: 84px; z-index: 12;
 }
+/* the iron gauge column rising out of the bowl */
+.arena-heat-stem {
+  position: absolute; left: 50%; top: 0; bottom: 13px;
+  width: 15px; margin-left: -7.5px;
+  clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 4px, 100% 100%, 0 100%, 0 4px);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0.25) 55%, rgba(0, 0, 0, 0.5)),
+    var(--tex-iron),
+    #16110c;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.45),
+    inset 0 2px 6px rgba(0, 0, 0, 0.85);
+}
+/* the ember column */
 .arena-heat-fill {
-  position: absolute; left: 1px; right: 1px; bottom: 1px; height: 0%;
-  background: linear-gradient(180deg, #ffe9a8, #ffb84d 30%, #ff5a26 62%, #a1252c);
-  border-radius: 2px;
+  position: absolute; left: 2px; right: 2px; bottom: 2px; height: 0%;
+  background: linear-gradient(180deg, #fff3d0, #ffb84d 26%, #ff5a26 60%, #a1252c);
   box-shadow: 0 0 10px rgba(255, 140, 59, 0.55);
   transition: height 0.18s ease;
 }
+/* the forged bowl the fire sits in, flame sigil struck on its face */
+.arena-heat-bowl {
+  position: absolute; left: 50%; bottom: 0;
+  width: 30px; height: 18px; margin-left: -15px;
+  display: flex; align-items: center; justify-content: center;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) calc(100% - 2px), 7px calc(100% - 2px));
+  background:
+    linear-gradient(180deg, rgba(232, 220, 196, 0.16), rgba(0, 0, 0, 0.1) 30%, rgba(0, 0, 0, 0.5)),
+    var(--tex-iron),
+    #241d14;
+  box-shadow:
+    inset 0 1px 0 rgba(232, 220, 196, 0.2),
+    inset 0 0 0 1px rgba(176, 121, 58, 0.5),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.6);
+  color: rgba(232, 220, 196, 0.55);
+  transition: color 0.3s;
+}
+.arena-heat-bowl svg { display: block; }
 .arena-heat-label {
-  position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: calc(100% + 3px); left: 50%; transform: translateX(-50%);
   font-family: var(--font-display);
   font-size: 9px; font-weight: 800; letter-spacing: 0.2em;
   color: var(--ink-dim);
+  text-shadow: var(--engrave);
+  transition: color 0.3s;
 }
-.arena-heat.blazing { border-color: rgba(255, 140, 59, 0.85); animation: arenaHeatFlicker 0.5s ease-in-out infinite; }
-.arena-heat.blazing .arena-heat-label { color: #ffb84d; text-shadow: 0 0 8px rgba(255, 140, 59, 0.8); }
+/* blazing: the sigil ignites, the column flickers */
+.arena-heat.blazing .arena-heat-stem { animation: arenaHeatFlicker 0.5s ease-in-out infinite; }
+.arena-heat.blazing .arena-heat-bowl {
+  color: #ffb84d;
+  filter: drop-shadow(0 0 7px rgba(255, 140, 59, 0.8));
+}
+.arena-heat.blazing .arena-heat-label { color: #ffb84d; text-shadow: var(--engrave), 0 0 8px rgba(255, 140, 59, 0.8); }
 @keyframes arenaHeatFlicker {
-  0%, 100% { box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 14px rgba(255, 120, 40, 0.5); }
-  50% { box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 26px rgba(255, 120, 40, 0.85); }
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 140, 59, 0.55),
+      inset 0 2px 6px rgba(0, 0, 0, 0.85),
+      0 0 12px rgba(255, 120, 40, 0.45);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 140, 59, 0.75),
+      inset 0 2px 6px rgba(0, 0, 0, 0.85),
+      0 0 24px rgba(255, 120, 40, 0.8);
+  }
 }
 
 /* end-state banners: compact single line, high slot — clears the stat tablet */
@@ -205,57 +350,140 @@
 .arena-endbanner .banner-main { font-size: 62px; letter-spacing: 0.12em; }
 .arena-endbanner .banner-sub { font-size: 15px; }
 
-/* ---------- end tablet: duel-style run stats (victory AND death) ---------- */
+/* ---------- end tablet: iron-framed parchment ledger (victory AND death) ---------- */
 .arena-end {
   position: absolute; left: 50%; top: 40%; transform: translateX(-50%);
-  width: 440px; padding: 20px 24px 18px;
+  isolation: isolate;
+  width: 460px; padding: 18px 26px 20px;
   text-align: center; z-index: 35;
-  background:
-    linear-gradient(180deg, rgba(84, 74, 60, 0.4), rgba(0, 0, 0, 0.25) 26%, rgba(0, 0, 0, 0.42)),
-    rgba(26, 21, 16, 0.94);
-  border: 1px solid rgba(176, 121, 58, 0.5);
-  border-top-color: rgba(232, 220, 196, 0.25);
-  border-radius: 10px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(232, 220, 196, 0.12), inset 0 0 44px rgba(0, 0, 0, 0.5);
+  clip-path: var(--clip-plaque);
+  /* forged bronze rim… */
+  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 80%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 16px 40px rgba(0, 0, 0, 0.6));
   animation: arenaEndIn 0.35s ease;
 }
+/* …riveted stone face */
+.arena-end::before {
+  content: ''; position: absolute; inset: 3px; z-index: -1;
+  clip-path: var(--clip-plaque);
+  background:
+    radial-gradient(circle at 11px 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) 11px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at 11px calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 11px) calc(100% - 11px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.4px, rgba(0, 0, 0, 0.55) 3px, transparent 3.6px),
+    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 34%, transparent 62%, rgba(0, 0, 0, 0.45)),
+    radial-gradient(140% 130% at 50% -12%, transparent 52%, rgba(0, 0, 0, 0.5)),
+    var(--tex-stone),
+    rgba(26, 21, 16, 0.97);
+}
 @keyframes arenaEndIn { from { opacity: 0; transform: translate(-50%, 16px); } }
+.arena-end-crest {
+  display: flex; justify-content: center;
+  color: var(--gold);
+  filter:
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.9))
+    drop-shadow(0 1px 0 rgba(255, 240, 210, 0.16))
+    drop-shadow(0 0 12px rgba(255, 184, 77, 0.45));
+}
+.arena-end-crest.lose {
+  color: #d8574a;
+  filter:
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.9))
+    drop-shadow(0 1px 0 rgba(255, 240, 210, 0.12))
+    drop-shadow(0 0 12px rgba(194, 59, 46, 0.5));
+}
 .arena-end-title {
   font-family: var(--font-display);
-  font-size: 19px; font-weight: 800; font-style: italic; letter-spacing: 0.24em;
+  font-size: 20px; font-weight: 800; letter-spacing: 0.22em;
   font-variant: small-caps;
   color: var(--gold);
-  text-shadow: 0 0 18px rgba(255, 184, 77, 0.45), 0 2px 3px #000;
-  margin-bottom: 12px;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(255, 240, 210, 0.2),
+    0 2px 4px #000,
+    0 0 18px rgba(255, 184, 77, 0.45);
 }
-.arena-end-title.lose { color: #e04a3a; text-shadow: 0 0 18px rgba(194, 59, 46, 0.55), 0 2px 3px #000; }
+.arena-end-title.lose {
+  color: #e04a3a;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(255, 220, 200, 0.16),
+    0 2px 4px #000,
+    0 0 18px rgba(194, 59, 46, 0.55);
+}
+.arena-end-orn {
+  color: rgba(176, 121, 58, 0.9);
+  margin: 1px 0 9px;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8)) drop-shadow(0 1px 0 rgba(255, 240, 210, 0.1));
+}
+.arena-end-orn svg { display: block; margin: 0 auto; }
+/* the run's tally, inked on parchment */
+.arena-end-ledger {
+  clip-path: var(--clip-torn);
+  background:
+    linear-gradient(172deg, rgba(255, 248, 224, 0.3), rgba(0, 0, 0, 0) 38%, rgba(96, 72, 40, 0.22)),
+    var(--tex-parchment),
+    #d3c19a;
+  padding: 9px 16px 11px;
+}
 .arena-stat-row {
-  display: flex; justify-content: space-between; align-items: baseline;
+  display: flex; justify-content: space-between; align-items: center;
   padding: 5px 2px;
-  border-bottom: 1px solid rgba(176, 121, 58, 0.16);
+  border-bottom: 1px solid rgba(90, 65, 35, 0.35);
 }
+.arena-stat-row:last-child { border-bottom: none; }
 .arena-stat-label {
+  display: flex; align-items: center; gap: 8px;
   font-family: var(--font-display);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.26em;
-  font-variant: small-caps; color: var(--ink-dim);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.24em;
+  font-variant: small-caps; color: var(--sepia);
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4);
+}
+.arena-stat-sigil {
+  display: inline-flex; flex: none;
+  color: #8a3b1c;
+  filter: drop-shadow(0 1px 0 rgba(255, 250, 230, 0.4));
 }
 .arena-stat-val {
   font-family: var(--font-display);
-  font-size: 16px; font-weight: 800; color: var(--ink);
-  text-shadow: 0 1px 2px #000;
+  font-size: 16px; font-weight: 800; color: #3a2a16;
+  text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
 }
+/* per-type sigil tags: forged iron chips below the ledger */
 .arena-kill-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 12px 0 2px; }
 .arena-kill-chip {
+  display: inline-flex; align-items: center; gap: 5px;
   font-family: var(--font-display);
   font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
   color: var(--ink);
-  padding: 3px 9px;
-  background: rgba(12, 9, 6, 0.8);
-  border: 1px solid rgba(176, 121, 58, 0.35);
-  border-radius: 4px;
+  padding: 3px 11px 4px;
+  clip-path: var(--clip-tag);
+  background:
+    linear-gradient(180deg, rgba(232, 220, 196, 0.1), transparent 45%, rgba(0, 0, 0, 0.4)),
+    var(--tex-iron),
+    #221c14;
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 121, 58, 0.4),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.5);
+  text-shadow: var(--engrave);
 }
-.arena-kill-chip.elite { color: #ffb84d; border-color: rgba(255, 184, 77, 0.55); box-shadow: 0 0 10px rgba(255, 140, 59, 0.25); }
-.arena-kill-chip.warden { color: #e04a3a; border-color: rgba(194, 59, 46, 0.6); box-shadow: 0 0 10px rgba(194, 59, 46, 0.3); }
+.arena-kill-chip svg { flex: none; opacity: 0.85; }
+.arena-kill-chip.elite {
+  color: #ffb84d;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 184, 77, 0.6),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(255, 140, 59, 0.25);
+}
+.arena-kill-chip.warden {
+  color: #e04a3a;
+  box-shadow:
+    inset 0 0 0 1px rgba(194, 59, 46, 0.65),
+    inset 0 1px 0 rgba(232, 220, 196, 0.1),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(194, 59, 46, 0.3);
+}
 .arena-end-buttons { display: flex; gap: 14px; justify-content: center; margin-top: 14px; }
-.arena-end-auto { margin-top: 9px; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim); }
+.arena-end-auto { margin-top: 9px; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim); text-shadow: var(--engrave); }

@@ -155,6 +155,12 @@ const chS = await S()
 check('CHAIN J-J-K launcher', chS.f.combo >= 3 && (chS.f.y > 0.1 || chS.f.juggle), `combo=${chS.f.combo} foeY=${chS.f.y} juggle=${chS.f.juggle}`)
 const hpAfterChain = chS.f.hp
 check('SCALING on chain', 100 - hpAfterChain > 12 && 100 - hpAfterChain < 21, `chain dmg=${(100 - hpAfterChain).toFixed(1)} (raw 20 scaled)`)
+// the [n]x counter stamps the victim's side, wired to the same comboHits
+const m3 = await page.evaluate(() => {
+  const el = document.querySelector('.duel-mult.duel-right')
+  return { show: el?.classList.contains('show'), num: el?.querySelector('.duel-mult-num')?.textContent }
+})
+check('COUNTER stamps 3x on the chain', m3.show && m3.num === '3x', JSON.stringify(m3))
 
 // ---------- 8. juggle the launched foe (step in like a player, then jab) ----------
 await page.waitForTimeout(200)
@@ -167,6 +173,11 @@ const jgS = await S()
 check('JUGGLE hit while airborne', jgS.f.combo >= 4, `combo=${jgS.f.combo}`)
 check('HIT-STOP occurred', jgS.fz >= 0.05, `max freeze=${jgS.fz.toFixed(3)}s`)
 check('METER builds from damage', jgS.p.meter > 4, `meter=${jgS.p.meter}`)
+const m4 = await page.evaluate(() => {
+  const el = document.querySelector('.duel-mult.duel-right')
+  return { show: el?.classList.contains('show'), num: el?.querySelector('.duel-mult-num')?.textContent, t2: el?.classList.contains('t2') }
+})
+check('COUNTER 4x + ember tier on the juggle', m4.show && m4.num === '4x' && m4.t2, JSON.stringify(m4))
 await page.waitForTimeout(1800)
 
 // ---------- 9. special cancel: J hit -> W fireball ----------

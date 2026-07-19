@@ -61,7 +61,7 @@ export default class DuelScene {
       vfx: this.vfx, audio, engine,
       events: {
         onHit: (a, d, info) => this._onHit(a, d, info),
-        onComboEnd: (d, hits, dmg) => this._onComboEnd(d, hits, dmg),
+        onComboEnd: (d, hits, dmg, reason) => this._onComboEnd(d, hits, dmg, reason),
         onParry: (d, a) => this._onParry(d, a),
         onKO: (a, d) => this._onKO(a, d),
       },
@@ -88,6 +88,7 @@ export default class DuelScene {
     this.orbit = 0
     this.orbitTarget = 0
     this.punch = 0
+    this._camY = 0           // damped vertical midpoint — falls can't yank the camera
     this.exposure = 1.12
     this.exposureT = 1.12
     this._timeouts = []
@@ -510,19 +511,53 @@ export default class DuelScene {
   // ============================== events ==============================
 
   _onHit(a, d, info) {
-    const side = a === this.player ? 'L' : 'R'
+    // the [n]x counter rides the VICTIM's side of the screen — the player
+    // also sees (crimson-tinted, left) when THEY are the one being combo'd
+    const side = d === this.player ? 'L' : 'R'
     this.dHud.comboTick(side, info.combo, info.comboDmg)
+    if (info.combo >= 2) this._comboTickSfx(info.combo)
+    if (info.combo === 4 || info.combo === 7 || info.combo === 10) this._tierSfx(info.combo)
     if (info.combo === 5 && !this._crowdCombo) {
       this._crowdCombo = true
       this.ctx.audio.play('crowd', { vol: 0.5 })
     }
   }
 
-  _onComboEnd(d, hits, dmg) {
+  _onComboEnd(d, hits, dmg, reason) {
     this._crowdCombo = false
-    const side = d === this.foe ? 'L' : 'R'
-    this.dHud.comboEnd(side, hits, dmg)
+    const side = d === this.player ? 'L' : 'R'
+    const dropped = reason === 'escape'
+    this.dHud.comboEnd(side, hits, dmg, dropped)
+    if (dropped && hits >= 2) this._crackSfx()
     if (hits >= 7) this.ctx.audio.play('crowd', { vol: 0.6 })
+  }
+
+  // ---------- combo-counter sfx (raw synth: audio.play has no pitch param) ----------
+
+  /** Light metallic tick, rising in pitch with each landed move. */
+  _comboTickSfx(n) {
+    const a = this.ctx.audio
+    if (!a.ctx || !a.enabled) return
+    const f = 620 * Math.pow(2, Math.min(n - 2, 12) / 16)
+    a._osc({ f, f2: f * 0.9, type: 'square', dur: 0.045, vol: 0.05 })
+    a._osc({ f: f * 3.02, type: 'triangle', dur: 0.03, vol: 0.025 })
+  }
+
+  /** Short forged sting when the counter crosses a tier (4x / 7x / 10x). */
+  _tierSfx(n) {
+    const a = this.ctx.audio
+    if (!a.ctx || !a.enabled) return
+    const base = n >= 10 ? 587 : n >= 7 ? 494 : 392
+    a._osc({ f: base, f2: base * 1.5, type: 'sawtooth', dur: 0.14, vol: 0.07 })
+    a._osc({ f: base * 2, f2: base * 3, type: 'triangle', dur: 0.18, vol: 0.045, attack: 0.012 })
+  }
+
+  /** Dull stone crack for a dropped combo. */
+  _crackSfx() {
+    const a = this.ctx.audio
+    if (!a.ctx || !a.enabled) return
+    a._noise({ dur: 0.2, filter: 1600, filter2: 260, vol: 0.16 })
+    a._osc({ f: 170, f2: 55, type: 'square', dur: 0.14, vol: 0.07 })
   }
 
   _onParry(d) {
@@ -671,7 +706,10 @@ export default class DuelScene {
     if (this.phase === 'cine') return
     const p = this.player, f = this.foe
     const midX = f ? (p.pos.x + f.pos.x) / 2 : p.pos.x
-    const midY = f ? Math.max(p.pos.y, f.pos.y) : p.pos.y
+    // vertical midpoint gets its own slower damp: a launch lifts the framing
+    // gently and a knockdown fall settles it back without a pop
+    this._camY = damp(this._camY, f ? Math.max(p.pos.y, f.pos.y) : p.pos.y, 3.5, dt)
+    const midY = this._camY
     const sep = f ? Math.abs(p.pos.x - f.pos.x) : 6
 
     this.punch = damp(this.punch, 0, this.phase === 'oblitPrompt' ? 0 : 1.4, dt)

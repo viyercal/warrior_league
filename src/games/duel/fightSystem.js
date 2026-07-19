@@ -46,16 +46,16 @@ export class FightSystem {
     for (const f of this.fighters) {
       if (f.juggleFall && f.justLanded) {
         f.startKnockdown()
-        this._endCombo(f)
+        this._endCombo(f, 'down')    // combo converted into a knockdown
       } else if (f.comboHits > 0 && f.grounded && f.hitstun <= 0 && !f.juggleFall && f.kdT <= 0 && f.staggerT <= 0 && !f.grabbed) {
-        this._endCombo(f)
+        this._endCombo(f, 'escape')  // the victim recovered standing — dropped
       }
     }
   }
 
-  _endCombo(d) {
+  _endCombo(d, reason = 'end') {
     if (d.comboHits <= 0) return
-    this.events.onComboEnd?.(d, d.comboHits, Math.round(d.comboDmg))
+    this.events.onComboEnd?.(d, d.comboHits, Math.round(d.comboDmg), reason)
     d.comboHits = 0
     d.comboDmg = 0
   }
@@ -82,7 +82,11 @@ export class FightSystem {
     const from = def.startup, to = def.startup + def.active
     if (atk.t < from || atk.t > to) return
     const d = this.foeOf(a)
-    if (!d || d.iFrames > 0 || d.kdT > 0 || d.grabbed) return
+    if (!d) return
+    if (d.iFrames > 0 || d.kdT > 0 || d.grabbed) {
+      this._whiffOverBody(a, atk, def, d)
+      return
+    }
 
     // horizontal reach in front of the attacker
     const dxf = (d.pos.x - a.pos.x) * a.facing
@@ -103,6 +107,24 @@ export class FightSystem {
       overhead: !!def.overhead, unblockable: !!atk.unblockable,
       attackKind: atk.kind,
     })
+  }
+
+  /**
+   * A strike sailing through a downed/invulnerable body must not read broken:
+   * the attacker gets a clean whiff (swish, no spark) and the prone victim is
+   * tagged 'DOWN' once per knockdown. Purely presentational — still a miss.
+   */
+  _whiffOverBody(a, atk, def, d) {
+    if (atk.whiffCue || atk.hasHit) return
+    const dxf = (d.pos.x - a.pos.x) * a.facing
+    if (dxf < -0.25 || dxf > def.reach * a.reachMul() + 0.35 || Math.abs(d.pos.y - a.pos.y) > 1.8) return
+    atk.whiffCue = true
+    this.audio.play('swish', { vol: 0.18 })
+    if (d.kdT > 0 && !d.downTag) {
+      d.downTag = true
+      _v2.set(d.pos.x, d.pos.y + 1.55, 0)
+      this.vfx.text(_v2, 'DOWN', { color: '#cfc4ac', size: 0.48, life: 0.7, rise: 0.8 })
+    }
   }
 
   /**

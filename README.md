@@ -14,6 +14,7 @@ A themed fork of [arcade_games](https://github.com/viyercal/arcade_games): same 
 | **War Chariots** | Mario Kart | Flaming ballista bolts, ice slicks, colossus mode — a 3-lap death race through scorched badlands |
 | **Mortal Arena** | Super Smash Bros | Damage-% knockback over a lava chasm, 3 stocks, blood-red moon — last warrior standing |
 | **Last Bastion** | Tower defense | Build ballista towers and hold the gate through 10 waves and the Siege Colossus |
+| **The Crucible** ⚔ | Mortal Kombat | The flagship: best-of-3 duels, chains that cancel into your arts, juggles, a 4-fight tower, and the OBLITERATE finisher |
 
 The same 12 battle arts (Shadow Step, Flaming Spear, Grave Chill, Earthbreaker, Bloodrush, Iron Bulwark, Warrior's Resolve, Phantom Twin, Chained Harrow, Colossus Form, Wraith Walk, Skyfall Hammer) are reinterpreted per battleground — the War Forge tooltips tell you what each art does in each world before you enter.
 
@@ -26,6 +27,8 @@ The same 12 battle arts (Shadow Step, Flaming Spear, Grave Chill, Earthbreaker, 
 | ![The Pit](docs/screenshots/arena.png) | ![War Chariots](docs/screenshots/kart.png) |
 | ![Mortal Arena](docs/screenshots/brawl.png) | ![Last Bastion](docs/screenshots/siege.png) |
 
+![The Crucible](docs/screenshots/duel.png)
+
 ## Run it
 
 ```bash
@@ -33,7 +36,7 @@ npm install
 npm run dev        # → http://localhost:5173
 ```
 
-Jump straight into a scene: `http://localhost:5173/?scene=moba|hoops|arena|kart|brawl|siege|hub|loadout` (`&mute=1` for silence).
+Jump straight into a scene: `http://localhost:5173/?scene=duel|moba|hoops|arena|kart|brawl|siege|hub|loadout` (`&mute=1` for silence).
 
 ## Controls
 
@@ -44,6 +47,7 @@ Jump straight into a scene: `http://localhost:5173/?scene=moba|hoops|arena|kart|
 - **War Chariots** — W accelerate, A/D steer, hold Space to drift (release for mini-turbo), Shift spend boost, 1-4 arts
 - **Mortal Arena** — A/D move, Space jump/air-jump, S fast-fall, J jab, K smash, double-tap A/D dodge, QWER arts
 - **Last Bastion** — WASD move, hold LMB blaster, F build/upgrade ballistae, 1-4 arts
+- **The Crucible** — A/D walk (double-tap dash), Space jump, S crouch, Shift block, J/K light/heavy (J·J·K chains), F throw, QWER arts cancel any hit
 - **Esc** returns to the hub from anywhere; H toggles help in games
 
 ## Architecture

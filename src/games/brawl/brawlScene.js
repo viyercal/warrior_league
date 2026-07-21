@@ -144,6 +144,7 @@ export default class BrawlScene {
     ])
 
     audio.music('brawl')
+    audio.ambience('chasm')
     profile.stats.plays.brawl = (profile.stats.plays.brawl || 0) + 1
     this.ctx.saveProfile()
 

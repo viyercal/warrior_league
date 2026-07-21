@@ -48,6 +48,7 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
   nameInput.addEventListener('input', () => {
     profile.name = nameInput.value.toUpperCase().slice(0, 12)
     nameInput.value = profile.name
+    audio.play('keytick', { vol: 0.8, rate: 0.94 + Math.random() * 0.12 })
     saveProfile()
   })
   nameInput.addEventListener('focus', () => nameInput.select())
@@ -74,10 +75,12 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
       b.onclick = () => {
         if (profile.appearance[key] === c) return
         profile.appearance[key] = c
+        audio.play('coin', { vol: 0.4 })
         saveProfile()
         sync()
         hooks.onAppearance?.()
       }
+      b.onmouseenter = () => audio.play('hover', { vol: 0.2 })
       return [b, c]
     })
     syncs.push(() => { for (const [b, c] of btns) b.classList.toggle('sel', profile.appearance[key] === c) })
@@ -95,10 +98,12 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
       b.onclick = () => {
         if (profile.appearance[seg.key] === val) return
         profile.appearance[seg.key] = val
+        audio.play('click', { vol: 0.5 })
         saveProfile()
         sync()
         hooks.onAppearance?.()
       }
+      b.onmouseenter = () => audio.play('hover', { vol: 0.2 })
       return [b, val]
     })
     syncs.push(() => { for (const [b, val] of btns) b.classList.toggle('sel', profile.appearance[seg.key] === val) })
@@ -171,9 +176,11 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
       lo[cur] = lo[active]
       lo[active] = sk.id
       audio.play('zap', { vol: 0.45 })
+      audio.play('quench', { vol: 0.5, delay: 0.03 })
     } else {
       lo[active] = sk.id
       audio.play('coin', { vol: 0.5 })
+      audio.play('quench', { vol: 0.55, delay: 0.04 })
     }
     saveProfile()
     pop(slotEls[active].s)

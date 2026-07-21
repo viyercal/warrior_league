@@ -197,6 +197,7 @@ export default class MobaScene {
     input.onWheel(dy => { this.zoomT = clamp(this.zoomT + dy * 0.012, 16, 32) })
 
     audio.music('battle')
+    audio.ambience('rift')
     profile.stats.plays.moba = (profile.stats.plays.moba || 0) + 1
     this.ctx.saveProfile()
 

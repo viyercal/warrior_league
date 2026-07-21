@@ -136,6 +136,7 @@ export default class DuelScene {
     ])
 
     audio.music('duel')
+    audio.ambience('crucible')
     profile.stats.plays.duel = (profile.stats.plays.duel || 0) + 1
     this.ctx.saveProfile()
 

@@ -117,6 +117,7 @@ export default class HoopsScene {
     this._lastClockInt = RULES.SHOT_CLOCK
 
     audio.music('court')
+    audio.ambience('court')
     this._crowdAmbT = rand(10, 18)
     this._pendingShot = null
     this._aiPending = null

@@ -179,6 +179,7 @@ export default class ArenaScene {
     })
 
     audio.music('arena')
+    audio.ambience('pit')
     profile.stats.plays.arena = (profile.stats.plays.arena || 0) + 1
     this.ctx.saveProfile()
 

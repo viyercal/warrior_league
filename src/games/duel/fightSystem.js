@@ -235,7 +235,7 @@ export class FightSystem {
       this.vfx.burst(_v2, { color: '#9a8d78', count: 16, speed: 6, size: 0.24, life: 0.5, up: 3 })
       this.vfx.flash(_v2, { color: '#c9b083', size: 2.4, life: 0.2 })
       this.engine.shake(0.35, 0.3)
-      this.audio.play('explode', { vol: 0.4 })
+      this.audio.play('explode', { vol: 0.4, pan: clamp(d.pos.x / EDGE, -1, 1) * 0.65 })
     } else if (knockdown) {
       d.juggleFall = true
       d.grounded = false
@@ -267,9 +267,10 @@ export class FightSystem {
         size: special ? 0.8 : kind === 'heavy' ? 0.7 : 0.55, life: 0.7, rise: 2,
       })
     }
-    this.audio.play('hit', { vol: kind === 'heavy' || special ? 0.65 : 0.42 })
-    if (kind === 'heavy') this.audio.play('zap', { vol: 0.3 })
-    if (special) this.audio.play('zap', { vol: 0.4 })
+    const hitPan = clamp(d.pos.x / EDGE, -1, 1) * 0.65
+    this.audio.play('hit', { vol: kind === 'heavy' || special ? 0.65 : 0.42, pan: hitPan })
+    if (kind === 'heavy') this.audio.play('zap', { vol: 0.3, pan: hitPan })
+    if (special) this.audio.play('zap', { vol: 0.4, pan: hitPan })
     if (kind === 'heavy' || special) this.engine.shake(special ? 0.34 : 0.26, 0.28)
     if (surge) this.engine.shake(0.45, 0.35)
 
@@ -301,7 +302,7 @@ export class FightSystem {
     d.blockstun = 0
     this._grab = { a, d, t: 0 }
     a.attack = { kind: 'throw', t: def.startup + def.active, hasHit: true } // hold the grab pose
-    this.audio.play('hit', { vol: 0.35 })
+    this.audio.play('hit', { vol: 0.35, pan: clamp(d.pos.x / EDGE, -1, 1) * 0.65 })
   }
 
   _resolveGrab(gdt) {
@@ -329,7 +330,7 @@ export class FightSystem {
       _v1.set(d.pos.x, 0.15, 0.3)
       this.vfx.ring(_v1, { color: '#c9b083', radius: 2, life: 0.35, y: 0.08 })
       this.engine.shake(0.4, 0.3)
-      this.audio.play('explode', { vol: 0.45 })
+      this.audio.play('explode', { vol: 0.45, pan: clamp(d.pos.x / EDGE, -1, 1) * 0.65 })
       this.events.onThrow?.(a, d)
     }
   }

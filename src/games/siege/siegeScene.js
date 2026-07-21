@@ -179,6 +179,7 @@ export default class SiegeScene {
     })
 
     audio.music('siege')
+    audio.ambience('gate')
     profile.stats.plays.siege = (profile.stats.plays.siege || 0) + 1
     this.ctx.saveProfile()
 

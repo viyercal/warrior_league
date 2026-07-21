@@ -94,11 +94,20 @@ export default class MyScene {
   `.pick(camera, objects)`, `.groundPoint(camera, y, out)` → Vector3 | null.
   Handlers are auto-cleared on scene change — never add raw window listeners for
   gameplay (if you must, remove them in dispose()).
-- `audio`: `.play(name, {delay, vol})` — names: click hover back cast dash zap hit
-  explode heal shield coin levelup kill tower bounce swish rim buzzer whistle crowd
-  countdown go victory defeat spawn. `.music(theme)` — themes: hub battle court arena
-  race brawl siege duel.
-  Call `.music(...)` once in init(); SceneManager stops music on scene change.
+- `audio`: `.play(name, {delay, vol, pan, rate})` — names: click hover back cast dash
+  zap hit explode heal shield coin levelup kill tower bounce swish rim buzzer whistle
+  crowd countdown go victory defeat spawn hammer quench keytick whoosh. SFX carry
+  built-in pitch/volume variation; big moments (victory defeat kill tower go buzzer
+  levelup crowd) auto-duck the music. `pan` is -1..1 stereo, `rate` a pitch multiplier.
+  `.music(theme)` — themes: hub battle court arena race brawl siege duel; themes
+  crossfade. `.ambience(name)` — looping ambience beds crossfaded per scene: hub
+  forge rift court pit race chasm gate crucible (or null for silence).
+  Call `.music(...)` + `.ambience(...)` once in init(). Audio is NOT stopped between
+  scenes — scenes sharing a theme (hub ↔ loadout) play seamlessly.
+  `.duck(depth, {hold, release})` — manual music dip for scene-specific moments.
+  `.startEngine()` / `.setEngine(speed0to1, boost0to1)` / `.stopEngine()` — the kart
+  engine loop; SceneManager backstops stopEngine on scene change.
+  `.setVolumes({master, music, sfx, amb})` — persisted to localStorage 'ipl-audio-v1'.
 - `profile`: `{ name, appearance: {primary, secondary, glow, head, hair, trail, cape},
   loadout: [4 skill ids], stats: {wins: {}, plays: {}} }`. Mutate then call
   `saveProfile()`. Record results: `profile.stats.wins[game] = (…|0) + 1`.

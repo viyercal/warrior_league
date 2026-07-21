@@ -4,8 +4,9 @@ import { icon } from '../../ui/craft.js'
  * THE CRUCIBLE HUD — MK layout: two opposing tapered-blade health bars with
  * forged finial caps, ghost damage trails, rivet-gem round pips, an engraved
  * stone timer block with hourglass finial, ember-quenched surge gauges in the
- * bottom corners, carved tower-ladder plaques, a stamped-parchment combo
- * ticker, vs-plates, finisher overlay and the defeat/champion tablets.
+ * bottom corners, carved tower-ladder plaques, an engraved-metal [n]x combo
+ * multiplier with a parchment damage subtotal, vs-plates, finisher overlay
+ * and the defeat/champion tablets.
  * All DOM, all classes "duel-" prefixed.
  */
 export class DuelHud {
@@ -47,14 +48,18 @@ export class DuelHud {
       this.sides[side].meter = { root: m, segs, label }
     }
 
-    // combo tickers (player combos read on the left, foe on the right)
+    // [n]x combo counters — engraved-metal multiplier stamped high on the
+    // VICTIM's side ('L' = the player is being combo'd -> crimson-tinted)
     for (const side of ['L', 'R']) {
-      const c = hud.el('div', `duel-combo ${side === 'L' ? 'duel-left' : 'duel-right'}`)
-      const hits = hud.el('div', 'duel-combo-hits', '', c)
-      const dmg = hud.el('div', 'duel-combo-dmg', '', c)
-      const grade = hud.el('div', 'duel-combo-grade', '', c)
-      this.combo[side] = { root: c, hits, dmg, grade, hideT: null }
+      const c = hud.el('div', `duel-mult ${side === 'L' ? 'duel-left duel-incoming' : 'duel-right'}`)
+      const num = hud.el('div', 'duel-mult-num', '', c)
+      const sub = hud.el('div', 'duel-mult-sub', '', c)
+      const grade = hud.el('div', 'duel-mult-grade', '', c)
+      this.combo[side] = { root: c, num, sub, grade, hideT: null, tier: 0 }
     }
+    // screen-edge ember flare fired on counter tier-ups
+    this.flare = hud.el('div', 'duel-flare')
+    this.flare.addEventListener('animationend', () => this.flare.classList.remove('on'))
 
     // tower progress chips
     this.towerBox = hud.el('div', 'duel-tower')
@@ -122,33 +127,68 @@ export class DuelHud {
     }
   }
 
+  /**
+   * The [n]x multiplier. Appears on the SECOND successive hit and re-stamps
+   * (scale-pop + rotation jitter) on every landed move. Tiers escalate with
+   * the grade thresholds: t1 bronze 2-3x, t2 ember 4-6x, t3 blood 7-9x,
+   * t4 gold-leaf 10x+ — tier-ups fire the screen-edge ember flare.
+   * Driven by FightSystem's comboHits (the same counter damage scaling uses).
+   */
   comboTick(side, hits, dmg) {
     const c = this.combo[side]
     if (c.hideT) { clearTimeout(c.hideT); c.hideT = null }
-    c.root.classList.add('show')
+    if (hits < 2) { // a fresh combo is underway — clear any stale stamp
+      c.root.classList.remove('show', 'final', 'drop')
+      c.tier = 0
+      return
+    }
+    const tier = hits >= 10 ? 4 : hits >= 7 ? 3 : hits >= 4 ? 2 : 1
+    c.root.classList.remove('final', 'drop', 't1', 't2', 't3', 't4')
+    c.root.classList.add('show', `t${tier}`)
+    c.num.textContent = `${hits}x`
+    c.sub.textContent = `${Math.round(dmg)} DMG`
     c.grade.textContent = ''
-    c.hits.textContent = `${hits} HIT${hits > 1 ? 'S' : ''}`
-    c.dmg.textContent = `${Math.round(dmg)} DMG`
-    c.root.style.setProperty('--pop', String(Math.min(1.6, 1 + hits * 0.05)))
-    c.root.classList.remove('pop')
-    void c.root.offsetWidth
-    c.root.classList.add('pop')
+    c.root.style.setProperty('--jr', `${(Math.random() * 9 - 4.5).toFixed(1)}deg`)
+    c.root.style.setProperty('--mpop', String(Math.min(1.9, 1.3 + hits * 0.05)))
+    c.num.classList.remove('pop')
+    void c.num.offsetWidth
+    c.num.classList.add('pop')
+    if (tier > c.tier && tier >= 2) this._flare(tier)
+    c.tier = tier
   }
 
-  comboEnd(side, hits, dmg) {
+  _flare(tier) {
+    const f = this.flare
+    f.className = `duel-flare f${tier}`
+    void f.offsetWidth
+    f.classList.add('on')
+  }
+
+  /** Final stamp: knockdown conversions slam the grade; escapes crack + crumble. */
+  comboEnd(side, hits, dmg, dropped = false) {
     const c = this.combo[side]
+    if (c.hideT) { clearTimeout(c.hideT); c.hideT = null }
+    if (hits < 2 || !c.root.classList.contains('show')) return
+    c.tier = 0
+    if (dropped) {
+      c.root.classList.add('drop')
+      c.hideT = setTimeout(() => c.root.classList.remove('show', 'drop'), 800)
+      return
+    }
+    c.root.classList.add('final')
     if (hits >= 4) {
       c.grade.textContent = hits >= 10 ? 'LEGENDARY' : hits >= 7 ? 'SAVAGE' : 'FIERCE'
-      c.grade.className = `duel-combo-grade g${hits >= 10 ? 3 : hits >= 7 ? 2 : 1}`
+      c.grade.className = `duel-mult-grade g${hits >= 10 ? 3 : hits >= 7 ? 2 : 1}`
     }
-    c.hideT = setTimeout(() => c.root.classList.remove('show'), hits >= 4 ? 1300 : 450)
+    c.hideT = setTimeout(() => c.root.classList.remove('show', 'final'), hits >= 4 ? 1500 : 800)
   }
 
   hideCombos() {
     for (const side of ['L', 'R']) {
       const c = this.combo[side]
       if (c.hideT) clearTimeout(c.hideT)
-      c.root.classList.remove('show')
+      c.root.classList.remove('show', 'final', 'drop')
+      c.tier = 0
     }
   }
 

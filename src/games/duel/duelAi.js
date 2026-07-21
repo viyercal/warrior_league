@@ -24,6 +24,8 @@ export class DuelAI {
     this.blockHold = 0
     this.crouchHold = 0
     this.foeBlockStreak = 0    // reads an over-blocking player -> throws
+    this._qrRolled = false     // one quick-rise roll per knockdown
+    this._qrDo = false
     this.intent = { move: 0, crouch: false, block: false, jump: false, light: false, heavy: false, throw: false, dash: 0 }
   }
 
@@ -41,6 +43,18 @@ export class DuelAI {
     this.crouchHold = Math.max(0, this.crouchHold - gdt)
     it.block = this.blockHold > 0
     it.crouch = this.crouchHold > 0
+
+    // knocked down: higher-stage warriors quick-rise (a direction tapped in
+    // the landing window) — rolled once per knockdown, odds from cfg.quickRise
+    if (f.kdT > 0) {
+      if (!this._qrRolled) {
+        this._qrRolled = true
+        this._qrDo = Math.random() < (c.quickRise || 0)
+      }
+      if (this._qrDo && f.qrT > 0) it.move = f.facing
+      return it
+    }
+    this._qrRolled = false
 
     if (!f.canAct() && f.chainT <= 0) {
       // committed / stunned — but keep holding a block through blockstun

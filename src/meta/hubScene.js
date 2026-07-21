@@ -73,6 +73,7 @@ export default class HubScene {
     this._buildUI()
     this._bindInput()
     audio.music('hub')
+    audio.ambience('hub')
 
     // QA hooks
     this.debug = {
@@ -154,7 +155,8 @@ export default class HubScene {
   _setFocus(idx, sound = false) {
     if (idx === this.focusIdx) return
     this.focusIdx = idx
-    if (idx >= 0 && sound) this.ctx.audio.play('hover', { vol: 0.6 })
+    // each channel hums at its own pitch — the wall feels tuned, not tiled
+    if (idx >= 0 && sound) this.ctx.audio.play('hover', { vol: 0.6, rate: 0.92 + idx * 0.055 })
   }
 
   /** Keyboard selection wins over a resting cursor until the mouse moves again. */
@@ -168,6 +170,8 @@ export default class HubScene {
     const { audio } = this.ctx
     audio.play('click')
     audio.play('cast', { delay: 0.05 })
+    audio.play('whoosh', { delay: 0.18, vol: 0.9 })
+    audio.duck(0.5)
     this.hero.cast()
     this.hero.castPoint(this._v)
     this.vfx.flash(this._v, { color: ch.def.accent, size: 2.4 })

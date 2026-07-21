@@ -71,6 +71,7 @@ export default class LoadoutScene {
     this._canvas.style.cursor = 'grab'
 
     audio.music('hub')
+    audio.ambience('forge')
 
     // QA hooks
     this.debug = {
@@ -108,7 +109,8 @@ export default class LoadoutScene {
       this.vfx.flash(p, { color: a.glow, size: 3.4 })
       this.vfx.burst(p, { color: a.glow, count: 22, speed: 5, size: 0.24, gravity: -4 })
       this.vfx.ring(v3(0, this.stage.topY + 0.04, 0), { radius: 1.9, color: a.glow, life: 0.5 })
-      audio.play('click')
+      audio.play('hammer')
+      audio.play('click', { delay: 0.06, vol: 0.6 })
     }
   }
 

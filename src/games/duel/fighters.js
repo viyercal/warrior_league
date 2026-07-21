@@ -14,9 +14,13 @@ export const DASH_TIME = 0.22
 export const DASH_SPEED = 14
 export const BACKDASH_TIME = 0.2
 export const BACKDASH_SPEED = -12.5
-export const KD_TIME = 0.95     // knockdown lie+rise
+export const KD_TIME = 0.95     // knockdown total: bounce + prone beat + rise
+export const KD_RISE = 0.42     // the roll-to-crouch-to-standing rise window
+export const QR_WINDOW = 0.22   // direction tapped/held this long after landing = quick-rise
 export const WAKEUP_INV = 0.5   // extra i-frames after rising
 export const CHAIN_WINDOW = 0.35
+
+const smooth = k => k * k * (3 - 2 * k)
 
 /**
  * Frame data. All times in seconds; total = startup + active + recover.
@@ -91,8 +95,16 @@ export class DuelFighter {
     this.grabbed = false
     this.juggleFall = false   // airborne from a launch — knockdown on land
     this.justLanded = false   // one-frame flag read by FightSystem
+    this.landImpact = 0       // |vel.y| at the last landing (drives the kd bounce)
+    this.kdVy = 0             // cosmetic knockdown-rebound velocity
+    this.kdSettled = true     // has the rebound come to rest
+    this.qrT = 0              // quick-rise input window after landing
+    this.getup = false        // rising phase of the knockdown
+    this.wakeInvT = 0         // visible wakeup-invulnerability window (shimmer)
+    this.downTag = false      // 'DOWN' whiff tag shown once per knockdown
     this.spinV = 0
     this.flashT = 0
+    this.cringe = 0           // damped hit-reaction blend (no single-frame release)
     this.comboHits = 0        // hits TAKEN in the current combo (drives scaling)
     this.comboDmg = 0
 
@@ -171,12 +183,19 @@ export class DuelFighter {
     this.hitstun = this.blockstun = this.kdT = this.staggerT = this.iFrames = 0
     this.grabbed = false
     this.juggleFall = false
+    this.kdVy = 0
+    this.kdSettled = true
+    this.qrT = 0
+    this.getup = false
+    this.wakeInvT = 0
+    this.downTag = false
     this.grounded = true
     this.crouching = this.blocking = false
     this.dashT = this.dashCd = 0
     this.frenzyT = this.giantT = this.ghostT = this.wardT = this.healT = this.chillT = this.dragT = 0
     this.comboHits = this.comboDmg = 0
     this.spinV = 0
+    this.cringe = 0
     this._bufAtk = null
     this.hero.setState('normal')
     this.hero.group.rotation.x = 0
@@ -189,6 +208,7 @@ export class DuelFighter {
   update(gdt, dt, intent, foe) {
     // timers
     this.iFrames = Math.max(0, this.iFrames - gdt)
+    this.wakeInvT = Math.max(0, this.wakeInvT - gdt)
     this.chainT = Math.max(0, this.chainT - gdt)
     this.dashCd = Math.max(0, this.dashCd - gdt)
     this.chillT = Math.max(0, this.chillT - gdt)
@@ -213,13 +233,9 @@ export class DuelFighter {
 
     if (this.grabbed) { this._visuals(dt, foe); return }
 
-    // knockdown: lie, then rise
+    // knockdown: weighty rebound, readable prone beat, then a roll-to-crouch rise
     if (this.kdT > 0) {
-      this.kdT -= gdt
-      if (this.kdT <= 0) {
-        this.hero.setState('normal')
-        this.iFrames = Math.max(this.iFrames, WAKEUP_INV)
-      }
+      this._knockdown(gdt, intent, foe)
       this._visuals(dt, foe)
       return
     }
@@ -227,6 +243,54 @@ export class DuelFighter {
     this._control(gdt, intent, foe)
     this._physics(gdt)
     this._visuals(dt, foe)
+  }
+
+  // -------------------- knockdown --------------------
+
+  /**
+   * The downed arc. All of it sits inside kdT (invulnerable throughout, same
+   * rules as before): a small cosmetic rebound, a prone beat, then the rise.
+   * A direction tapped/held in the landing window quick-rises (skips the beat).
+   */
+  _knockdown(gdt, intent, foe) {
+    // cosmetic rebound — one weighty bounce instead of sticking to the floor
+    if (!this.kdSettled) {
+      this.kdVy -= GRAV * 0.85 * gdt
+      this.pos.y = Math.max(0, this.pos.y + this.kdVy * gdt)
+      if (this.pos.y <= 0 && this.kdVy < 0) {
+        this.pos.y = 0
+        this.kdVy = 0
+        this.kdSettled = true
+        _v1.set(this.pos.x, 0.06, 0)
+        this.vfx.burst(_v1, { color: '#8a7d6a', count: 6, speed: 2.2, size: 0.14, life: 0.35, gravity: -4, up: 1 })
+        this.audio.play('bounce', { vol: 0.16 })
+      }
+    }
+    // quick-rise: small skill reward, additive — invulnerability never extends
+    this.qrT = Math.max(0, this.qrT - gdt)
+    if (this.qrT > 0 && this.hp > 0 && this.kdT > KD_RISE + 0.1 && (intent.move || intent.dash)) {
+      this.qrT = 0
+      this.kdT = KD_RISE + 0.08
+      this.iFrames = Math.min(this.iFrames, this.kdT + WAKEUP_INV)
+      this.audio.play('dash', { vol: 0.22 })
+    }
+    this.kdT -= gdt
+    // the rise begins: roll to a crouch, come up facing the foe
+    if (!this.getup && this.kdT <= KD_RISE && this.hp > 0) {
+      this.getup = true
+      this.hero.setState('normal')
+      this.wakeInvT = Math.max(this.kdT, 0) + WAKEUP_INV // shimmer = the real invuln window
+      if (foe) this.facing = foe.pos.x >= this.pos.x ? 1 : -1
+      _v1.set(this.pos.x, 0.08, 0)
+      this.vfx.burst(_v1, { color: '#8a7d6a', count: 7, speed: 2.6, size: 0.15, life: 0.4, gravity: -4, up: 1.4 })
+      this.audio.play('dash', { vol: 0.18 })
+    }
+    if (this.kdT <= 0) {
+      if (this.hp <= 0) { this.kdT = 0.001; return } // KO'd bodies stay down
+      this.kdT = 0
+      this.getup = false
+      this.iFrames = Math.max(this.iFrames, WAKEUP_INV)
+    }
   }
 
   // -------------------- control --------------------
@@ -365,6 +429,7 @@ export class DuelFighter {
       if (!this.grounded) {
         this.grounded = true
         this.justLanded = true
+        this.landImpact = impact
         this.airAtkUsed = false
         if (impact > 5) {
           _v1.set(this.pos.x, 0.06, 0)
@@ -385,7 +450,13 @@ export class DuelFighter {
     this.hitstun = 0
     this.spinV = 0
     this.crouching = false
-    this.hero.group.rotation.x = 0
+    this.getup = false
+    this.downTag = false
+    this.qrT = QR_WINDOW
+    // weighty landing: one small rebound instead of sticking flat to the floor
+    // (no rotation snap — _visuals untumbles the body smoothly through the fall)
+    this.kdVy = this.landImpact > 2.5 ? clamp(this.landImpact * 0.3, 1.1, 3) : 0
+    this.kdSettled = this.kdVy === 0
     this.hero.setState('ko')
     _v1.set(this.pos.x, 0.08, 0)
     this.vfx.burst(_v1, { color: '#9a8d78', count: 12, speed: 3.6, size: 0.2, life: 0.5, gravity: -6, up: 2 })
@@ -402,18 +473,23 @@ export class DuelFighter {
     const hips = this.hero.hips
     const arms = this.hero.arms
 
-    // juggle tumble
+    // juggle tumble -> smooth rate-capped untumble (runs through knockdown
+    // too, so a mid-tumble landing settles instead of popping flat)
     if (this.juggleFall && !this.grounded) {
       this.hero.group.rotation.x += this.spinV * dt
-    } else if (this.kdT <= 0) {
+    } else {
       let r = this.hero.group.rotation.x % TAU
       if (r > Math.PI) r -= TAU
       if (r < -Math.PI) r += TAU
-      this.hero.group.rotation.x = damp(r, 0, 14, dt)
+      const step = damp(r, 0, this.kdT > 0 ? 9 : 14, dt) - r
+      const cap = 11 * dt
+      this.hero.group.rotation.x = r + clamp(step, -cap, cap)
     }
 
     // stance poses layered over the hero's base animation
-    if (this.kdT <= 0 && this.hero.state !== 'ko') {
+    if (this.kdT > 0 && this.getup) {
+      this._getupPose()
+    } else if (this.kdT <= 0 && this.hero.state !== 'ko') {
       if (this.crouching && this.grounded) {
         hips.position.y -= 0.36
         hips.rotation.x = 0.4
@@ -439,9 +515,13 @@ export class DuelFighter {
           arms[key].pivot.rotation.z = s * 0.7
         }
       }
-      if (this.hitstun > 0 && this.grounded) {
-        hips.rotation.x = -0.28
-        this.hero.head.rotation.x = -0.3
+      // hit-cringe: blends in fast, releases smoothly — a launch or recovery
+      // must never straighten the torso in a single frame
+      this.cringe = damp(this.cringe, this.hitstun > 0 && this.grounded ? 1 : 0,
+        this.hitstun > 0 ? 30 : 12, dt)
+      if (this.cringe > 0.01) {
+        hips.rotation.x += -0.28 * this.cringe
+        this.hero.head.rotation.x += -0.3 * this.cringe
       }
       if (this.dashT > 0) hips.rotation.x = this.backdash ? -0.3 : 0.45
       if (this.attack) this._attackPose()
@@ -463,9 +543,41 @@ export class DuelFighter {
     this.hero.mats.primary.emissive.setRGB(e, e, e)
     this.hero.mats.secondary.emissive.setRGB(e * 0.6, e * 0.6, e * 0.6)
 
-    // wraith shimmer / surge aura
-    this.shimmer.material.opacity = this.ghostT > 0 ? 0.2 + 0.14 * Math.sin(this.hero.t * 11) : 0
+    // wraith shimmer doubles as the wakeup-invulnerability tell: soft bone-white
+    // pulse while invulnerable, flickering out so its end reads clearly
+    const ghostOp = this.ghostT > 0 ? 0.2 + 0.14 * Math.sin(this.hero.t * 11) : 0
+    let wakeOp = 0
+    if (this.wakeInvT > 0) {
+      wakeOp = this.wakeInvT > 0.18
+        ? 0.15 + 0.08 * Math.sin(this.hero.t * 22)
+        : (Math.sin(this.hero.t * 46) > 0 ? 0.17 : 0)
+    }
+    this.shimmer.material.opacity = Math.max(ghostOp, wakeOp)
     this.surgeS.material.opacity = this.meter >= 100 ? 0.16 + 0.1 * Math.sin(this.hero.t * 7) : 0
+  }
+
+  /**
+   * The get-up: roll from prone over the knees into a crouch, then rise.
+   * Blends INTO the standing values hero.update() just wrote, so both ends of
+   * the animation are continuous — no single-frame pops.
+   */
+  _getupPose() {
+    const hips = this.hero.hips
+    const k = clamp(1 - this.kdT / KD_RISE, 0, 1)
+    const roll = smooth(clamp(k / 0.55, 0, 1))          // prone -> over the knees
+    const rise = smooth(clamp((k - 0.55) / 0.45, 0, 1)) // crouch -> standing
+    hips.rotation.x = lerp(lerp(-1.42, 0.5, roll), hips.rotation.x, rise)
+    hips.position.y = lerp(lerp(0.42, 0.52, roll), hips.position.y, rise)
+    for (const key of ['L', 'R']) {
+      const leg = this.hero.legs[key]
+      leg.pivot.rotation.x = lerp(lerp(0, -1.15, roll), leg.pivot.rotation.x, rise)
+      leg.knee.rotation.x = lerp(lerp(0.1, 1.95, roll), leg.knee.rotation.x, rise)
+    }
+    for (const [key, s] of [['L', -1], ['R', 1]]) {
+      const arm = this.hero.arms[key] // arms brace against the ground on the roll
+      arm.pivot.rotation.x = lerp(arm.pivot.rotation.x, 0.55, roll * (1 - rise))
+      arm.pivot.rotation.z = lerp(arm.pivot.rotation.z, s * 0.3, roll * (1 - rise))
+    }
   }
 
   _attackPose() {

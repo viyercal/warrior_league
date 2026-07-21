@@ -105,6 +105,7 @@ export default class KartScene {
     })
 
     audio.music('race')
+    audio.ambience('race')
     profile.stats.plays.kart = (profile.stats.plays.kart || 0) + 1
     this.ctx.saveProfile()
 
@@ -425,6 +426,7 @@ export default class KartScene {
       this.hud.countdown(this.ctx.audio).then(() => {
         if (this.disposed) return
         this.state = 'race'
+        this.ctx.audio.startEngine()
         for (const k of this.karts) if (!k.isPlayer) k.boostT = rand(0.3, 0.7)
       })
     }
@@ -433,6 +435,7 @@ export default class KartScene {
 
     // driving
     this._updatePlayer(gdt, racing && !this.over)
+    this.ctx.audio.setEngine(clamp(this.player.speed / BASE_MAX, 0, 1), this.boosting && racing ? 1 : 0)
     for (const k of this.karts) {
       if (k.onPodium) { this._updateKartVisual(k, dt); continue }
       if (!k.isPlayer && (racing || this.over)) updateAI(k, gdt, this.track, this.player.progress)
@@ -1013,6 +1016,7 @@ export default class KartScene {
   }
 
   _endRace(playerPos) {
+    this.ctx.audio.stopEngine()
     if (this.over) return
     this.over = playerPos === 1 ? 'won' : 'done'
     this._finishHandled = true
@@ -1185,6 +1189,7 @@ export default class KartScene {
   dispose() {
     this.disposed = true
     for (const id of this._timeouts) clearTimeout(id)
+    this.ctx.audio.stopEngine()
     this.intro?.end()
     this._stopFlames()
     this.items.dispose()

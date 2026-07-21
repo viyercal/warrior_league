@@ -5,7 +5,9 @@ const wait = ms => new Promise(r => setTimeout(r, ms))
 
 /**
  * Routes between scene modules (hub, loadout, games) with fade transitions.
- * Handles teardown: engine updater, input handlers, music, HUD DOM, GPU memory.
+ * Handles teardown: engine updater, input handlers, HUD DOM, GPU memory.
+ * Audio (music/ambience) is NOT stopped here — scenes declare their own and
+ * the audio engine crossfades, so hub→forge keeps a seamless mix.
  */
 export class SceneManager {
   constructor({ engine, input, audio }) {
@@ -38,7 +40,10 @@ export class SceneManager {
         if (this.current.scene) disposeObject3D(this.current.scene)
       }
       this.input.clearHandlers()
-      this.audio.stopMusic()
+      // Music + ambience persist across scenes — each scene declares its own
+      // in init() and the audio engine crossfades. The kart engine loop is
+      // scene-scoped, so it's stopped here as a backstop.
+      this.audio.stopEngine?.()
       this.uiRoot.innerHTML = ''
 
       const Mod = (await this.loaders[name]()).default

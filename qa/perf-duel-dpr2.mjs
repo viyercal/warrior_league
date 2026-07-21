@@ -7,7 +7,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 810 }, dev
 const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
-await page.goto(`http://localhost:${port}/?scene=duel&mute=1`, { waitUntil: 'load' })
+await page.goto(`http://localhost:${port}/?scene=duel&mute=1&dpr=2`, { waitUntil: 'load' })
 await page.waitForTimeout(2600)
 await page.keyboard.press('x')
 await page.waitForFunction(() => window.__scene?.phase === 'fight', null, { timeout: 20000 })

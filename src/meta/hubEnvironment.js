@@ -1,5 +1,7 @@
 import * as THREE from 'three'
-import { skyDome, starField, cloudLayer, lightShaft, fireflies } from '../art/environment.js'
+import { lightShaft, fireflies } from '../art/environment.js'
+import { sky } from '../art/sky.js'
+import { horizonLayers } from '../art/backdrop.js'
 import { toonMaterial, glowMaterial } from '../art/materials.js'
 import { groundTexture, glowTexture, canvasTexture } from '../core/assets.js'
 import { rand, TAU } from '../core/utils.js'
@@ -181,20 +183,24 @@ function runeRingTexture(color) {
 /** Dusk battlefield sky: umber/indigo dome, embers of a dying sun, smoke clouds. */
 export function buildSky(scene) {
   scene.fog = new THREE.Fog('#221420', 30, 140)
-  scene.add(skyDome({
-    top: '#140e20', mid: '#281730', bottom: '#3a2030',
-    sunDir: new THREE.Vector3(0.25, 0.04, -0.97), sunColor: '#ff8c3b', sunSize: 55,
+  scene.add(sky({
+    top: '#120c1e', mid: '#2a1730', bottom: '#46232c',
+    haze: '#6b3430', hazeAmt: 0.3,
+    sunDir: new THREE.Vector3(0.25, 0.04, -0.97), sunColor: '#ff8c3b', sunSize: 55, sunBoost: 1.7,
+    moonDir: new THREE.Vector3(-0.58, 0.4, 0.62), moonColor: '#b8c4de',
+    stars: 0.85,
+    clouds: { color: '#3a2430', shade: '#18101c', amount: 0.5, scale: 1.15, speed: 1 },
   }))
-  const stars = starField({ count: 750, size: 2.0, color: '#ffe4c2' })
-  scene.add(stars)
-  const cloudsLow = cloudLayer({ count: 9, radius: 230, height: [38, 85], color: '#4f3030', opacity: 0.32 })
-  const cloudsHigh = cloudLayer({ count: 7, radius: 300, height: [95, 160], color: '#2c2138', opacity: 0.24, scale: [80, 150] })
-  scene.add(cloudsLow, cloudsHigh)
-  return dt => {
-    stars.rotation.y += dt * 0.004
-    cloudsLow.tick(dt)
-    cloudsHigh.tick(dt * 1.7)
-  }
+  // the world below: far mountain ranges ring the floating isles, war-camp
+  // watch-fires burning on the nearer crest
+  const ranges = horizonLayers({
+    kind: 'peaks', count: 2,
+    radius: [250, 370], height: [36, 54],
+    colors: ['#251623', '#341d2d'],
+    seeds: [23, 71], firesOn: 0, fireColor: '#ff9a4d', y: -16,
+  })
+  scene.add(ranges)
+  return dt => ranges.tick(dt)
 }
 
 /** Warm firelight key + cool moonlight fill + ember/crimson rim points. */

@@ -459,6 +459,7 @@ export default class BrawlScene {
     this.vfx.ring(_v1, { color: f.color, radius: 4, life: 0.4, y: ey })
     this.vfx.text(_v1, 'KO!', { color: '#c23b2e', size: 2, life: 1.1, rise: 1 })
     this.ctx.engine.shake(0.55, 0.45)
+    this.ctx.engine.aberrPulse(0.012)
     this.ctx.audio.play('explode', { vol: 0.8 })
     this.ctx.audio.play('tower', { vol: 0.5 }) // stock-loss sting
     // KO drama: brief slow-mo + camera punch toward the blast zone
@@ -905,6 +906,7 @@ export default class BrawlScene {
         this.vfx.shockwave(_v1, { color: m.color, radius: m.radius + 1 })
         this.vfx.ring(_v1, { color: '#ffffff', radius: m.radius, life: 0.35, y: m.y + 0.1 })
         this.ctx.engine.shake(0.7, 0.5)
+        this.ctx.engine.aberrPulse(0.01)
         this.ctx.audio.play('explode', { vol: 0.9 })
         for (const d of this._enemiesOf(p)) {
           const dx = d.pos.x - m.x, dy = d.pos.y - m.y

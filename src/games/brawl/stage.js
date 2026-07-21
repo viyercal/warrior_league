@@ -7,7 +7,9 @@ import {
   pbrMaterial, stoneMaterial, ironMaterial, bronzeMaterial, boneMaterial,
   fireMaterial, emberGlowMaterial, contactShadow, glowSpriteMaterial,
 } from '../../art/materials.js'
-import { skyDome, starField, cloudLayer, fireflies } from '../../art/environment.js'
+import { cloudLayer, fireflies } from '../../art/environment.js'
+import { sky } from '../../art/sky.js'
+import { horizonLayers } from '../../art/backdrop.js'
 import { rand, TAU } from '../../core/utils.js'
 
 /** Collision data — index 0 is the solid main arena, the rest are pass-through. */
@@ -859,14 +861,22 @@ export function buildStage(scene) {
   const tickables = []
   scene.fog = new THREE.Fog('#1a1013', 46, 330)
 
-  scene.add(skyDome({
-    top: '#0d0a15', mid: '#221520', bottom: '#372023',
-    sunDir: new THREE.Vector3(0.42, 0.6, -0.68), sunColor: '#6e1f1e', sunSize: 26,
+  scene.add(sky({
+    top: '#0d0a15', mid: '#221520', bottom: '#372023', radius: 460,
+    haze: '#401e22', hazeAmt: 0.26,
+    sunDir: new THREE.Vector3(0.42, 0.6, -0.68), sunColor: '#6e1f1e', sunSize: 26, sunBoost: 1.3,
+    stars: 0.55,
+    clouds: { color: '#2a1620', shade: '#120c14', amount: 0.45, scale: 1.1, speed: 0.8 },
   }))
-  const stars = starField({ count: 260, radius: 420, size: 1.4, color: '#cfc2b4' })
-  stars.material.opacity = 0.5
-  scene.add(stars)
   scene.add(bloodMoon())
+  // jagged ranges crowding the chasm horizon, ember vents on the nearer crest
+  const chasm = horizonLayers({
+    kind: 'peaks', count: 2, radius: [190, 300], height: [42, 64],
+    colors: ['#1e1216', '#2b1a20'], seeds: [29, 97],
+    firesOn: 0, fireColor: '#ff5a26', y: -26.5,
+  })
+  scene.add(chasm)
+  tickables.push(chasm)
 
   // ---------- the lava chasm ----------
   // fog-aware basalt floor to the horizon, with a molten seam under the arena

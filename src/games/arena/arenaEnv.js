@@ -1,5 +1,7 @@
 import * as THREE from 'three'
-import { skyDome, cloudLayer, fireflies } from '../../art/environment.js'
+import { cloudLayer, fireflies } from '../../art/environment.js'
+import { sky } from '../../art/sky.js'
+import { horizonLayers } from '../../art/backdrop.js'
 import {
   canvasTexture, glowTexture, normalMapFromHeight, roughnessTexture, dirtOverlay,
 } from '../../core/assets.js'
@@ -514,10 +516,22 @@ export function buildArena(scene) {
 
   // ---------- cavern dark + distant lava glow (atmospheric scattering) ----------
   scene.fog = new THREE.Fog('#170f12', 42, 185)
-  scene.add(skyDome({
+  scene.add(sky({
     top: '#090609', mid: '#170d10', bottom: '#220e08',
-    sunDir: new THREE.Vector3(0.55, -0.04, -0.8), sunColor: '#7c2810', sunSize: 10,
+    haze: '#40180c', hazeAmt: 0.3,
+    sunDir: new THREE.Vector3(0.55, -0.04, -0.8), sunColor: '#7c2810', sunSize: 10, sunBoost: 1.4,
+    stars: 0.22,
+    clouds: { color: '#2c140c', shade: '#120a08', amount: 0.5, scale: 0.9, speed: 0.6 },
   }))
+  // far volcanic needles rising beyond the pit's own strata spires, ember
+  // vents glowing on the nearer range
+  const farSpires = horizonLayers({
+    kind: 'spires', count: 2, radius: [95, 150], height: [55, 80],
+    colors: ['#1f1214', '#2a161a'], seeds: [7, 43],
+    firesOn: 0, fireColor: '#ff5a26', y: -12,
+  })
+  scene.add(farSpires)
+  tickables.push(farSpires)
 
   // lava-lit smoke banks drifting below the pit rim
   const smokeLow = cloudLayer({ count: 13, radius: 230, height: [-130, -30], color: '#3c1c0e', opacity: 0.34, scale: [80, 150] })

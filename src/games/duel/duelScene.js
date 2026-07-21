@@ -374,6 +374,7 @@ export default class DuelScene {
       this.vfx.burst(_v2, { color: def.color, count: 26, speed: 12, size: 0.36, life: 0.7, up: 4 })
       this.vfx.lightning(_v1.set(foe.pos.x - 2, 5, 0), _v2, { color: def.color, life: 0.3 })
       this.ctx.engine.shake(0.9, 0.7)
+      this.ctx.engine.aberrPulse(0.014)
       this.ctx.audio.play('explode', { vol: 1 })
       this.ctx.audio.play('kill', { vol: 0.8 })
       this.ctx.audio.play('crowd', { vol: 0.9 })

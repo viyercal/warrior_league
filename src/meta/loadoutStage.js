@@ -1,5 +1,7 @@
 import * as THREE from 'three'
-import { skyDome, starField, lightShaft, fireflies } from '../art/environment.js'
+import { lightShaft, fireflies } from '../art/environment.js'
+import { sky } from '../art/sky.js'
+import { horizonLayers } from '../art/backdrop.js'
 import { groundTexture, glowTexture } from '../core/assets.js'
 import { toonMaterial, glowMaterial } from '../art/materials.js'
 import { rand, TAU } from '../core/utils.js'
@@ -332,9 +334,23 @@ function buildTorch(m) {
  */
 export function buildForgeStage(scene) {
   scene.fog = new THREE.Fog('#140d0a', 14, 70)
-  scene.add(skyDome({ top: '#0c0709', mid: '#221114', bottom: '#3a1c12', radius: 250 }))
-  const stars = starField({ count: 380, radius: 225, size: 2.0, color: '#ffd9a8' })
-  scene.add(stars)
+  // mountaintop forge: cold stars + pale moon above, the war raging in the
+  // valley ranges far below
+  scene.add(sky({
+    top: '#08060c', mid: '#221114', bottom: '#3a1c12',
+    haze: '#4a2418', hazeAmt: 0.28,
+    moonDir: new THREE.Vector3(0.45, 0.52, -0.55), moonColor: '#c9d2e8',
+    stars: 0.75,
+    clouds: { color: '#3a201a', shade: '#160e0c', amount: 0.38, scale: 1.3, speed: 0.8 },
+    radius: 250,
+  }))
+  const ranges = horizonLayers({
+    kind: 'peaks', count: 2,
+    radius: [95, 170], height: [22, 34],
+    colors: ['#261512', '#331b14'],
+    seeds: [31, 67], firesOn: 1, fireColor: '#ff8c3b', y: -6,
+  })
+  scene.add(ranges)
 
   const floorTex = groundTexture({ base: '#2c2620', blotches: ['#3a332a', '#211c16', '#453c30', '#332c24'], count: 500, alpha: 0.24 })
   floorTex.repeat.set(4, 4)
@@ -439,7 +455,7 @@ export function buildForgeStage(scene) {
   scene.add(under)
 
   const tick = (dt, t) => {
-    stars.rotation.y += dt * 0.004
+    ranges.tick(dt)
     for (const r of rings) r.m.material.opacity = r.base * (0.7 + 0.3 * Math.sin(t * r.sp + r.ph))
     ped.face.material.opacity = 0.11 + 0.05 * Math.sin(t * 1.7)
     shards.tick(dt, t)

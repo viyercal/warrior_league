@@ -11,7 +11,8 @@ export function tickMaterials(dt) {
   for (const m of _animated) m.uniforms.uTime.value += dt
 }
 
-function track(mat) {
+/** Register a ShaderMaterial for per-frame uTime ticking (auto-untracked on dispose). */
+export function track(mat) {
   _animated.add(mat)
   const d = mat.dispose.bind(mat)
   mat.dispose = () => { _animated.delete(mat); d() }

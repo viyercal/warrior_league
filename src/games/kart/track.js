@@ -4,7 +4,9 @@ import {
   pbrMaterial, stoneMaterial, ironMaterial, woodMaterial,
   boneMaterial, fireMaterial, emberGlowMaterial, glowSpriteMaterial,
 } from '../../art/materials.js'
-import { skyDome, cloudLayer, starField, fireflies } from '../../art/environment.js'
+import { fireflies } from '../../art/environment.js'
+import { sky } from '../../art/sky.js'
+import { horizonLayers } from '../../art/backdrop.js'
 import { rand, TAU, clamp, damp } from '../../core/utils.js'
 
 export const TRACK_HALF_W = 5.5
@@ -859,16 +861,21 @@ function buildEnvironment(scene, track, distToTrack) {
   // dusk over the scorched badlands: dusty haze, low sun, embered horizon
   scene.fog = new THREE.Fog('#5a3a28', 50, 340)
   const sunDir = new THREE.Vector3(-0.5, 0.38, -0.65).normalize()
-  scene.add(skyDome({
+  scene.add(sky({
     top: '#191823', mid: '#422c33', bottom: '#96522c', radius: 520,
-    sunDir, sunColor: '#f08a44', sunSize: 320,
+    haze: '#a05a30', hazeAmt: 0.26,
+    sunDir, sunColor: '#f08a44', sunSize: 320, sunBoost: 1.5,
+    stars: 0.3,
+    clouds: { color: '#4c322c', shade: '#221818', amount: 0.42, scale: 0.8, speed: 0.9 },
   }))
-  const stars = starField({ count: 240, radius: 500, size: 1.7 })
-  stars.material.opacity = 0.34 // dusk — barely-there stars
-  scene.add(stars)
-  const clouds = cloudLayer({ count: 10, radius: 330, height: [85, 150], color: '#5c3f34', opacity: 0.22, scale: [100, 190] })
-  scene.add(clouds)
-  track.tickables.push(clouds)
+  // mesa ranges closing the horizon; war-camp cookfires on the nearer one
+  const mesas = horizonLayers({
+    kind: 'peaks', count: 2, radius: [270, 410], height: [30, 46],
+    colors: ['#3c2418', '#53301e'], seeds: [5, 83],
+    firesOn: 0, fireColor: '#ffa25e',
+  })
+  scene.add(mesas)
+  track.tickables.push(mesas)
 
   // scorched-earth ground: own texture set (repeat mutated → never share cache)
   const groundSet = packedEarthTexture({ dark: '#332416', base: '#4c3a26', light: '#635231', seed: 77 })

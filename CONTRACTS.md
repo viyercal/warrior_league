@@ -158,6 +158,21 @@ watchFires({ring, count, color, size, seed}) → Points with .tick(dt).
 horizonLayers({kind, count, radius:[a,b], height:[a,b], colors:[a,b], seeds,
 firesOn, fireColor, y}) → Group with combined .tick(dt) — push to tickables.
 
+`src/art/otherworld.js` — ambient creature/phenomena kit. dragon({scale, color,
+membraneColor, eyeColor, fireBreath, breathPeriod, breathDur, seed}) → {group,
+.tick(dt)}: articulated drake (pivot-chain neck/tail, 2-joint scalloped-membrane
+wings with flap/glide cycles, tucked legs, ember eyes, optional fire cone).
+dragonFlight(dragon, {center, radius, height, speed, dir, bob, bank, seed}) →
+{group, .tick(dt)} circular flight path with banking — push the FLIGHT object
+(not the bare dragon) to tickables; dragon faces +z, seed = start angle/2π.
+wyvernFlock({count, center, radius, height, speed, color, scale, seed}) →
+{group, .tick(dt)} unlit fog:true silhouettes — cheap, safe for perf-tight
+scenes. aurora({color1, color2, radius, y, width, thetaStart, thetaLength,
+intensity, speed}) → additive cylinder-band shader, auto-ticked via track() —
+EXPENSIVE at dpr2 on gameplay scenes (~10fps in duel; hub/menus only), aim
+thetaStart toward -z for the hub camera. COST NOTE: a single scaled dragon in
+kart cost ~12fps at dpr2 — keep gameplay-scene dragons rare and distant.
+
 `src/art/characterFactory.js` —
 - `createHero(profile.appearance, {auraRing})` → Hero: `.group` (origin at feet, ≈2 units
   tall), `.update(dt)` (call every frame), `.setMoveSpeed(unitsPerSec)` (drives run anim),

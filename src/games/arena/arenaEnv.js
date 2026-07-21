@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { cloudLayer, fireflies } from '../../art/environment.js'
 import { sky } from '../../art/sky.js'
 import { horizonLayers } from '../../art/backdrop.js'
+import { dragon, dragonFlight } from '../../art/otherworld.js'
 import {
   canvasTexture, glowTexture, normalMapFromHeight, roughnessTexture, dirtOverlay,
 } from '../../core/assets.js'
@@ -532,6 +533,12 @@ export function buildArena(scene) {
   })
   scene.add(farSpires)
   tickables.push(farSpires)
+  // a drake circling the thermals between the volcanic needles
+  const drake = dragonFlight(dragon({ scale: 2.0, seed: 5 }), {
+    radius: 85, height: 48, speed: 0.06, bob: 7, seed: 0.9,
+  })
+  scene.add(drake.group)
+  tickables.push(drake)
 
   // lava-lit smoke banks drifting below the pit rim
   const smokeLow = cloudLayer({ count: 13, radius: 230, height: [-130, -30], color: '#3c1c0e', opacity: 0.34, scale: [80, 150] })

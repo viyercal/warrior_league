@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { starField, cloudLayer, fireflies } from '../../art/environment.js'
 import { sky } from '../../art/sky.js'
 import { horizonLayers } from '../../art/backdrop.js'
+import { wyvernFlock } from '../../art/otherworld.js'
 import {
   canvasTexture, glowTexture, cloudTexture,
   noiseField, normalMapFromHeight, roughnessTexture,
@@ -460,6 +461,10 @@ export function buildSiegeWorld(scene) {
   })
   scene.add(ridges)
   tickables.push(ridges)
+  // carrion wyverns wheeling over the burning camps
+  const wyverns = wyvernFlock({ count: 4, radius: 180, height: 46, speed: 0.07, color: '#140d10', seed: 8 })
+  scene.add(wyverns.group)
+  tickables.push(wyverns)
   const starsWarm = starField({ count: 150, size: 1.7, color: '#ffd9b8' })
   const starsCool = starField({ count: 110, size: 1.4, color: '#c8d4ee' })
   starsWarm.material.opacity = 0.4

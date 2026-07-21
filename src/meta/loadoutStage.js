@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { lightShaft, fireflies } from '../art/environment.js'
 import { sky } from '../art/sky.js'
 import { horizonLayers } from '../art/backdrop.js'
+import { wyvernFlock } from '../art/otherworld.js'
 import { groundTexture, glowTexture } from '../core/assets.js'
 import { toonMaterial, glowMaterial } from '../art/materials.js'
 import { rand, TAU } from '../core/utils.js'
@@ -351,6 +352,9 @@ export function buildForgeStage(scene) {
     seeds: [31, 67], firesOn: 1, fireColor: '#ff8c3b', y: -6,
   })
   scene.add(ranges)
+  // wyverns hunting the thermals over the war valley far below
+  const wyverns = wyvernFlock({ count: 2, radius: 120, height: 30, speed: 0.05, seed: 9 })
+  scene.add(wyverns.group)
 
   const floorTex = groundTexture({ base: '#2c2620', blotches: ['#3a332a', '#211c16', '#453c30', '#332c24'], count: 500, alpha: 0.24 })
   floorTex.repeat.set(4, 4)
@@ -456,6 +460,7 @@ export function buildForgeStage(scene) {
 
   const tick = (dt, t) => {
     ranges.tick(dt)
+    wyverns.tick(dt)
     for (const r of rings) r.m.material.opacity = r.base * (0.7 + 0.3 * Math.sin(t * r.sp + r.ph))
     ped.face.material.opacity = 0.11 + 0.05 * Math.sin(t * 1.7)
     shards.tick(dt, t)

@@ -10,6 +10,7 @@ import {
 import { cloudLayer, fireflies } from '../../art/environment.js'
 import { sky } from '../../art/sky.js'
 import { horizonLayers } from '../../art/backdrop.js'
+import { dragon, dragonFlight } from '../../art/otherworld.js'
 import { rand, TAU } from '../../core/utils.js'
 
 /** Collision data — index 0 is the solid main arena, the rest are pass-through. */
@@ -877,6 +878,12 @@ export function buildStage(scene) {
   })
   scene.add(chasm)
   tickables.push(chasm)
+  // a drake riding the chasm winds behind the arena, breathing fire at the moon
+  const drake = dragonFlight(dragon({ scale: 3, fireBreath: true, breathPeriod: 19, seed: 11 }), {
+    center: [0, 0, -55], radius: 50, height: 30, speed: 0.07, bob: 5, seed: 0.53,
+  })
+  scene.add(drake.group)
+  tickables.push(drake)
 
   // ---------- the lava chasm ----------
   // fog-aware basalt floor to the horizon, with a molten seam under the arena

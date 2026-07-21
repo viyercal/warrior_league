@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { lightShaft, fireflies } from '../art/environment.js'
 import { sky } from '../art/sky.js'
 import { horizonLayers } from '../art/backdrop.js'
+import { dragon, dragonFlight, wyvernFlock, aurora } from '../art/otherworld.js'
 import { toonMaterial, glowMaterial } from '../art/materials.js'
 import { groundTexture, glowTexture, canvasTexture } from '../core/assets.js'
 import { rand, TAU } from '../core/utils.js'
@@ -200,7 +201,17 @@ export function buildSky(scene) {
     seeds: [23, 71], firesOn: 0, fireColor: '#ff9a4d', y: -16,
   })
   scene.add(ranges)
-  return dt => ranges.tick(dt)
+  // the otherworld: a fire-breathing drake circling the far peaks, a wyvern
+  // pair trailing it, and a faint aurora bleeding over the northern sky.
+  // (hub camera looks -z: drake seed starts it on the visible arc, aurora
+  // band is centered on theta=pi)
+  const drake = dragonFlight(dragon({ scale: 3, fireBreath: true, breathPeriod: 17, seed: 3 }), {
+    radius: 165, height: 42, speed: 0.075, bob: 6, seed: 0.68,
+  })
+  const wyverns = wyvernFlock({ count: 3, radius: 160, height: 40, speed: 0.06, seed: 5 })
+  scene.add(drake.group, wyverns.group)
+  scene.add(aurora({ y: 90, radius: 330, width: 80, thetaStart: 2.34, thetaLength: 1.6, intensity: 0.48 }))
+  return dt => { ranges.tick(dt); drake.tick(dt); wyverns.tick(dt) }
 }
 
 /** Warm firelight key + cool moonlight fill + ember/crimson rim points. */

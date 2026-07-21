@@ -9,6 +9,7 @@ import {
 import { lightShaft, fireflies } from '../../art/environment.js'
 import { sky } from '../../art/sky.js'
 import { ridgeRing, watchFires } from '../../art/backdrop.js'
+import { wyvernFlock } from '../../art/otherworld.js'
 import { rand, TAU, clamp } from '../../core/utils.js'
 import { COURT } from './constants.js'
 
@@ -1046,6 +1047,9 @@ export function buildArena(scene) {
   group.add(skyline)
   const cityFires = watchFires({ ring: skyline, count: 18, color: '#ff7a3b', size: 4.2, seed: 9 })
   group.add(cityFires)
+  // wyvern pair gliding above the colosseum rim
+  const wyverns = wyvernFlock({ count: 2, radius: 58, height: 42, speed: 0.09, color: '#0e0a10', seed: 4 })
+  group.add(wyverns.group)
 
   // colosseum shell: torchlit arched galleries all around
   const wallMat = pbrMaterial({ color: '#8a7d70', roughness: 1, side: THREE.BackSide, envMapIntensity: 0.04 })
@@ -1158,6 +1162,7 @@ export function buildArena(scene) {
       kit.tick(t, dt)
       jumbo.tick(dt)
       cityFires.tick(dt)
+      wyverns.tick(dt)
       sweepPivot.rotation.y = Math.sin(t * 0.18) * 1.4
       flare += (flareT - flare) * Math.min(1, dt * 2)
       hoop.rimGlow.material.opacity = 0.055 + Math.sin(t * 2.6) * 0.02 + flare * 0.05

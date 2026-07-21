@@ -7,6 +7,7 @@ import {
 import { fireflies } from '../../art/environment.js'
 import { sky } from '../../art/sky.js'
 import { horizonLayers } from '../../art/backdrop.js'
+import { dragon, dragonFlight } from '../../art/otherworld.js'
 import { rand, TAU, clamp, damp } from '../../core/utils.js'
 
 export const TRACK_HALF_W = 5.5
@@ -876,6 +877,12 @@ function buildEnvironment(scene, track, distToTrack) {
   })
   scene.add(mesas)
   track.tickables.push(mesas)
+  // a drake soaring the thermals over the mesas
+  const drake = dragonFlight(dragon({ scale: 2.6, seed: 7 }), {
+    radius: 320, height: 70, speed: 0.05, bob: 9, seed: 0.3,
+  })
+  scene.add(drake.group)
+  track.tickables.push(drake)
 
   // scorched-earth ground: own texture set (repeat mutated → never share cache)
   const groundSet = packedEarthTexture({ dark: '#332416', base: '#4c3a26', light: '#635231', seed: 77 })

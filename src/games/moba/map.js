@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { fireflies } from '../../art/environment.js'
 import { sky } from '../../art/sky.js'
 import { horizonLayers, ridgeRing } from '../../art/backdrop.js'
+import { wyvernFlock } from '../../art/otherworld.js'
 import {
   canvasTexture, glowTexture, noiseField, normalMapFromHeight, dirtOverlay,
   crackedStoneTexture, woodPlankTexture, packedEarthTexture, fabricGrainTexture,
@@ -936,6 +937,10 @@ export function buildMap(scene) {
   })
   scene.add(ranges)
   tickables.push(ranges)
+  // wyverns wheeling over the siege-camp peaks (seen on the intro lane sweep)
+  const wyverns = wyvernFlock({ count: 3, radius: 130, height: 36, speed: 0.08, seed: 12 })
+  scene.add(wyverns.group)
+  tickables.push(wyverns)
 
   // ---------- ground: dead-patched grass field + packed-earth lane + dark river ----------
   const grass = grassFieldTexture()

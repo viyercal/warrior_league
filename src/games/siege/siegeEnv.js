@@ -1,5 +1,7 @@
 import * as THREE from 'three'
-import { skyDome, starField, cloudLayer, fireflies } from '../../art/environment.js'
+import { starField, cloudLayer, fireflies } from '../../art/environment.js'
+import { sky } from '../../art/sky.js'
+import { horizonLayers } from '../../art/backdrop.js'
 import {
   canvasTexture, glowTexture, cloudTexture,
   noiseField, normalMapFromHeight, roughnessTexture,
@@ -440,11 +442,24 @@ export function buildSiegeWorld(scene) {
 
   // ---------- sky: moonless umber night, burning camps staining the horizon ----------
   scene.fog = new THREE.FogExp2('#150e12', 0.0085)
-  const sky = skyDome({
+  // NOTE: dawn rig lerps uTop/uMid/uBottom/uSunColor — sky.js exposes the same
+  // uniform names, and stars stay as Points so the rig can fade them by opacity
+  const skyMesh = sky({
     top: '#07060e', mid: '#171017', bottom: '#2c1a1c',
-    sunDir: new THREE.Vector3(-0.3, 0.12, -0.9), sunColor: '#b23c16', sunSize: 14,
+    haze: '#38140e', hazeAmt: 0.3,
+    sunDir: new THREE.Vector3(-0.3, 0.12, -0.9), sunColor: '#b23c16', sunSize: 14, sunBoost: 1.4,
+    stars: 0,
+    clouds: { color: '#2a1210', shade: '#100a0c', amount: 0.42, scale: 0.85, speed: 0.7 },
   })
-  scene.add(sky)
+  scene.add(skyMesh)
+  // burned ridgelines behind the siege camps
+  const ridges = horizonLayers({
+    kind: 'peaks', count: 2, radius: [270, 380], height: [42, 60],
+    colors: ['#1a1014', '#26141a'], seeds: [3, 61],
+    firesOn: 0, fireColor: '#ff6a2b',
+  })
+  scene.add(ridges)
+  tickables.push(ridges)
   const starsWarm = starField({ count: 150, size: 1.7, color: '#ffd9b8' })
   const starsCool = starField({ count: 110, size: 1.4, color: '#c8d4ee' })
   starsWarm.material.opacity = 0.4
@@ -694,7 +709,7 @@ export function buildSiegeWorld(scene) {
   moon.shadow.normalBias = 0.02
   scene.add(moon)
 
-  const dawn = buildDawnRig(scene, { sky, hemi, moon, stars: [starsWarm, starsCool] })
+  const dawn = buildDawnRig(scene, { sky: skyMesh, hemi, moon, stars: [starsWarm, starsCool] })
 
   return { tickables, portals, dawn }
 }

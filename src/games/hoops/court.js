@@ -7,6 +7,8 @@ import {
   glowSpriteMaterial,
 } from '../../art/materials.js'
 import { lightShaft, fireflies } from '../../art/environment.js'
+import { sky } from '../../art/sky.js'
+import { ridgeRing, watchFires } from '../../art/backdrop.js'
 import { rand, TAU, clamp } from '../../core/utils.js'
 import { COURT } from './constants.js'
 
@@ -1032,6 +1034,19 @@ export function buildArena(scene) {
 
   group.add(buildClutter())
 
+  // open-top colosseum: cold night sky through the oculus, and a ruined
+  // burning city skyline looming over the rim
+  group.add(sky({
+    top: '#07060e', mid: '#161022', bottom: '#241423', radius: 185,
+    moonDir: new THREE.Vector3(0.3, 0.62, -0.55), moonColor: '#d4dcf0',
+    stars: 0.9,
+    clouds: { color: '#241a28', shade: '#0e0a12', amount: 0.45, scale: 1.4, speed: 0.7 },
+  }))
+  const skyline = ridgeRing({ kind: 'citadel', radius: 62, height: 36, y: 6, color: '#2c1e30', seed: 17 })
+  group.add(skyline)
+  const cityFires = watchFires({ ring: skyline, count: 18, color: '#ff7a3b', size: 4.2, seed: 9 })
+  group.add(cityFires)
+
   // colosseum shell: torchlit arched galleries all around
   const wallMat = pbrMaterial({ color: '#8a7d70', roughness: 1, side: THREE.BackSide, envMapIntensity: 0.04 })
   wallMat.map = wallTexture()
@@ -1142,6 +1157,7 @@ export function buildArena(scene) {
       embers.tick(dt)
       kit.tick(t, dt)
       jumbo.tick(dt)
+      cityFires.tick(dt)
       sweepPivot.rotation.y = Math.sin(t * 0.18) * 1.4
       flare += (flareT - flare) * Math.min(1, dt * 2)
       hoop.rimGlow.material.opacity = 0.055 + Math.sin(t * 2.6) * 0.02 + flare * 0.05

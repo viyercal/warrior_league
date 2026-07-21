@@ -8,7 +8,7 @@ const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 
-await page.goto(`http://localhost:${port}/?scene=kart&mute=1`, { waitUntil: 'load' })
+await page.goto(`http://localhost:${port}/?scene=kart&mute=1&dpr=2`, { waitUntil: 'load' })
 // boot -> intro flyover (any key skips) -> countdown -> race
 await page.waitForFunction(() => window.__scene?.state === 'intro', null, { timeout: 15000 })
 await page.keyboard.press('x')

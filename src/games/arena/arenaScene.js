@@ -946,6 +946,7 @@ export default class ArenaScene {
         this.vfx.shockwave(_v1, { color: m.color, radius: m.radius + 1 })
         this.vfx.ring(_v1, { color: '#ffffff', radius: m.radius, life: 0.35 })
         this.ctx.engine.shake(0.6, 0.5)
+        this.ctx.engine.aberrPulse(0.01)
         this.ctx.audio.play('explode', { vol: 0.85 })
         this._aoeEnemies(m.x, m.z, m.radius, m.dmg, { color: m.color, knock: 5 })
         this.scene.remove(m.ring)
@@ -1108,6 +1109,7 @@ export default class ArenaScene {
     const chain = (delay, r, color) => this._timeout(() => {
       this.vfx.shockwave(pos, { color, radius: r })
       this.ctx.engine.shake(0.55, 0.5)
+      this.ctx.engine.aberrPulse(0.012)
       this.ctx.audio.play('explode', { vol: 0.7 })
     }, delay)
     chain(0, 6, '#c23b2e')

@@ -141,6 +141,23 @@ crystal({color1,color2,height}) → group with .tick(dt), tree(opts), rock(opts)
 lightShaft(opts), fireflies(opts) → points with .tick(dt).
 Anything with `.tick(dt)` — YOU call it in update().
 
+`src/art/sky.js` — sky({top,mid,bottom, radius, haze, hazeAmt, hazeBand, sunDir,
+sunColor, sunSize, sunBoost, stars, moonDir, moonColor, clouds:{color, shade,
+amount, scale, speed}}) — procedural dome: 3-stop gradient + horizon haze band
+(hazeBand = angular half-width, raise it when treelines occlude the horizon),
+HDR sun disc+halo (sunBoost feeds bloom), optional moon, twinkling stars,
+drifting patchy fbm clouds. Auto-ticked via the materials registry (NO .tick
+call). Exposes uTop/uMid/uBottom/uSunColor uniform names — siege's dawn rig
+lerps them. Prefer over skyDome/starField in every scene.
+
+`src/art/backdrop.js` — silhouette horizon kit. ridgeRing({kind:
+'peaks'|'pines'|'citadel'|'spires', radius, height, color, seed, y, arc, angle})
+— single unlit triangle-strip band; `fog:false` BY DESIGN (scene fog fars would
+erase it) — hand-grade ring colors between fog color and sky, paler = farther.
+watchFires({ring, count, color, size, seed}) → Points with .tick(dt).
+horizonLayers({kind, count, radius:[a,b], height:[a,b], colors:[a,b], seeds,
+firesOn, fireColor, y}) → Group with combined .tick(dt) — push to tickables.
+
 `src/art/characterFactory.js` —
 - `createHero(profile.appearance, {auraRing})` → Hero: `.group` (origin at feet, ≈2 units
   tall), `.update(dt)` (call every frame), `.setMoveSpeed(unitsPerSec)` (drives run anim),
@@ -217,9 +234,16 @@ remain for hub/loadout only):
 - `ssao: false` — inserts a cheap SAOPass (kernel 16, blurred) between render and
   bloom; `ssaoIntensity` (default 0.05). BENCHMARK YOUR SCENE before shipping it.
 - `exposure: 1` — pre-tonemap exposure multiplier in the grade pass.
+- `contrast: 1.03` — post-exposure contrast in the grade pass.
+- `aberration: 0` — rest strength of radial chromatic aberration (grade-pass
+  uniform uAberr; driven transiently by engine.aberrPulse).
 
 `src/core/engine.js` — `engine.setExposure(v)` sets renderer.toneMappingExposure
-(applies live through the composer's OutputPass).
+(applies live through the composer's OutputPass). `engine.aberrPulse(amt=0.012)`
+— decaying chromatic-aberration kick (exp decay); wire to KO/boss-kill moments.
+Dynamic resolution: pixel-ratio steps 1→native, steps down <50fps, up >57.5fps
+sustained 5s (3s cooldown); `?dpr=1.5` URL lock — perf gates MUST pass it.
+`engine.fps` (real frame time), `engine.dprScale` (current effective ratio).
 
 `src/art/characterFactory.js` — Hero/Minion now render with the PBR kit (worn
 bronze/iron, grained leather, ragged cloth, ember accents, built-in contact

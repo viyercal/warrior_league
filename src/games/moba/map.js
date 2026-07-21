@@ -1,5 +1,7 @@
 import * as THREE from 'three'
-import { skyDome, starField, cloudLayer, fireflies } from '../../art/environment.js'
+import { fireflies } from '../../art/environment.js'
+import { sky } from '../../art/sky.js'
+import { horizonLayers, ridgeRing } from '../../art/backdrop.js'
 import {
   canvasTexture, glowTexture, noiseField, normalMapFromHeight, dirtOverlay,
   crackedStoneTexture, woodPlankTexture, packedEarthTexture, fabricGrainTexture,
@@ -917,15 +919,23 @@ export function buildMap(scene) {
 
   // ---------- storm-dusk sky: umber horizon haze under a cold indigo vault ----------
   scene.fog = new THREE.FogExp2('#221a1c', 0.0085)
-  scene.add(skyDome({
-    top: '#12101a', mid: '#2c1f28', bottom: '#5e3220', radius: 470,
-    sunDir: new THREE.Vector3(-0.55, 0.1, -0.4), sunColor: '#c96a35', sunSize: 22,
+  scene.add(sky({
+    top: '#100e18', mid: '#2c1f28', bottom: '#5e3220', radius: 470,
+    haze: '#6b3a22', hazeAmt: 0.34, hazeBand: 0.34,
+    sunDir: new THREE.Vector3(-0.55, 0.1, -0.4), sunColor: '#c96a35', sunSize: 22, sunBoost: 1.5,
+    stars: 0.35,
+    clouds: { color: '#33222c', shade: '#17111a', amount: 0.6, scale: 1.0, speed: 1.2 },
   }))
-  scene.add(starField({ count: 130, size: 1.4, radius: 430, color: '#6e6a60' }))
-  const cl1 = cloudLayer({ count: 9, radius: 250, height: [55, 110], color: '#382731', opacity: 0.44, scale: [60, 120] })
-  const cl2 = cloudLayer({ count: 7, radius: 220, height: [35, 80], color: '#20161c', opacity: 0.38, scale: [55, 100] })
-  scene.add(cl1, cl2)
-  tickables.push(cl1, cl2)
+  // world-ends: pine treeline hugging the map edge, then siege-camp peaks
+  const treeline = ridgeRing({ kind: 'pines', radius: 96, height: 16, color: '#251c1e', seed: 41 })
+  scene.add(treeline)
+  const ranges = horizonLayers({
+    kind: 'peaks', count: 2, radius: [150, 240], height: [30, 48],
+    colors: ['#2c2024', '#3a2830'], seeds: [13, 59],
+    firesOn: 1, fireColor: '#ff8c3b',
+  })
+  scene.add(ranges)
+  tickables.push(ranges)
 
   // ---------- ground: dead-patched grass field + packed-earth lane + dark river ----------
   const grass = grassFieldTexture()

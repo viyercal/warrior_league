@@ -4,7 +4,8 @@ import {
   pbrMaterial, stoneMaterial, ironMaterial, bronzeMaterial, boneMaterial,
   fireMaterial, emberGlowMaterial, contactShadow, glowSpriteMaterial,
 } from '../../art/materials.js'
-import { skyDome, starField, fireflies } from '../../art/environment.js'
+import { fireflies } from '../../art/environment.js'
+import { sky } from '../../art/sky.js'
 import { rand, TAU } from '../../core/utils.js'
 
 const EMBER = '#ff8c3b'
@@ -368,13 +369,12 @@ export function buildArena(scene) {
   scene.fog = new THREE.Fog('#150f14', 26, 150)
 
   // ---------- sky through the oculus ----------
-  scene.add(skyDome({
+  scene.add(sky({
     top: '#0b0812', mid: '#1a1420', bottom: '#3a2030', radius: 460,
-    sunDir: new THREE.Vector3(-0.25, 0.75, -0.55), sunColor: '#4a3050', sunSize: 30,
+    sunDir: new THREE.Vector3(-0.25, 0.75, -0.55), sunColor: '#4a3050', sunSize: 30, sunBoost: 1.1,
+    stars: 0.5,
+    clouds: { color: '#241626', shade: '#0e0a12', amount: 0.38, scale: 1.3, speed: 0.5 },
   }))
-  const stars = starField({ count: 220, radius: 420, size: 1.3, color: '#cfc2b4' })
-  stars.material.opacity = 0.45
-  scene.add(stars)
 
   // ---------- the pit floor ----------
   const floorSet = cloneSet(S.stoneSet, 7, 7)

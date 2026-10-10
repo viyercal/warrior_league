@@ -1,0 +1,115 @@
+{
+  "base": "http://127.0.0.1:5190",
+  "checks": [
+    {
+      "name": "outside fountain retains damage",
+      "ok": true
+    },
+    {
+      "name": "walking into allied fountain restores full health immediately",
+      "ok": true
+    },
+    {
+      "name": "click-to-move into fountain restores health",
+      "ok": true
+    },
+    {
+      "name": "outside radial boundary",
+      "ok": true,
+      "detail": {
+        "name": "outside radial boundary",
+        "hp": 20,
+        "want": 20
+      }
+    },
+    {
+      "name": "inside radial boundary",
+      "ok": true,
+      "detail": {
+        "name": "inside radial boundary",
+        "hp": 100,
+        "want": 100
+      }
+    },
+    {
+      "name": "outside side boundary",
+      "ok": true,
+      "detail": {
+        "name": "outside side boundary",
+        "hp": 20,
+        "want": 20
+      }
+    },
+    {
+      "name": "inside side boundary",
+      "ok": true,
+      "detail": {
+        "name": "inside side boundary",
+        "hp": 100,
+        "want": 100
+      }
+    },
+    {
+      "name": "enemy fountain",
+      "ok": true,
+      "detail": {
+        "name": "enemy fountain",
+        "hp": 20,
+        "want": 20
+      }
+    },
+    {
+      "name": "dead in allied fountain",
+      "ok": true,
+      "detail": {
+        "name": "dead in allied fountain",
+        "hp": 0,
+        "want": 0
+      }
+    },
+    {
+      "name": "match ended",
+      "ok": true,
+      "detail": {
+        "name": "match ended",
+        "hp": 20,
+        "want": 20
+      }
+    },
+    {
+      "name": "levelled max health",
+      "ok": true,
+      "detail": {
+        "name": "levelled max health",
+        "hp": 175,
+        "want": 175
+      }
+    },
+    {
+      "name": "remaining in fountain restores damage",
+      "ok": true
+    },
+    {
+      "name": "help explains fountain",
+      "ok": true
+    },
+    {
+      "name": "help fits 1440",
+      "ok": true
+    },
+    {
+      "name": "help fits 900",
+      "ok": true
+    },
+    {
+      "name": "help fits 390",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

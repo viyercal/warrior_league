@@ -51,17 +51,17 @@ Jump straight into a scene: `http://localhost:5173/?scene=duel|moba|hoops|arena|
 ## Controls
 
 - **Hub**: click a realm to select it, then Enter Battle. Arrow keys or 1-7 select realms, Enter plays, C opens the forge, and H shows the selected controls.
-- **War Rift**: arrows move, right-click move/attack, QWER arts, B recall, Y camera lock, wheel zoom. Arrow movement replaces mouse orders and cancels recall.
+- **War Rift**: arrows move, right-click move/attack, QWER arts, B recall, Y camera lock, wheel zoom. Arrow movement replaces mouse orders and cancels recall. Enter the allied fountain platform for an immediate full-health restore.
 - **Blood Court**: right-click a destination or use WASD/arrows to move, Shift sprint, hold/release Space to shoot, F steal, double-tap A/D or left/right crossover, 1-4 arts.
 - **The Pit**: right-click a destination or use WASD/arrows to move, aim with mouse, hold LMB blaster, 1-4 arts.
 - **War Chariots**: W/up accelerates, S/down brakes, A/D or left/right steers, hold Space to drift, Shift spends boost, 1-4 arts.
 - **Mortal Arena**: A/D or left/right moves, Space/up jumps, S/down fast-falls, J jab, K smash, double-tap left/right or A/D dodges, QWER arts.
 - **Last Bastion**: right-click a destination or use WASD/arrows to move, aim with mouse, hold LMB blaster, F build/upgrade ballistae, 1-4 arts.
-- **The Crucible**: A/D or left/right walks (double-tap to dash), Space/up jumps, S/down crouches, Shift blocks, J/K light/heavy, F throws, QWER arts.
+- **The Crucible**: right-click a destination to walk; A/D or left/right walks (double-tap to dash), Space/up jumps, S/down crouches, Shift blocks, J/K light/heavy, F throws, QWER arts.
 - **P / Esc**: pause a game or resume from its menu. Use the menu to restart or return to the hub. Escape leaves the forge. H toggles help in games.
 - **Settings**: mouse sensitivity (0.25× to 2×, with Reset), sound, Auto / High / Performance quality, and reduced motion are saved on this device. Gameplay requires a keyboard and mouse; hub and forge layouts also adapt to narrow screens.
 
-Mouse sensitivity changes mouse-driven camera movement, War Rift edge scrolling, and Forge rotation. Cursor aiming and click destinations stay aligned with the visible pointer. Keyboard movement and pausing cancel new click-to-move orders; Last Bastion routes around the citadel. Blood Court shots retain their existing basket targeting. Fighting and racing retain their directional controls.
+Mouse sensitivity changes mouse-driven camera movement, War Rift edge scrolling, and Forge rotation. Cursor aiming and click destinations stay aligned with the visible pointer. Keyboard movement and pausing cancel new click-to-move orders; Last Bastion routes around the citadel. Blood Court shots retain their existing basket targeting. The Crucible also supports right-click walking, with keyboard/combat input cancelling the order. Mortal Arena and racing retain their directional controls.
 
 ## Share a play link
 

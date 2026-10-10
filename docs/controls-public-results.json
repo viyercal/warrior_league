@@ -1,0 +1,23 @@
+{
+  "base": "https://exterior-cheap-group-grew.trycloudflare.com",
+  "checks": [
+    {
+      "name": "public Crucible right-click retreat",
+      "ok": true
+    },
+    {
+      "name": "public fountain restores full health on walking entry",
+      "ok": true
+    },
+    {
+      "name": "no failed assets",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "failed": []
+}

@@ -1,0 +1,213 @@
+{
+  "base": "http://127.0.0.1:5190",
+  "checks": [
+    {
+      "name": "tower intro click creates no movement order",
+      "ok": true
+    },
+    {
+      "name": "tower side-view click maps to world x",
+      "ok": true
+    },
+    {
+      "name": "tower destination visible",
+      "ok": true
+    },
+    {
+      "name": "tower arrives without oscillation",
+      "ok": true,
+      "detail": -1.57696287672838
+    },
+    {
+      "name": "tower retreat works",
+      "ok": true
+    },
+    {
+      "name": "tower keyboard takeover",
+      "ok": true
+    },
+    {
+      "name": "tower KeyJ cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "tower KeyK cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "tower KeyF cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "tower KeyQ cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "tower Space cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "tower ShiftLeft cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "tower KeyS cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "tower pause clears order",
+      "ok": true
+    },
+    {
+      "name": "tower blur clears order",
+      "ok": true
+    },
+    {
+      "name": "tower opponent clips destination",
+      "ok": true
+    },
+    {
+      "name": "tower does not walk through opponent",
+      "ok": true
+    },
+    {
+      "name": "tower UI click does not change target",
+      "ok": true
+    },
+    {
+      "name": "tower help advertises mouse",
+      "ok": true
+    },
+    {
+      "name": "tower help fits 1440",
+      "ok": true
+    },
+    {
+      "name": "tower help fits 900",
+      "ok": true
+    },
+    {
+      "name": "tower help fits 390",
+      "ok": true
+    },
+    {
+      "name": "tower round end clears order",
+      "ok": true
+    },
+    {
+      "name": "tower non-fight click ignored",
+      "ok": true
+    },
+    {
+      "name": "tower result clears marker",
+      "ok": true
+    },
+    {
+      "name": "single intro click creates no movement order",
+      "ok": true
+    },
+    {
+      "name": "single side-view click maps to world x",
+      "ok": true
+    },
+    {
+      "name": "single destination visible",
+      "ok": true
+    },
+    {
+      "name": "single arrives without oscillation",
+      "ok": true,
+      "detail": -1.575981425563584
+    },
+    {
+      "name": "single retreat works",
+      "ok": true
+    },
+    {
+      "name": "single keyboard takeover",
+      "ok": true
+    },
+    {
+      "name": "single KeyJ cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "single KeyK cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "single KeyF cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "single KeyQ cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "single Space cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "single ShiftLeft cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "single KeyS cancels mouse order",
+      "ok": true
+    },
+    {
+      "name": "single pause clears order",
+      "ok": true
+    },
+    {
+      "name": "single blur clears order",
+      "ok": true
+    },
+    {
+      "name": "single opponent clips destination",
+      "ok": true
+    },
+    {
+      "name": "single does not walk through opponent",
+      "ok": true
+    },
+    {
+      "name": "single UI click does not change target",
+      "ok": true
+    },
+    {
+      "name": "single help advertises mouse",
+      "ok": true
+    },
+    {
+      "name": "single help fits 1440",
+      "ok": true
+    },
+    {
+      "name": "single help fits 900",
+      "ok": true
+    },
+    {
+      "name": "single help fits 390",
+      "ok": true
+    },
+    {
+      "name": "single round end clears order",
+      "ok": true
+    },
+    {
+      "name": "single non-fight click ignored",
+      "ok": true
+    },
+    {
+      "name": "single result clears marker",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

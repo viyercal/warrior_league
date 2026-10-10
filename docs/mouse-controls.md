@@ -4,7 +4,7 @@ Implemented October 10, 2026.
 
 - Settings and pause include a saved 0.25× to 2× mouse sensitivity slider and Reset. This controls camera parallax, War Rift edge scrolling, and Forge dragging. Raw cursor aiming and click destinations retain their screen alignment.
 - The Pit, Last Bastion, and Blood Court accept right-click destinations with a visible ring. Existing War Rift move/attack orders remain available. Keyboard movement takes over immediately. Pause, focus loss, death, results and cinematics clear the new navigation orders.
-- Last Bastion routes around the citadel. Blood Court retains basket-directed shooting; fighting and racing retain directional controls.
+- Last Bastion routes around the citadel. Blood Court retains basket-directed shooting; Mortal Arena and racing retain directional controls. The Crucible now supports right-click walking in both Tower and Single Duel (see duel-mouse-results.json).
 - `tools/serve-game.py` serves only `dist` on loopback for Cloudflare. Directory listings, dotfiles, external symlinks and directory-index symlink escapes are blocked.
 
 ## Verification checklist
@@ -39,3 +39,10 @@ launchctl bootout gui/$(id -u)/com.vivekiyer.warrior-league.server
 ```
 
 The host Mac must remain awake and online. No overnight agent supervision is configured or claimed.
+
+## Crucible movement and War Rift fountain follow-up
+
+- Right-click the Crucible arena to walk horizontally to a marked destination in Tower or Single Duel. Picking intersects the fighting lane, so clicking above the floor still selects the intended horizontal spot. Movement respects arena limits and stops at grounded opponents. Keyboard movement, combat actions, block, crouch, jump, pause, focus loss and round/result transitions cancel the order.
+- War Rift's allied fountain restores living players to their current maximum health immediately, including when entering by click-to-move. The area follows the bronze platform ring, radius 6.75 at x = -48. Damage while remaining inside is restored without repeated audio or floating text. The enemy fountain, dead players and completed matches do not receive healing.
+- Verification: production build; independent code review; browser checks for both Crucible modes, forward/retreat arrival, opponent contact, keyboard/combat interruption, UI isolation and round cleanup; fountain entry by both input methods, radial boundaries, enemy/dead/end states and levelled health; updated help inspected at 1440, 900 and 390 pixels. No browser errors in the local checks.
+- Evidence: [Crucible browser results](duel-mouse-results.json), [fountain browser results](fountain-results.json), and [public deployment checks](controls-public-results.json).

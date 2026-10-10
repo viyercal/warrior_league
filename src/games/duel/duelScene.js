@@ -4,7 +4,7 @@ import { HUD } from '../../ui/hud.js'
 import { VFX } from '../../art/vfx.js'
 import { clamp, lerp, damp, rand, pick, disposeObject3D } from '../../core/utils.js'
 import { buildArena } from './arena.js'
-import { DuelFighter } from './fighters.js'
+import { DuelFighter, EDGE } from './fighters.js'
 import { FightSystem } from './fightSystem.js'
 import { DuelSpecials } from './specials.js'
 import { DuelAI } from './duelAi.js'
@@ -108,7 +108,15 @@ export default class DuelScene {
     this._zero = { move: 0, crouch: false, block: false, jump: false, light: false, heavy: false, throw: false, dash: 0 }
     this._tapA = -9
     this._tapD = -9
+    this.moveTargetX = null
+    this._moveRay = new THREE.Raycaster()
+    this._movePlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0)
+    this.moveMarker = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.42, 32), new THREE.MeshBasicMaterial({ color: '#dfbf87', depthWrite: false, side: THREE.DoubleSide }))
+    this.moveMarker.rotation.x = -Math.PI / 2
+    this.moveMarker.visible = false
+    this.scene.add(this.moveMarker)
     input.onReset(() => {
+      this._cancelMouseMove()
       this._tapA = this._tapD = -Infinity
       Object.assign(this._buf, { jump: false, light: false, heavy: false, throw: false, dash: 0 })
     })
@@ -117,6 +125,7 @@ export default class DuelScene {
       if (this.phase === 'cine' || this.phase === 'bossin') { this.cineT = 99; return } // skippable
       if (this.phase === 'oblitPrompt' && ATTACK_KEYS.includes(code)) { this._runFinisher(); return }
       if (this.phase !== 'fight') return
+      if (['KeyA', 'KeyD', 'KeyS', 'Space', 'ShiftLeft', 'ShiftRight', ...ATTACK_KEYS].includes(code)) this._cancelMouseMove()
       const now = this.ctx.engine.elapsedTime
       if (code === 'Space') this._buf.jump = true
       else if (code === 'KeyJ') this._buf.light = true
@@ -130,6 +139,23 @@ export default class DuelScene {
         if (i >= 0) this._castSkill(i)
       }
     })
+    input.onMouse((button, down) => {
+      if (button !== 2 || !down) return
+      if (this.phase === 'cine' || this.phase === 'bossin') { this.cineT = 99; return }
+      if (this.phase !== 'fight' || this.player.hp <= 0) return
+      // Intersect the fighting lane, not the floor, so clicks at any height
+      // map to the intended horizontal position in this side-on camera.
+      this._moveRay.setFromCamera(input.mouse, this.camera)
+      if (!this._moveRay.ray.intersectPlane(this._movePlane, _v1)) return
+      this.moveTargetX = clamp(_v1.x, -EDGE, EDGE)
+      const p = this.player, f = this.foe
+      if (f?.grounded && p.grounded && (f.pos.x - p.pos.x) * (this.moveTargetX - f.pos.x) >= 0) {
+        const side = Math.sign(f.pos.x - p.pos.x) || p.facing
+        this.moveTargetX = clamp(f.pos.x - side * 0.95, -EDGE, EDGE)
+      }
+      this.moveMarker.position.set(this.moveTargetX, 0.06, 0)
+      this.moveMarker.visible = true
+    })
 
     // ---------- HUD ----------
     const hud = this.hud = new HUD()
@@ -139,7 +165,7 @@ export default class DuelScene {
     else this.dHud.buildTower(TOWER, 0)
     this.abilityUi = hud.abilityBar(this.skillDefs, { game: 'duel' })
     this.hintBox = hud.hints([
-      ['← → / A D', 'Move; double-tap to dash'], ['↑ / SPACE', 'Jump'], ['↓ / S', 'Crouch'],
+      ['← → / A D', 'Move; double-tap to dash'], ['RMB', 'Click to move'], ['↑ / SPACE', 'Jump'], ['↓ / S', 'Crouch'],
       ['SHIFT', 'Block (chip from arts only)'], ['J', 'Light — chains J·J·K'], ['K', 'Heavy — K·K corner splat'],
       ['F', 'Throw (beats block)'], ['Q W E R', 'Arts — cancel any hit into them'], ['H', 'Toggle help'],
     ])
@@ -250,6 +276,7 @@ export default class DuelScene {
   }
 
   _startRound() {
+    this._cancelMouseMove()
     this.phase = 'prefight'
     this.specials.reset()
     this.fight.reset()
@@ -286,6 +313,7 @@ export default class DuelScene {
 
   _endRound(winner, byKO) {
     if (this.phase !== 'fight') return
+    this._cancelMouseMove()
     const loser = winner === this.player ? this.foe : this.player
     const flawless = winner.hp >= 100
     if (winner === this.player) this.playerWins++
@@ -512,6 +540,7 @@ export default class DuelScene {
   }
 
   _cleanupFlow() {
+    this._cancelMouseMove()
     this.gen++
     for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this._timeouts.length = 0
@@ -605,6 +634,7 @@ export default class DuelScene {
   // ============================== main loop ==============================
 
   update(dt, t) {
+    if (this.phase !== 'fight' || this.player.hp <= 0) this._cancelMouseMove()
     for (const tk of this.arena.tickables) tk.tick(dt)
     this.vfx.update(dt)
 
@@ -680,6 +710,8 @@ export default class DuelScene {
     it.move = (input.isDown('KeyD') ? 1 : 0) - (input.isDown('KeyA') ? 1 : 0)
     it.crouch = input.isDown('KeyS')
     it.block = input.isDown('ShiftLeft') || input.isDown('ShiftRight')
+    if (input.isDown('KeyA') || input.isDown('KeyD') || it.crouch || it.block) this._cancelMouseMove()
+    else if (this.moveTargetX !== null) it.move = this._mouseMoveIntent()
     it.jump = b.jump
     it.light = b.light
     it.heavy = b.heavy
@@ -688,6 +720,23 @@ export default class DuelScene {
     b.jump = b.light = b.heavy = b.throw = false
     b.dash = 0
     return it
+  }
+
+  _cancelMouseMove() {
+    this.moveTargetX = null
+    this.moveMarker.visible = false
+  }
+
+  _mouseMoveIntent() {
+    const p = this.player, f = this.foe
+    if (!p.grounded || !p.canAct()) return 0
+    const dx = this.moveTargetX - p.pos.x
+    const direction = Math.sign(dx)
+    // Leave room for the fighter's existing walking deceleration.
+    const stopDistance = 0.08 + Math.max(0, p.vel.x * direction) / 14
+    const blocked = f?.grounded && (f.pos.x - p.pos.x) * direction > 0 && Math.abs(f.pos.x - p.pos.x) <= 1.05
+    if (Math.abs(dx) <= stopDistance || blocked) { this._cancelMouseMove(); return 0 }
+    return direction
   }
 
   _updateCds(gdt) {

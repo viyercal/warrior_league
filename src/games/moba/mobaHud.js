@@ -65,7 +65,7 @@ export function buildMobaHud(g) {
 
   const hintBox = hud.hints([
     ['↑ ↓ ← →', 'Move'], ['R-CLICK', 'Move / attack'], ['Q W E R', 'Skills'], ['B', 'Recall'],
-    ['Y', 'Camera lock'], ['WHEEL', 'Zoom'], ['H', 'Toggle help'],
+    ['Y', 'Camera lock'], ['WHEEL', 'Zoom'], ['FOUNTAIN', 'Return home for full health'], ['H', 'Toggle help'],
   ])
   hintBox.style.bottom = '156px'
 

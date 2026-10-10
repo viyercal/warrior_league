@@ -4,7 +4,7 @@ export const REALMS = [
     game: 'duel', title: 'The Crucible', lines: ['The', 'Crucible'], category: 'THE IMMORTAL TOURNAMENT', genre: 'Precision combat',
     desc: 'Steel meets will. Master the duel, break your rival, and rise through the immortal tournament.',
     tags: ['1v1 combat', 'Best of three', 'Four-fight tower'], color: '#cfa878', icon: 'crossed-swords',
-    controls: [['← → / A D', 'Move'], ['J / K', 'Strike'], ['SHIFT', 'Block'], ['Q W E R', 'Battle arts']],
+    controls: [['← → / A D', 'Move'], ['RMB', 'Click to move'], ['J / K', 'Strike'], ['SHIFT', 'Block'], ['Q W E R', 'Battle arts']],
     objective: 'Win two rounds to defeat your rival. Chain J, J, K, then cancel into a battle art.',
     image: `${import.meta.env.BASE_URL}realms/duel.jpg`,
   },

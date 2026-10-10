@@ -7,7 +7,7 @@ import { buildMap } from './map.js'
 import { MinionArmy, Structures, EnemyChampion, HealthBar } from './units.js'
 import { makeCasters, updateSkillEffects } from './combat.js'
 import { buildMobaHud, endPanel } from './mobaHud.js'
-import { HERO, MINION, GOLD, XP, ENERGY_COST, SPAWN_X, BOUNDS, TEAMS, LANE_HALF } from './constants.js'
+import { HERO, MINION, GOLD, XP, ENERGY_COST, SPAWN_X, NEXUS_X, FOUNTAIN_RADIUS, BOUNDS, TEAMS, LANE_HALF } from './constants.js'
 import { MobaIntro } from './intro.js'
 import { Drama } from './drama.js'
 import '../../ui/moba.css'
@@ -687,6 +687,7 @@ export default class MobaScene {
     this.enemy.update(gdt, this)
     this.structures.update(gdt, this)
     this._updateAutoBolts()
+    this._restoreAtFountain()
     this._updateMarkers(dt)
     this.drama.update(dt)
     // defeat grade: the color drains out of the world
@@ -811,6 +812,21 @@ export default class MobaScene {
 
     this.playerBar.set(this.hp / this.maxHp)
     this.hero.update(dt)
+  }
+
+  _restoreAtFountain() {
+    const pos = this.hero.group.position
+    const inside = !this.playerDead && !this.over && Math.hypot(pos.x + NEXUS_X, pos.z) <= FOUNTAIN_RADIUS
+    if (inside && this.hp < this.maxHp) {
+      if (!this._inFountain) {
+        this.healPlayer(this.maxHp - this.hp)
+        this.ctx.audio.play('heal', { vol: 0.5 })
+      } else {
+        this.hp = this.maxHp
+        this.playerBar.set(1)
+      }
+    }
+    this._inFountain = inside
   }
 
   _autoAttack() {

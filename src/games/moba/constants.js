@@ -1,6 +1,7 @@
 /** WAR RIFT — map layout & combat tuning. West = BLUE (player), East = RED (enemy). */
 
 export const NEXUS_X = 48
+export const FOUNTAIN_RADIUS = 6.75 // allied shrine's visible bronze platform ring
 export const SPAWN_X = 42.5          // hero / minion spawn point on the base platform edge
 export const TOWER_XS = [26, 38]     // tier 0 (outer, falls first), tier 1 (inner)
 export const TOWER_Z = [3.1, -3.1]   // outer north of lane center, inner south

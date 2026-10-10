@@ -1,0 +1,104 @@
+{
+  "base": "http://127.0.0.1:5192",
+  "checks": [
+    {
+      "name": "supply disabled before race",
+      "ok": true
+    },
+    {
+      "name": "whole mesa footprints clear road and camera shoulder",
+      "ok": true,
+      "detail": {
+        "mesas": 15,
+        "minimumMesaShoulder": 4.304273012021639,
+        "minimumPropShoulder": 1.4162035609718755
+      }
+    },
+    {
+      "name": "all registered scenery stays outside road",
+      "ok": true
+    },
+    {
+      "name": "driving through chest fills slot and removes chest",
+      "ok": true
+    },
+    {
+      "name": "collected item button enabled",
+      "ok": true
+    },
+    {
+      "name": "held item cannot be overwritten by another chest",
+      "ok": true
+    },
+    {
+      "name": "supplies respawn on simulation time",
+      "ok": true
+    },
+    {
+      "name": "F uses boost exactly once",
+      "ok": true
+    },
+    {
+      "name": "click repairs damage and consumes item",
+      "ok": true
+    },
+    {
+      "name": "clicking item preserves keyboard driving",
+      "ok": true
+    },
+    {
+      "name": "bolt projectile targets the next unfinished rival",
+      "ok": true
+    },
+    {
+      "name": "click deploys trap behind player",
+      "ok": true
+    },
+    {
+      "name": "CPUs use collected items",
+      "ok": true
+    },
+    {
+      "name": "pause freezes pickups and blocks item use",
+      "ok": true
+    },
+    {
+      "name": "supply control fits 1440",
+      "ok": true
+    },
+    {
+      "name": "supply control clear of other buttons 1440",
+      "ok": true
+    },
+    {
+      "name": "supply control fits 900",
+      "ok": true
+    },
+    {
+      "name": "supply control clear of other buttons 900",
+      "ok": true
+    },
+    {
+      "name": "supply control fits 390",
+      "ok": true
+    },
+    {
+      "name": "supply control clear of other buttons 390",
+      "ok": true
+    },
+    {
+      "name": "finished racer cannot use supplies",
+      "ok": true
+    },
+    {
+      "name": "re-entry resets all supply state",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

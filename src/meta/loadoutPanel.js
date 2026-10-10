@@ -218,7 +218,26 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
     hud.el('div', 'loadout-skill-icon', sk.icon, c)
     hud.el('div', 'loadout-skill-name', sk.name, c)
     const badge = hud.el('div', 'loadout-skill-badge', '', c)
-    c.onclick = () => { equip(sk, c); updateDetail(sk) }
+    c.onclick = event => {
+      // Hidden Phantom Chorus: only this art can fill all four slots.
+      // Shift+Enter on the focused button follows the same accessible path.
+      if (event.shiftKey && sk.id === 'decoy') {
+        profile.loadout = ['decoy', 'decoy', 'decoy', 'decoy']
+        saveProfile()
+        active = 0
+        sync()
+        for (const slot of slotEls) pop(slot.s)
+        pop(c)
+        audio.play('zap', { vol: 0.5 })
+        hooks.onEquip?.(sk)
+        hideTip()
+        artDetail.textContent = 'PHANTOM CHORUS: Phantom Twin equipped in all four slots, each with its own cooldown.'
+        hud.toast('Phantom Chorus awakened')
+        return
+      }
+      equip(sk, c)
+      updateDetail(sk)
+    }
     c.onmouseenter = () => { audio.play('hover', { vol: 0.25 }); showTip(sk, c) }
     c.onmouseleave = hideTip
     c.onfocus = () => showTip(sk, c)
@@ -230,7 +249,7 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
       const i = profile.loadout.indexOf(sk.id)
       c.classList.toggle('equipped', i >= 0)
       c.setAttribute('aria-pressed', String(i >= 0))
-      badge.textContent = i >= 0 ? keyLabels[i] : ''
+      badge.textContent = profile.loadout.map((id, slot) => id === sk.id ? keyLabels[slot] : null).filter(Boolean).join(' ')
     }
   })
 

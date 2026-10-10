@@ -404,7 +404,7 @@
 /* claimed-art badge: a forged key tag seated inside the chamfer */
 .loadout-skill-badge {
   position: absolute; top: 2px; right: 3px;
-  min-width: 18px; height: 15px; line-height: 15px;
+  min-width: 18px; height: 15px; line-height: 15px; white-space: nowrap; letter-spacing: 0;
   border: none; border-radius: 0;
   clip-path: var(--clip-tag);
   font-family: var(--font-display);

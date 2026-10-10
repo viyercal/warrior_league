@@ -170,7 +170,7 @@ export class Abilities {
       if (o.material) { o.material.transparent = true; o.material.opacity = 0.42; o.castShadow = false }
     })
     scene.add(hero.group)
-    game.eff.decoy = { pos: hero.group.position, t: s.params.duration ?? 6, hero }
+    game.eff.decoy = { pos: hero.group.position, t: s.params.duration, hero }
     game.ai.confuseT = 0.8
     audio.play('spawn')
     this.env.helpers.toast('PHANTOM SCREEN SET')

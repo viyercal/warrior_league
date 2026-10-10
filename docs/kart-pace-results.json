@@ -1,0 +1,87 @@
+{
+  "method": "Five independent CPU racers, actual updateAI and scene integration at 60 Hz for three laps. Neutral player gap, no collisions, damage, pads or items. Random lane behavior; these are observed runs, not a calibrated difficulty benchmark.",
+  "before": [
+    {
+      "name": "RAGNAR",
+      "time": 84.23333333333333,
+      "meanSpeed": 23.270436741102763,
+      "maxSpeed": 25.6,
+      "offroadPct": 0.1780767708745548,
+      "progress": 3
+    },
+    {
+      "name": "KORGATH",
+      "time": 85.58333333333333,
+      "meanSpeed": 22.973872223946003,
+      "maxSpeed": 25.2,
+      "offroadPct": 0.2726387536514119,
+      "progress": 3
+    },
+    {
+      "name": "THARGA",
+      "time": 86.26666666666667,
+      "meanSpeed": 22.67934169018251,
+      "maxSpeed": 24.8,
+      "offroadPct": 0.3670788253477589,
+      "progress": 3
+    },
+    {
+      "name": "MORDRA",
+      "time": 85.98333333333333,
+      "meanSpeed": 22.85639825028582,
+      "maxSpeed": 25,
+      "offroadPct": 0.29075402209730566,
+      "progress": 3
+    },
+    {
+      "name": "BRONN",
+      "time": 86.01666666666667,
+      "meanSpeed": 22.634154608124888,
+      "maxSpeed": 24.5,
+      "offroadPct": 0,
+      "progress": 3
+    }
+  ],
+  "after": [
+    {
+      "name": "RAGNAR",
+      "time": 71.46666666666667,
+      "meanSpeed": 27.96323633893204,
+      "maxSpeed": 29.2,
+      "offroadPct": 0,
+      "progress": 3
+    },
+    {
+      "name": "KORGATH",
+      "time": 72.16666666666667,
+      "meanSpeed": 27.67090834116257,
+      "maxSpeed": 28.8,
+      "offroadPct": 0,
+      "progress": 3
+    },
+    {
+      "name": "THARGA",
+      "time": 73.9,
+      "meanSpeed": 27.14553583936365,
+      "maxSpeed": 28.2,
+      "offroadPct": 0,
+      "progress": 3
+    },
+    {
+      "name": "MORDRA",
+      "time": 72.85,
+      "meanSpeed": 27.43678042527923,
+      "maxSpeed": 28.5,
+      "offroadPct": 0,
+      "progress": 3
+    },
+    {
+      "name": "BRONN",
+      "time": 74.58333333333333,
+      "meanSpeed": 26.815905721226386,
+      "maxSpeed": 27.8,
+      "offroadPct": 0,
+      "progress": 3
+    }
+  ]
+}

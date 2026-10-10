@@ -1,0 +1,291 @@
+{
+  "base": "http://127.0.0.1:5192",
+  "checks": [
+    {
+      "name": "ordinary equip keeps a single Phantom Twin",
+      "ok": true
+    },
+    {
+      "name": "secret equips Phantom Twin in all four slots",
+      "ok": true
+    },
+    {
+      "name": "secret feedback is visible",
+      "ok": true
+    },
+    {
+      "name": "badge lists all four equipped keys",
+      "ok": true,
+      "detail": "Q W E R"
+    },
+    {
+      "name": "four-slot badge fits 1440",
+      "ok": true
+    },
+    {
+      "name": "four-slot badge fits 900",
+      "ok": true
+    },
+    {
+      "name": "four-slot badge fits 390",
+      "ok": true
+    },
+    {
+      "name": "four copies survive saved profile reload",
+      "ok": true
+    },
+    {
+      "name": "other arts cannot fill four slots",
+      "ok": true
+    },
+    {
+      "name": "other arts still swap without duplicating",
+      "ok": true
+    },
+    {
+      "name": "keyboard secret works",
+      "ok": true
+    },
+    {
+      "name": "moba shortened effect and longer cooldown",
+      "ok": true,
+      "detail": {
+        "cd": 24,
+        "duration": 3,
+        "duelDuration": 0.35
+      }
+    },
+    {
+      "name": "moba receives all four copies",
+      "ok": true,
+      "detail": [
+        "decoy",
+        "decoy",
+        "decoy",
+        "decoy"
+      ]
+    },
+    {
+      "name": "moba all four slots cast with independent cooldowns",
+      "ok": true,
+      "detail": [
+        21.53019999992847,
+        21.68940000009536,
+        22.409399999976156,
+        23.134899999976152
+      ]
+    },
+    {
+      "name": "moba phantom expires while cooldown remains",
+      "ok": true
+    },
+    {
+      "name": "arena shortened effect and longer cooldown",
+      "ok": true,
+      "detail": {
+        "cd": 24,
+        "duration": 3,
+        "duelDuration": 0.35
+      }
+    },
+    {
+      "name": "arena receives all four copies",
+      "ok": true,
+      "detail": [
+        "decoy",
+        "decoy",
+        "decoy",
+        "decoy"
+      ]
+    },
+    {
+      "name": "arena all four slots cast with independent cooldowns",
+      "ok": true,
+      "detail": [
+        20.863799999952317,
+        21.62729999995232,
+        22.381199999928477,
+        23.136500000000005
+      ]
+    },
+    {
+      "name": "arena phantom expires while cooldown remains",
+      "ok": true
+    },
+    {
+      "name": "siege shortened effect and longer cooldown",
+      "ok": true,
+      "detail": {
+        "cd": 24,
+        "duration": 3,
+        "duelDuration": 0.35
+      }
+    },
+    {
+      "name": "siege receives all four copies",
+      "ok": true,
+      "detail": [
+        "decoy",
+        "decoy",
+        "decoy",
+        "decoy"
+      ]
+    },
+    {
+      "name": "siege all four slots cast with independent cooldowns",
+      "ok": true,
+      "detail": [
+        20.908800000190702,
+        21.60860000014303,
+        22.47630000019072,
+        23.232700000047675
+      ]
+    },
+    {
+      "name": "siege phantom expires while cooldown remains",
+      "ok": true
+    },
+    {
+      "name": "brawl shortened effect and longer cooldown",
+      "ok": true,
+      "detail": {
+        "cd": 24,
+        "duration": 3,
+        "duelDuration": 0.35
+      }
+    },
+    {
+      "name": "brawl receives all four copies",
+      "ok": true,
+      "detail": [
+        "decoy",
+        "decoy",
+        "decoy",
+        "decoy"
+      ]
+    },
+    {
+      "name": "brawl all four slots cast with independent cooldowns",
+      "ok": true,
+      "detail": [
+        21.1355,
+        21.53960000002385,
+        22.393599999904648,
+        23.26320000004769
+      ]
+    },
+    {
+      "name": "brawl phantom expires while cooldown remains",
+      "ok": true
+    },
+    {
+      "name": "duel shortened effect and longer cooldown",
+      "ok": true,
+      "detail": {
+        "cd": 24,
+        "duration": 3,
+        "duelDuration": 0.35
+      }
+    },
+    {
+      "name": "duel receives all four copies",
+      "ok": true,
+      "detail": [
+        "decoy",
+        "decoy",
+        "decoy",
+        "decoy"
+      ]
+    },
+    {
+      "name": "rapid Crucible casts leave one visible fresh twin",
+      "ok": true
+    },
+    {
+      "name": "duel all four slots cast with independent cooldowns",
+      "ok": true,
+      "detail": [
+        20.607499999999952,
+        20.916499999999957,
+        22.799900000095352,
+        23.466700000047677
+      ]
+    },
+    {
+      "name": "duel phantom expires while cooldown remains",
+      "ok": true
+    },
+    {
+      "name": "kart shortened effect and longer cooldown",
+      "ok": true,
+      "detail": {
+        "cd": 24,
+        "duration": 3,
+        "duelDuration": 0.35
+      }
+    },
+    {
+      "name": "kart receives all four copies",
+      "ok": true,
+      "detail": [
+        "decoy",
+        "decoy",
+        "decoy",
+        "decoy"
+      ]
+    },
+    {
+      "name": "kart all four slots cast with independent cooldowns",
+      "ok": true,
+      "detail": [
+        20.783500000000018,
+        21.583500000000015,
+        22.399400000095376,
+        23.200000000000006
+      ]
+    },
+    {
+      "name": "kart phantom expires while cooldown remains",
+      "ok": true
+    },
+    {
+      "name": "hoops shortened effect and longer cooldown",
+      "ok": true,
+      "detail": {
+        "cd": 24,
+        "duration": 3,
+        "duelDuration": 0.35
+      }
+    },
+    {
+      "name": "hoops receives all four copies",
+      "ok": true,
+      "detail": [
+        "decoy",
+        "decoy",
+        "decoy",
+        "decoy"
+      ]
+    },
+    {
+      "name": "hoops all four slots cast with independent cooldowns",
+      "ok": true,
+      "detail": [
+        21.262799999952318,
+        21.654199999928476,
+        22.515799999952314,
+        23.2685
+      ]
+    },
+    {
+      "name": "hoops phantom expires while cooldown remains",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

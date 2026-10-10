@@ -1,3 +1,4 @@
+import { RACE_ITEMS } from './pickups.js'
 import { WASD_KEY_LABELS } from '../../meta/skills.js'
 import { icon } from '../../ui/craft.js'
 import { clamp } from '../../core/utils.js'
@@ -28,7 +29,7 @@ export function fmtTime(sec) {
  * boost + damage bars, speed, minimap, drift flash, popups, wrong-way,
  * speedlines, rival plate, cinematic letterbox, impact flash, finish panel.
  */
-export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
+export function buildKartHud(hud, { skillDefs, minimapPts, audio = null, onItem }) {
   const ability = hud.abilityBar(skillDefs, { game: 'kart', keys: WASD_KEY_LABELS })
 
   // position medallion: engraved bronze disc ringed by a laurel
@@ -56,6 +57,12 @@ export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
   const dmgWrap = hud.el('div', 'kart-dmg', '<span>DMG</span><div class="kart-dmg-track"><div class="kart-dmg-fill"></div></div>', cluster)
   const dmgFill = dmgWrap.querySelector('.kart-dmg-fill')
   const speedEl = hud.el('div', 'kart-speed', '0<i>km/h</i>', cluster)
+  const itemButton = hud.el('button', 'kart-item ui-interactive', '', cluster)
+  itemButton.type = 'button'
+  itemButton.disabled = true
+  itemButton.addEventListener('pointerdown', e => e.preventDefault())
+  itemButton.addEventListener('click', () => onItem?.())
+  let shownItem = undefined, itemEnabled = undefined
 
   const driftEl = hud.el('div', 'kart-drift')
   const popupWrap = hud.el('div', 'kart-popups')
@@ -108,6 +115,17 @@ export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
   let shownSpeed = -1
   return {
     ability,
+    setItem(id, live) {
+      const enabled = !!id && live
+      if (shownItem === id && itemEnabled === enabled) return
+      shownItem = id; itemEnabled = enabled
+      const def = RACE_ITEMS[id]
+      itemButton.disabled = !enabled
+      itemButton.innerHTML = def
+        ? `<span>${icon(def.icon, { size: 18 })}<b>${def.name}</b><kbd>F</kbd></span><small>${def.hint}</small>`
+        : '<span><b>SUPPLY SLOT</b><kbd>F</kbd></span><small>Drive through a supply chest</small>'
+      itemButton.setAttribute('aria-label', def ? `Use ${def.name}: ${def.hint} (F)` : 'Empty supply slot: drive through a supply chest')
+    },
     setPos(p, total) {
       if (p === shownPos) return
       shownPos = p

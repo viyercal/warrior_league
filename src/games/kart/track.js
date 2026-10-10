@@ -543,11 +543,14 @@ export function buildTrack(scene) {
     for (let o = 0; o < count; o += 3) m = Math.max(m, curvArr[(idx + o) % N])
     return m
   }
-  /** Min distance from point to track centerline (coarse). */
-  const distToTrack = p => {
+  /** Distance to the entire sampled centerline, including between samples. */
+  const distToTrack = track.distanceToTrack = p => {
     let bd = Infinity
-    for (let i = 0; i < N; i += 12) {
-      const dx = pos[i].x - p.x, dz = pos[i].z - p.z
+    for (let i = 0; i < N; i++) {
+      const a = pos[i], b = pos[(i + 1) % N]
+      const vx = b.x - a.x, vz = b.z - a.z
+      const t = clamp(((p.x - a.x) * vx + (p.z - a.z) * vz) / (vx * vx + vz * vz || 1), 0, 1)
+      const dx = a.x + t * vx - p.x, dz = a.z + t * vz - p.z
       bd = Math.min(bd, dx * dx + dz * dz)
     }
     return Math.sqrt(bd)
@@ -839,6 +842,8 @@ function boneArch(track, idx, boneMat) {
 /** Instanced scatter helper: places `count` copies near the track edge. */
 function scatterInstanced(scene, track, geo, mat, count, { latMin = 1, latMax = 8, sMin = 0.5, sMax = 1.6, tilt = 0.3, sink = 0 } = {}) {
   const mesh = new THREE.InstancedMesh(geo, mat, count)
+  geo.computeBoundingSphere()
+  let placed = 0
   for (let n = 0; n < count; n++) {
     const i = Math.floor(rand(track.N))
     const side = Math.random() > 0.5 ? 1 : -1
@@ -849,9 +854,11 @@ function scatterInstanced(scene, track, geo, mat, count, { latMin = 1, latMax = 
     _q.setFromEuler(_e)
     _s3.setScalar(sc)
     _v.set(p.x + l.x * lat, sink * sc, p.z + l.z * lat)
+    if (track.distanceToTrack(_v) < TRACK_HALF_W + 0.35 + geo.boundingSphere.radius * sc) continue
     _m4.compose(_v, _q, _s3)
-    mesh.setMatrixAt(n, _m4)
+    mesh.setMatrixAt(placed++, _m4)
   }
+  mesh.count = placed
   mesh.instanceMatrix.needsUpdate = true
   mesh.receiveShadow = true
   scene.add(mesh)
@@ -892,6 +899,7 @@ function buildEnvironment(scene, track, distToTrack) {
     pbrMaterial({ color: '#9a8468', maps: groundSet, roughness: 1, metalness: 0, normalScale: 0.9, envMapIntensity: 0.14 }),
   )
   ground.rotation.x = -Math.PI / 2
+  ground.position.y = -0.06 // keep the road above the terrain at grazing angles
   ground.receiveShadow = true
   scene.add(ground)
 
@@ -920,30 +928,38 @@ function buildEnvironment(scene, track, distToTrack) {
     }
     return null
   }
+  // Reserve the road plus a four-unit shoulder for the chase camera. Measure
+  // the whole transformed prop, not its origin, before choosing a position.
+  const footprint = object => {
+    const box = new THREE.Box3().setFromObject(object)
+    return Math.hypot(Math.max(Math.abs(box.min.x), Math.abs(box.max.x)), Math.max(Math.abs(box.min.z), Math.abs(box.max.z)))
+  }
+  const placeProp = (object, max) => {
+    const r = footprint(object)
+    const p = place(TRACK_HALF_W + 4 + r, max)
+    if (!p) return null
+    object.position.x = p.x; object.position.z = p.z
+    scene.add(object)
+    return { mesh: object, x: p.x, z: p.z, r }
+  }
   const strataMat = pbrMaterial({ maps: strataMaps(), roughness: 1, metalness: 0, normalScale: 1.3, envMapIntensity: 0.12 })
   const mesaGeos = [mesaGeometry(3), mesaGeometry(11), mesaGeometry(27)]
   for (let i = 0; i < 15; i++) {
-    const p = place(20, 215)
-    if (!p) continue
     const w = rand(9, 30), h = rand(7, 24)
     const mesa = new THREE.Mesh(mesaGeos[i % 3], strataMat)
     mesa.scale.set(w, h, w)
-    mesa.position.set(p.x, h / 2 - 0.3, p.z)
+    mesa.position.y = h / 2 - 0.3
     mesa.rotation.y = rand(TAU)
-    mesa.castShadow = distToTrack(p) < 70
     mesa.receiveShadow = true
-    scene.add(mesa)
-    track.mesas.push({ mesh: mesa, x: p.x, z: p.z, r: w * 1.3 })
+    const entry = placeProp(mesa, 215)
+    if (entry) { mesa.castShadow = distToTrack(mesa.position) < 70; track.mesas.push(entry) }
   }
   const rockMat = stoneMaterial('#8a6a52')
   rockMat.flatShading = true
   for (let i = 0; i < 20; i++) {
-    const p = place(11, 160)
-    if (!p) continue
     const b = boulder(rockMat, rand(1.2, 5))
-    b.position.x = p.x; b.position.z = p.z
-    scene.add(b)
-    track.clutter.push({ mesh: b, x: p.x, z: p.z, r: 2.5 })
+    const entry = placeProp(b, 160)
+    if (entry) track.clutter.push(entry)
   }
 
   // dead trees silhouetted across the wastes
@@ -953,12 +969,9 @@ function buildEnvironment(scene, track, distToTrack) {
     wood: woodMaterial('#4c3a2a'),
   }
   for (let i = 0; i < 42; i++) {
-    const p = place(9, 170)
-    if (!p) continue
     const t = deadTree(treeShared, rand(1.2, 2.6))
-    t.position.x = p.x; t.position.z = p.z
-    scene.add(t)
-    track.clutter.push({ mesh: t, x: p.x, z: p.z, r: 2 })
+    const entry = placeProp(t, 170)
+    if (entry) track.clutter.push(entry)
   }
 
   // bone — giant rib arches over the road + scattered rib spurs
@@ -966,8 +979,6 @@ function buildEnvironment(scene, track, distToTrack) {
   for (const idx of [258, 522, 792]) scene.add(boneArch(track, idx, boneMat))
   const ribGeo = new THREE.ConeGeometry(0.16, 2.6, 5)
   for (let i = 0; i < 10; i++) {
-    const p = place(10, 120)
-    if (!p) continue
     const cluster = new THREE.Group()
     for (let r = 0; r < 3; r++) {
       const rib = new THREE.Mesh(ribGeo, boneMat)
@@ -977,10 +988,9 @@ function buildEnvironment(scene, track, distToTrack) {
       rib.castShadow = true
       cluster.add(rib)
     }
-    cluster.position.set(p.x, 0, p.z)
     cluster.rotation.y = rand(TAU)
-    scene.add(cluster)
-    track.clutter.push({ mesh: cluster, x: p.x, z: p.z, r: 2.5 })
+    const entry = placeProp(cluster, 120)
+    if (entry) track.clutter.push(entry)
   }
 
   // ground clutter: pebbles, charred splinters, bone shards (instanced, shared mats)
@@ -1004,10 +1014,9 @@ function buildEnvironment(scene, track, distToTrack) {
     const h = rand(2.2, 4)
     const ob = new THREE.Mesh(obeliskGeo, stonePbr)
     ob.scale.set(1, h, 1)
-    ob.position.set(
-      p.x + l.x * (TRACK_HALF_W + rand(2.5, 5)) * side, h / 2,
-      p.z + l.z * (TRACK_HALF_W + rand(2.5, 5)) * side,
-    )
+    const lateral = (TRACK_HALF_W + rand(3, 5)) * side
+    ob.position.set(p.x + l.x * lateral, h / 2, p.z + l.z * lateral)
+    if (distToTrack(ob.position) < TRACK_HALF_W + 2) continue
     ob.rotation.y = rand(TAU)
     ob.castShadow = true
     scene.add(ob)
@@ -1045,6 +1054,7 @@ function buildEnvironment(scene, track, distToTrack) {
     const side = k % 2 ? 1 : -1
     const x = p.x + l.x * (TRACK_HALF_W + 1.5) * side
     const z = p.z + l.z * (TRACK_HALF_W + 1.5) * side
+    if (distToTrack({ x, z }) < TRACK_HALF_W + 1) continue
     const pole = new THREE.Mesh(torchPole, poleWood)
     pole.position.set(x, 1.15, z)
     pole.castShadow = true
@@ -1094,6 +1104,7 @@ function buildEnvironment(scene, track, distToTrack) {
     const side = k % 2 ? 1 : -1
     const pole = new THREE.Mesh(poleGeo, poleMat)
     pole.position.set(p.x + l.x * (TRACK_HALF_W + 2.2) * side, 2.3, p.z + l.z * (TRACK_HALF_W + 2.2) * side)
+    if (distToTrack(pole.position) < TRACK_HALF_W + 1.5) continue
     pole.castShadow = true
     const fmat = new THREE.MeshStandardMaterial({
       map: flagTexture(flagCols[k % 3]), side: THREE.DoubleSide, transparent: true,

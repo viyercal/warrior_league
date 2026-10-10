@@ -7,6 +7,7 @@ import { buildTrack, TRACK_HALF_W, WALL_DIST } from './track.js'
 import { createKartFactory } from './kart.js'
 import { AI_ROSTER, initBrain, updateAI } from './racers.js'
 import { Items } from './items.js'
+import { RacePickups, RACE_ITEMS } from './pickups.js'
 import { buildKartHud, fmtTime, ordinal } from './kartHud.js'
 import { KartIntro } from './intro.js'
 import { RaceDrama } from './drama.js'
@@ -40,6 +41,7 @@ export default class KartScene {
     this.track = buildTrack(this.scene)
     this.vfx = new VFX(this.scene)
     this.items = new Items(this.scene, this.vfx, audio)
+    this.pickups = new RacePickups(this.scene, this.track)
 
     this.camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 1000)
     this._look = new THREE.Vector3()
@@ -55,7 +57,6 @@ export default class KartScene {
     this.over = null
     this.standings = [...this.karts]
     this.finCount = 0
-    this.aiShellT = rand(7, 10)
     this.wrongWayT = 0
     this.sparkT = 0
     this.smokeT = 0
@@ -72,10 +73,10 @@ export default class KartScene {
 
     // ---------- HUD ----------
     const hud = this.hud = new HUD()
-    this.ui = buildKartHud(hud, { skillDefs: this.skillDefs, minimapPts: this.track.minimapPts, audio })
+    this.ui = buildKartHud(hud, { skillDefs: this.skillDefs, minimapPts: this.track.minimapPts, audio, onItem: () => this._useRaceItem(this.player) })
     this.hintBox = hud.hints([
       ['↑ / W', 'Accelerate'], ['↓ / S', 'Brake'], ['← → / A D', 'Steer'], ['SPACE', 'Hold to drift'],
-      ['SHIFT', 'Spend boost'], ['1-4', 'Skills'], ['R', 'Restart (post-race)'],
+      ['SHIFT', 'Spend boost'], ['F / Click item', 'Use collected supply'], ['1-4', 'Skills'], ['R', 'Restart (post-race)'],
     ])
     this.ui.registerChrome(this.hintBox)
 
@@ -101,6 +102,7 @@ export default class KartScene {
       if (code === 'KeyR' && (this.over || this.state !== 'race')) { audio.play('click'); this.ctx.goTo('kart'); return }
       const i = wasdKeyIndex(code)
       if (i >= 0) this._castSkill(i)
+      else if (code === 'KeyF') this._useRaceItem(this.player)
       else if (code === 'KeyH') this.hud.toggleHints()
     })
 
@@ -132,7 +134,7 @@ export default class KartScene {
         spinT: 0, spinDir: 1, slickT: 0, damage: 0,
         boostT: 0, boostPower: 10, padCd: 0, ghostT: 0, giantT: 0,
         kv: new THREE.Vector3(),
-        finished: false, finishTime: 0,
+        finished: false, finishTime: 0, heldItem: null, itemWait: 0,
       }
       this.scene.add(visual.group)
       this.karts.push(k)
@@ -386,6 +388,36 @@ export default class KartScene {
     fn(def)
   }
 
+  _useRaceItem(k) {
+    if (!k.heldItem || k.finished || this.over || this.state !== 'race' || this.ctx.engine.paused) return false
+    const id = k.heldItem
+    k.heldItem = null
+    const pos = k.group.position
+    if (id === 'boost') {
+      k.boostT = Math.max(k.boostT, 2.2)
+      k.boostPower = 12
+      this.ctx.audio.play('dash', { vol: 0.5 })
+    } else if (id === 'repair') {
+      k.damage = 0
+      k.slickT = 0
+      this.ctx.audio.play('heal', { vol: 0.5 })
+    } else if (id === 'bolt') {
+      const target = this.karts.filter(other => other !== k && !other.finished && other.progress > k.progress)
+        .sort((a, b) => a.progress - b.progress)[0] || null
+      _v1.set(Math.sin(k.heading), 0, Math.cos(k.heading))
+      _v2.copy(pos).addScaledVector(_v1, 2).setY(0.7)
+      this.items.fireShell({ from: _v2, dir: _v1, owner: k, target, homing: true, speed: 40 })
+    } else if (id === 'slick') {
+      _v1.copy(pos).addScaledVector(_v2.set(Math.sin(k.heading), 0, Math.cos(k.heading)), -3)
+      this.items.dropSlick(_v1, { owner: k, radius: 2.5, duration: 7 })
+      this.ctx.audio.play('cast', { vol: 0.4 })
+    }
+    this.vfx.ring(pos, { color: '#ffb84d', radius: 2, life: 0.35 })
+    if (k.isPlayer) this.ui.popup(RACE_ITEMS[id].name, 'up')
+    this._updateHud(0)
+    return true
+  }
+
   // ============================== main loop ==============================
 
   _skipIntro() {
@@ -445,6 +477,22 @@ export default class KartScene {
     if (racing || this.over) this._collide(gdt)
     this._updatePadsRings(gdt)
 
+    // Supply collection and use stop with the race and share the pause clock.
+    if (racing && !this.over) {
+      this.pickups.update(gdt, this.karts, k => {
+        if (!k.isPlayer) return
+        this.ctx.audio.play('coin', { vol: 0.6 })
+        this.ui.popup(RACE_ITEMS[k.heldItem].name + ' · F TO USE', 'up')
+        this.vfx.ring(k.group.position, { color: '#ffb84d', radius: 1.8, life: 0.4 })
+      })
+      for (const k of this.karts) {
+        if (k.isPlayer || !k.heldItem || k.finished) continue
+        k.itemWait -= gdt
+        if (k.itemWait <= 0 && k.spinT <= 0) {
+          if (k.heldItem !== 'boost' || this.track.maxCurvAhead(k.idx, 28) < 0.045) this._useRaceItem(k)
+        }
+      }
+    }
     // items
     this.items.update(gdt, {
       karts: this.karts,
@@ -988,19 +1036,7 @@ export default class KartScene {
       return
     }
 
-    // AI shells: mid-pack fires at the kart ahead every 7-12s
-    this.aiShellT -= dt
-    if (this.aiShellT <= 0) {
-      this.aiShellT = rand(7, 12)
-      const cands = this.standings.filter((k, i) => !k.isPlayer && i >= 1 && i <= 4 && k.spinT <= 0 && !k.finished)
-      const firer = cands.length ? pick(cands) : null
-      const target = firer ? this._kartAhead(firer) : null
-      if (firer && target) {
-        _v1.copy(target.group.position).sub(firer.group.position).setY(0).normalize()
-        _v2.copy(firer.group.position).addScaledVector(_v1, 2).setY(0.7)
-        this.items.fireShell({ from: _v2, dir: _v1.clone(), owner: firer, target, homing: false, color: '#ff5a26', speed: 32 })
-      }
-    }
+
   }
 
   /** Seconds separating the player from the nearest other racer at the line. */
@@ -1113,6 +1149,7 @@ export default class KartScene {
     const p = this.player
     if (!this.over) this.standings.sort((a, b) => b.progress - a.progress)
     const pos = this.standings.indexOf(p) + 1
+    this.ui.setItem(p.heldItem, this.state === 'race' && !this.over && !p.finished)
     this.ui.setPos(pos, 6)
     this.ui.setLap(Math.floor(Math.max(0, p.sCont)) + 1, LAPS)
     this.ui.setClock(this.clock)
@@ -1192,6 +1229,7 @@ export default class KartScene {
     this.ctx.audio.stopEngine()
     this.intro?.end()
     this._stopFlames()
+    this.pickups.dispose()
     this.items.dispose()
     this.vfx.dispose()
   }

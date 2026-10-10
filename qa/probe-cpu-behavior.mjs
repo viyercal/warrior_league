@@ -14,7 +14,7 @@ try {
     const { SingleDuelAI, BrawlAI, cpuDifficulty, normalizeCpuLevel, ATTACKS, TOWER, loadProfile } = cpuLab
     const originalRandom = Math.random
     const seed = n => { let s = n >>> 0; Math.random = () => { s = (1664525 * s + 1013904223) >>> 0; return s / 4294967296 } }
-    const f = x => ({ pos: { x, y: 0 }, vel: { x: 0, y: 0 }, facing: x < 0 ? 1 : -1, grounded: true, blocking: false, crouching: false, attack: null, chainT: 0, kdT: 0, qrT: 0, chillT: 0, giantT: 0, hitstun: 0, hp: 100, canAct: () => true, canCast: () => false, reachMul: () => 1, state: 'fight', stocks: 3, dmg: 0, team: x, scaleMul: 1, dodgeT: 0, airJumps: 1, untouchable: () => false })
+    const f = x => ({ pos: { x, y: 0 }, vel: { x: 0, y: 0 }, facing: x < 0 ? 1 : -1, grounded: true, blocking: false, crouching: false, attack: null, chainT: 0, kdT: 0, qrT: 0, chillT: 0, giantT: 0, hitstun: 0, hp: 100, canAct: () => true, canCast: () => false, reachMul: () => 1, state: 'fight', stocks: 3, dmg: 0, team: x, scaleMul: 1, dodgeT: 0, dodgeCd: 0, airJumps: 1, untouchable: () => false })
     const duel = (level, fighter, foe, overrides = {}) => new SingleDuelAI(fighter, { ...cpuDifficulty(level).duel, specials: [], ...overrides }, { fight: { foeOf: () => foe }, specials: { cast: () => true } })
     const results = { duel: [], brawl: [], profiles: [], invariant: true, specials: [] }
     try {

@@ -1,5 +1,6 @@
 import { rand } from '../../core/utils.js'
-import { MAIN } from './stage.js'
+import { MAIN, PLATFORMS } from './stage.js'
+import { ATTACKS } from './fighter.js'
 import { cpuDifficulty } from '../../core/cpuDifficulty.js'
 
 /**
@@ -21,6 +22,9 @@ export class BrawlAI {
     this.seenX = 0
     this.seenY = 0
     this.dodgeRead = null
+    this.comboRead = null
+    this.comboDelay = 0
+    this.comboDecided = false
     this.intent = { move: 0, jump: false, fastFall: false, drop: false, jab: false, smash: false, dodge: 0 }
   }
 
@@ -34,7 +38,7 @@ export class BrawlAI {
     if (f.state !== 'fight') return it
 
     this.retargetT -= dt
-    if (this.retargetT <= 0 || !this.target || this.target.stocks <= 0 || this.target.state === 'out') {
+    if (this.retargetT <= 0 || !this.target || this.target.stocks <= 0 || this.target.state !== 'fight') {
       this.retargetT = this.difficulty.retarget * rand(.8, 1.2)
       this.target = this._pickTarget(fighters)
       if (this.target) { this.seenX = this.target.pos.x; this.seenY = this.target.pos.y }
@@ -44,11 +48,14 @@ export class BrawlAI {
     // ---------- recovery: get back to the island at all costs ----------
     if (Math.abs(pos.x) > MAIN.halfW - 0.3 || pos.y < -1) {
       it.move = pos.x > 0 ? -1 : 1
-      // burn the air jump LOW while holding toward stage — the jump's momentum
-      // redirect kills outward launch velocity, then air-drift does the rest
+      // Jump sooner when far out or still travelling away from the island.
+      // The air jump redirects momentum, but cannot save a fighter below its
+      // maximum jump height. Lower tiers retain their later recovery timing.
       const canAct = f.hitstun <= 0 && !f.grounded && f.airJumps > 0
-      if (canAct && f.vel.y < 0 && pos.y < this.difficulty.recoveryHeight) it.jump = true
-      if (canAct && pos.y < -7) it.jump = true
+      const outward = f.vel.x * Math.sign(pos.x)
+      const distance = Math.max(0, Math.abs(pos.x) - MAIN.halfW)
+      const urgency = Math.min(2.2, distance * 0.28 + Math.max(0, outward) * 0.07)
+      if (canAct && f.vel.y < 2 && pos.y < this.difficulty.recoveryHeight + urgency) it.jump = true
       return it
     }
 
@@ -69,40 +76,63 @@ export class BrawlAI {
     const dy = this.seenY - pos.y
     const adx = Math.abs(dx)
 
-    // ---------- steering ----------
-    let want = dx > 0 ? 1 : -1
-    if (f.dmg > 110 && adx < 3.4 && tgt.attack) want *= -1 // scared at kill %
-    else if (adx < this.spacing * 0.5) want *= -0.4 // don't stack
-    // never chase off the ledge
-    if (Math.abs(pos.x) > MAIN.halfW - 1.2 && Math.sign(want) === Math.sign(pos.x) && Math.abs(tgt.pos.x) > MAIN.halfW) want = 0
+    // Approach into striking range, then brake without turning our back.
+    const direction = dx >= 0 ? 1 : -1
+    let want = adx > this.spacing ? direction : f.facing !== direction ? direction * 0.2 : 0
+    if (!f.grounded && adx < 2 && Math.abs(f.vel.x) > 2) want = -Math.sign(f.vel.x)
+    // Never chase an offstage target past the ledge. Grounded rolls also need
+    // enough landing room for their full travel distance.
+    if (Math.abs(pos.x) > MAIN.halfW - 1.2 && Math.sign(want) === Math.sign(pos.x) && Math.abs(this.seenX) > MAIN.halfW) want = 0
     it.move = want
 
-    // ---------- vertical play ----------
+    // Reach elevated opponents with the ordinary ground jump + air jump.
+    // The upper platform is higher than one jump, so steer beneath its edge
+    // first and save the second jump for near the first jump's apex.
     if (decide) {
-      if (dy > 2.2 && f.grounded && adx < 7) it.jump = true
-      else if (dy < -2.5 && f.grounded && f.platform && !f.platform.solid) it.drop = true
-      else if (f.grounded && Math.random() < 0.07) it.jump = true // stay lively
+      if (dy > 1.8 && adx < 7) {
+        if (f.grounded) it.jump = true
+        else if (f.airJumps > 0 && f.vel.y < 4 && pos.y > 0.6) it.jump = true
+      } else if (dy < -2 && f.grounded && f.platform && !f.platform.solid) it.drop = true
     }
-    it.fastFall = !f.grounded && f.vel.y < 0 && dy < -2.5
+    const safeLanding = PLATFORMS.some(p => pos.y >= p.y && Math.abs(pos.x + f.vel.x * 0.18 - p.x) < p.halfW - 0.6)
+    it.fastFall = !f.grounded && f.vel.y < 0 && dy < -2.5 && safeLanding && Math.abs(pos.x) < MAIN.halfW - 1
+
+    // One delayed continuation decision per connected jab. Previously the AI
+    // only attacked when idle, so it could never use the existing jab combo.
+    if (this.comboRead !== f.attack) {
+      this.comboRead = f.attack; this.comboDelay = 0; this.comboDecided = false
+    }
+    if (f.attack?.hasHit && ATTACKS[f.attack.kind]?.next && !this.comboDecided) {
+      this.comboDelay += dt
+      if (this.comboDelay >= this.reaction * 0.25) {
+        this.comboDecided = true
+        if (f.hitstun <= 0 && adx < 2.8 * f.scaleMul && Math.abs(dy) < 1.8 && Math.random() < this.difficulty.aggression) it.jab = true
+      }
+    }
 
     // ---------- attacks ----------
     if (decide && f.hitstun <= 0 && !f.attack && f.dodgeT <= 0) {
-      const inRange = adx < 2.1 * f.scaleMul && Math.abs(dy) < 1.7
+      const inRange = adx < 1.95 * f.scaleMul && Math.abs(dy) < 1.6
       if (inRange && tgt.state === 'fight' && !tgt.untouchable() && Math.random() < this.difficulty.aggression) {
         const killable = tgt.dmg >= 85
-        if (!this.jabsOnly && Math.random() < (killable ? this.difficulty.finishChance : this.difficulty.smashChance)) it.smash = true
+        const opening = tgt.hitstun > 0.12 || tgt.attack?.t > 0.3 || (killable && Math.abs(tgt.vel.x) < 3)
+        if (!this.jabsOnly && f.grounded && opening && Math.random() < (killable ? this.difficulty.finishChance : this.difficulty.smashChance)) it.smash = true
         else it.jab = true
       }
     }
 
     // ---------- defensive dodge ----------
-    if (decide && tgt.attack && this.dodgeRead !== tgt.attack && adx < 2.7 && f.grounded) {
+    if (decide && tgt.attack && this.dodgeRead !== tgt.attack && adx < 2.7 && Math.abs(dy) < 1.8 && f.grounded && !f.attack && f.hitstun <= 0 && f.dodgeCd <= 0) {
       this.dodgeRead = tgt.attack
       if (Math.random() < this.difficulty.dodgeChance) {
-        it.dodge = dx > 0 ? -1 : 1
+        const away = dx > 0 ? -1 : 1
+        it.dodge = Math.abs(pos.x + away * 4.8) < MAIN.halfW - 0.7 ? away : -Math.sign(pos.x || away)
         it.jab = it.smash = false
       }
     }
+    // Fighter movement sets facing before a new attack starts. Keep air
+    // braking from turning a close-range attack away from its target.
+    if ((it.jab || it.smash) && !f.attack) it.move = direction * 0.2
     return it
   }
 
@@ -110,7 +140,7 @@ export class BrawlAI {
     let best = null, bs = Infinity
     for (const o of fighters) {
       if (o === this.f || o.team === this.f.team) continue
-      if (o.stocks <= 0 || o.state === 'out') continue
+      if (o.stocks <= 0 || o.state !== 'fight') continue
       const d = Math.abs(o.pos.x - this.f.pos.x) + Math.abs(o.pos.y - this.f.pos.y) * 0.6
       const score = d - (o.dmg >= 85 ? this.difficulty.targetFinishBias : 0)
       if (score < bs) { bs = score; best = o }

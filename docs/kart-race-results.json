@@ -1,0 +1,55 @@
+{
+  "base": "http://127.0.0.1:5191",
+  "race": {
+    "time": 83.11666666666324,
+    "racers": [
+      {
+        "name": "RAGNAR",
+        "finished": true,
+        "time": 72.13333333333053,
+        "progress": 3.384765625,
+        "damage": 0.16
+      },
+      {
+        "name": "KORGATH",
+        "finished": true,
+        "time": 66.98333333333082,
+        "progress": 3.7373046875,
+        "damage": 0
+      },
+      {
+        "name": "THARGA",
+        "finished": true,
+        "time": 83.11666666666324,
+        "progress": 3,
+        "damage": 0.16
+      },
+      {
+        "name": "MORDRA",
+        "finished": true,
+        "time": 73.03333333333048,
+        "progress": 3.46484375,
+        "damage": 0
+      },
+      {
+        "name": "BRONN",
+        "finished": true,
+        "time": 79.44999999999678,
+        "progress": 3.169921875,
+        "damage": 0
+      }
+    ],
+    "uses": {
+      "boost": 12,
+      "bolt": 17,
+      "slick": 19,
+      "repair": 2
+    }
+  },
+  "effects": {
+    "boltHit": true,
+    "slickHit": true
+  },
+  "finished": true,
+  "errors": []
+}

@@ -733,7 +733,7 @@ export default class BrawlScene {
         this.vfx.text(_v1, `-${def.params.amount}%`, { color: def.color, size: 0.9 })
       },
 
-      // Mirror Decoy: clone fights beside you (jabs only) for 6s
+      // Phantom Twin: a short-lived ally that uses jabs only.
       summon: def => {
         if (this.clone) this._removeClone(false)
         const f = new Fighter({

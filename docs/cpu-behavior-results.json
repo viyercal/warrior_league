@@ -1,5 +1,5 @@
 {
-  "time": "2026-09-20T00:08:39.074Z",
+  "time": "2026-10-10T23:31:51.339Z",
   "checks": [
     {
       "name": "duel L1 30fps delayed reaction",
@@ -360,31 +360,31 @@
       "details": [
         {
           "level": 1,
-          "attackIntents": 29,
-          "smashes": 11,
-          "dodges": 42,
-          "recoveryY": -2.5
+          "attackIntents": 25,
+          "smashes": 5,
+          "dodges": 39,
+          "recoveryY": -2.3
         },
         {
           "level": 5,
-          "attackIntents": 197,
-          "smashes": 123,
-          "dodges": 381,
-          "recoveryY": 0.8
+          "attackIntents": 190,
+          "smashes": 118,
+          "dodges": 408,
+          "recoveryY": 1
         },
         {
           "level": 6,
-          "attackIntents": 223,
-          "smashes": 160,
-          "dodges": 507,
-          "recoveryY": 0.9
+          "attackIntents": 224,
+          "smashes": 147,
+          "dodges": 496,
+          "recoveryY": 1.2
         },
         {
           "level": 10,
           "attackIntents": 546,
-          "smashes": 479,
-          "dodges": 967,
-          "recoveryY": 1.7
+          "smashes": 484,
+          "dodges": 947,
+          "recoveryY": 1.9
         }
       ]
     },
@@ -629,31 +629,31 @@
     "brawl": [
       {
         "level": 1,
-        "attackIntents": 29,
-        "smashes": 11,
-        "dodges": 42,
-        "recoveryY": -2.5
+        "attackIntents": 25,
+        "smashes": 5,
+        "dodges": 39,
+        "recoveryY": -2.3
       },
       {
         "level": 5,
-        "attackIntents": 197,
-        "smashes": 123,
-        "dodges": 381,
-        "recoveryY": 0.8
+        "attackIntents": 190,
+        "smashes": 118,
+        "dodges": 408,
+        "recoveryY": 1
       },
       {
         "level": 6,
-        "attackIntents": 223,
-        "smashes": 160,
-        "dodges": 507,
-        "recoveryY": 0.9
+        "attackIntents": 224,
+        "smashes": 147,
+        "dodges": 496,
+        "recoveryY": 1.2
       },
       {
         "level": 10,
         "attackIntents": 546,
-        "smashes": 479,
-        "dodges": 967,
-        "recoveryY": 1.7
+        "smashes": 484,
+        "dodges": 947,
+        "recoveryY": 1.9
       }
     ],
     "profiles": [

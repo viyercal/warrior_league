@@ -1,0 +1,128 @@
+{
+  "checks": [
+    {
+      "name": "CPU pursues and hits player in live match",
+      "ok": true
+    },
+    {
+      "name": "CPU connects real jab chain",
+      "ok": true,
+      "detail": {
+        "comboKinds": [
+          "jab1",
+          "jab2",
+          "jab3"
+        ],
+        "comboDamage": 46,
+        "airFacing": 1,
+        "airAttack": "jab1",
+        "upperPlatform": {
+          "reached": true,
+          "maxY": 6.573333333333338
+        },
+        "recoveries": [
+          {
+            "x": 14,
+            "vx": 16,
+            "vy": 6,
+            "recovered": true,
+            "end": [
+              11.228276922413462,
+              0
+            ]
+          },
+          {
+            "x": -14,
+            "vx": -15,
+            "vy": 4,
+            "recovered": true,
+            "end": [
+              -11.318060399567457,
+              0
+            ]
+          },
+          {
+            "x": 15,
+            "vx": 14,
+            "vy": -2,
+            "recovered": true,
+            "end": [
+              12.966693426578484,
+              0
+            ]
+          }
+        ],
+        "edgeDodge": -1,
+        "noRespawnTarget": true,
+        "comboIntents": 1
+      }
+    },
+    {
+      "name": "airborne approach attacks face target",
+      "ok": true
+    },
+    {
+      "name": "CPU reaches upper platform using ordinary double jump",
+      "ok": true,
+      "detail": {
+        "reached": true,
+        "maxY": 6.573333333333338
+      }
+    },
+    {
+      "name": "CPU recovers from launches on both sides",
+      "ok": true,
+      "detail": [
+        {
+          "x": 14,
+          "vx": 16,
+          "vy": 6,
+          "recovered": true,
+          "end": [
+            11.228276922413462,
+            0
+          ]
+        },
+        {
+          "x": -14,
+          "vx": -15,
+          "vy": 4,
+          "recovered": true,
+          "end": [
+            -11.318060399567457,
+            0
+          ]
+        },
+        {
+          "x": 15,
+          "vx": 14,
+          "vy": -2,
+          "recovered": true,
+          "end": [
+            12.966693426578484,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "edge dodge rolls inward",
+      "ok": true
+    },
+    {
+      "name": "respawning opponents are not pursued",
+      "ok": true
+    },
+    {
+      "name": "one combo decision per connected attack",
+      "ok": true,
+      "detail": 1
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

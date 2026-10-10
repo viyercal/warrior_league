@@ -105,17 +105,17 @@ export const SKILLS = [
     },
   },
   {
-    id: 'decoy', name: 'Phantom Twin', icon: icon('decoy', { size: '1em', color: '#8f86a3' }), color: '#8f86a3', cd: 14,
-    archetype: 'summon', params: { duration: 6, hp: 40 },
-    desc: 'Conjure a spectral double of yourself from ash and shadow.',
+    id: 'decoy', name: 'Phantom Twin', icon: icon('decoy', { size: '1em', color: '#8f86a3' }), color: '#8f86a3', cd: 24,
+    archetype: 'summon', params: { duration: 3, duelDuration: 0.35, hp: 40 },
+    desc: 'Conjure a spectral double for up to 3 seconds, or a brief lunge in The Crucible.',
     inGame: {
       moba: 'Towers and warlords strike the phantom while you reposition.',
       hoops: 'A phantom screener — the defense bites on the fake every time.',
       arena: 'The horde swarms the phantom. It does not swarm you.',
       kart: 'A phantom chariot rides ahead and baits the hunting spears.',
-      brawl: 'A twin that fights at your side for 6 seconds.',
+      brawl: 'A twin that fights at your side for 3 seconds.',
       siege: 'The phantom draws raider fury away from the bastion.',
-      duel: 'A shadow twin lunges from behind you for a double-team strike.',
+      duel: 'A shadow twin lunges for 0.35 seconds to deliver one double-team strike.',
     },
   },
   {

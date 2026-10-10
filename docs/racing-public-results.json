@@ -1,0 +1,39 @@
+{
+  "base": "https://exterior-cheap-group-grew.trycloudflare.com",
+  "checks": [
+    {
+      "name": "public Phantom Chorus equips four slots",
+      "ok": true
+    },
+    {
+      "name": "public Phantom Twin balance is current",
+      "ok": true
+    },
+    {
+      "name": "public course clearance and supply chests present",
+      "ok": true
+    },
+    {
+      "name": "public item button uses supply",
+      "ok": true
+    },
+    {
+      "name": "public racing CPU pace updated",
+      "ok": true
+    },
+    {
+      "name": "public Mortal Arena CPU combat works",
+      "ok": true
+    },
+    {
+      "name": "public assets load without failures",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "failed": []
+}

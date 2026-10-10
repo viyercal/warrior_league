@@ -187,10 +187,15 @@ export class DuelSpecials {
       this.scene.add(hero.group)
       this._twinCache.set(f, hero)
     }
+    // Recasting from another slot refreshes this caster's cached twin. Two
+    // active records must never animate or hide the same hero independently.
+    for (let i = this.twins.length - 1; i >= 0; i--) {
+      if (this.twins[i].caster === f) this.twins.splice(i, 1)
+    }
     hero.group.visible = true
     hero.group.position.set(clamp(f.pos.x - f.facing * 1.3, -EDGE, EDGE), 0, 0)
     hero.group.rotation.y = f.facing * 1.22
-    this.twins.push({ hero, t: 0, caster: f, dmg: 8, surge, struck: false })
+    this.twins.push({ hero, t: 0, caster: f, duration: def.params.duelDuration, dmg: 8, surge, struck: false })
     _v1.copy(hero.group.position)
     _v1.y += 1
     this.vfx.flash(_v1, { color: def.color, size: 2 })
@@ -337,7 +342,7 @@ export class DuelSpecials {
       const f = tw.caster
       const d = F.foeOf(f)
       const g = tw.hero.group
-      if (tw.t < 0.55) {
+      if (tw.t < tw.duration) {
         g.position.x += f.facing * 15 * gdt
         tw.hero.setMoveSpeed(10)
         tw.hero.update(gdt)

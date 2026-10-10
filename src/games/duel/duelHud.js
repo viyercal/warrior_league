@@ -87,6 +87,13 @@ export class DuelHud {
     this.setTowerStage(stage)
   }
 
+  buildSingle(level) {
+    this.towerBox.replaceChildren()
+    const chip = this.hud.el('div', 'duel-chip current', '', this.towerBox)
+    this.hud.el('span', 'duel-chip-name', `SINGLE DUEL · CPU ${level}`, chip)
+    this.towerChips = []
+  }
+
   setTowerStage(stage) {
     this.towerChips.forEach((chip, i) => {
       chip.classList.toggle('done', i < stage)
@@ -136,7 +143,7 @@ export class DuelHud {
    */
   comboTick(side, hits, dmg) {
     const c = this.combo[side]
-    if (c.hideT) { clearTimeout(c.hideT); c.hideT = null }
+    if (c.hideT) { this.hud.cancelLater(c.hideT); c.hideT = null }
     if (hits < 2) { // a fresh combo is underway — clear any stale stamp
       c.root.classList.remove('show', 'final', 'drop')
       c.tier = 0
@@ -167,12 +174,12 @@ export class DuelHud {
   /** Final stamp: knockdown conversions slam the grade; escapes crack + crumble. */
   comboEnd(side, hits, dmg, dropped = false) {
     const c = this.combo[side]
-    if (c.hideT) { clearTimeout(c.hideT); c.hideT = null }
+    if (c.hideT) { this.hud.cancelLater(c.hideT); c.hideT = null }
     if (hits < 2 || !c.root.classList.contains('show')) return
     c.tier = 0
     if (dropped) {
       c.root.classList.add('drop')
-      c.hideT = setTimeout(() => c.root.classList.remove('show', 'drop'), 800)
+      c.hideT = this.hud.later(() => c.root.classList.remove('show', 'drop'), 800)
       return
     }
     c.root.classList.add('final')
@@ -180,13 +187,13 @@ export class DuelHud {
       c.grade.textContent = hits >= 10 ? 'LEGENDARY' : hits >= 7 ? 'SAVAGE' : 'FIERCE'
       c.grade.className = `duel-mult-grade g${hits >= 10 ? 3 : hits >= 7 ? 2 : 1}`
     }
-    c.hideT = setTimeout(() => c.root.classList.remove('show', 'final'), hits >= 4 ? 1500 : 800)
+    c.hideT = this.hud.later(() => c.root.classList.remove('show', 'final'), hits >= 4 ? 1500 : 800)
   }
 
   hideCombos() {
     for (const side of ['L', 'R']) {
       const c = this.combo[side]
-      if (c.hideT) clearTimeout(c.hideT)
+      if (c.hideT) this.hud.cancelLater(c.hideT)
       c.root.classList.remove('show', 'final', 'drop')
       c.tier = 0
     }
@@ -207,7 +214,7 @@ export class DuelHud {
     const r = this.hud.el('div', 'duel-vs-plate duel-vsr', '', v)
     r.style.setProperty('--fc', foe.color)
     buildPlate(r, foe.name, foe.title)
-    return () => { v.classList.add('out'); setTimeout(() => v.remove(), 450) }
+    return () => { v.classList.add('out'); this.hud.later(() => v.remove(), 450) }
   }
 
   /** Darkened-arena overlay for the finisher. */
@@ -250,6 +257,23 @@ export class DuelHud {
     abandon.textContent = 'ABANDON TOWER'
     abandon.onclick = onAbandon
     row.append(retry, abandon)
+    return p
+  }
+
+  singleResultPanel({ won, foeName, level, onRematch, onHub }) {
+    const p = this.hud.el('div', 'duel-panel ui-interactive')
+    this.hud.el('div', `duel-panel-title${won ? '' : ' lose'}`, won ? 'DUEL WON' : 'DEFEATED', p)
+    this.hud.el('div', 'duel-panel-sub', `${foeName} · CPU LEVEL ${level} · BEST OF THREE`, p)
+    const row = this.hud.el('div', 'duel-panel-row', '', p)
+    for (const [label, action] of [['REMATCH', onRematch], ['CHOOSE BATTLEGROUND', onHub]]) {
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'duel-btn'
+      button.textContent = label
+      button.addEventListener('click', action)
+      row.append(button)
+    }
+    row.firstElementChild.focus({ preventScroll: true })
     return p
   }
 

@@ -1,5 +1,7 @@
 import { KEY_LABELS } from '../meta/skills.js'
 import { icon } from './craft.js' // side effect: installCraft() puts --tex-* on :root
+import { selectedChampion } from '../meta/champions.js'
+import { championPortrait } from './championPortrait.js'
 
 /**
  * DOM HUD toolkit. Everything renders into #ui (cleared automatically on
@@ -8,6 +10,8 @@ import { icon } from './craft.js' // side effect: installCraft() puts --tex-* on
 export class HUD {
   constructor() {
     this.root = document.getElementById('ui')
+    this.later = this.root.sceneScheduler?.setTimeout || window.setTimeout.bind(window)
+    this.cancelLater = this.root.sceneScheduler?.clearTimeout || window.clearTimeout.bind(window)
   }
 
   el(tag, cls = '', html = '', parent = this.root) {
@@ -25,12 +29,22 @@ export class HUD {
    * Returns { root, setCooldown(i, frac), flash(i), setActive(i, on) }.
    */
   abilityBar(skills, { game = null, keys = KEY_LABELS } = {}) {
-    const root = this.el('div', 'ability-bar')
+    const root = this.el('div', 'ability-bar ui-interactive')
+    if (this.root.playerProfile) {
+      const { champion, skin } = selectedChampion(this.root.playerProfile)
+      const identity = this.el('div', 'battle-identity', '', root)
+      identity.setAttribute('aria-label', `${champion.name}, ${skin.name}`)
+      championPortrait(this.el('div', 'battle-identity-picture', '', identity), champion, skin)
+      const copy = this.el('div', 'battle-identity-copy', '', identity)
+      this.el('b', '', champion.name, copy)
+      this.el('span', '', skin.name, copy)
+    }
     const slots = skills.map((s, i) => {
       const slot = this.el('div', 'ability-slot', '', root)
       slot.style.setProperty('--skill-color', s.color)
       this.el('div', 'ability-icon', s.icon, slot)
       this.el('div', 'key-badge', keys[i], slot)
+      this.el('div', 'ability-name', s.name, slot)
       const cd = this.el('div', 'cd-sweep', '', slot)
       const cdText = this.el('div', 'cd-text', '', slot)
       const tipDesc = game && s.inGame?.[game] ? s.inGame[game] : s.desc
@@ -92,8 +106,8 @@ export class HUD {
     this.el('span', 'banner-orn banner-orn-r', icon('ornament-divider'), row)
     if (sub) this.el('div', 'banner-sub', sub, b)
     if (duration > 0) {
-      setTimeout(() => b.classList.add('out'), duration * 1000)
-      setTimeout(() => b.remove(), duration * 1000 + 600)
+      this.later(() => b.classList.add('out'), duration * 1000)
+      this.later(() => b.remove(), duration * 1000 + 600)
     }
     return b
   }
@@ -101,15 +115,32 @@ export class HUD {
   /** Bottom toast message. */
   toast(msg, { duration = 2.6 } = {}) {
     const t = this.el('div', 'ui-toast', msg)
-    setTimeout(() => t.classList.add('out'), duration * 1000)
-    setTimeout(() => t.remove(), duration * 1000 + 500)
+    this.later(() => t.classList.add('out'), duration * 1000)
+    this.later(() => t.remove(), duration * 1000 + 500)
   }
 
   /** Corner hint box listing controls. */
   hints(lines, { title = 'CONTROLS' } = {}) {
-    return this.el('div', 'hint-box',
+    const panel = this.hintPanel = this.el('div', 'hint-box ui-interactive',
       `<div class="hint-title">${title}</div>` +
       lines.map(([k, v]) => `<div class="hint-row"><span class="hint-key">${k}</span><span>${v}</span></div>`).join(''))
+    panel.id = 'battle-controls'
+    panel.hidden = true
+    const toggle = this.hintToggle = this.el('button', 'battle-help-toggle', '<kbd>H</kbd> Controls')
+    toggle.type = 'button'
+    toggle.setAttribute('aria-controls', panel.id)
+    toggle.setAttribute('aria-expanded', 'false')
+    toggle.onclick = () => {
+      this.toggleHints()
+      document.querySelector('#app canvas')?.focus({ preventScroll: true })
+    }
+    return panel
+  }
+
+  toggleHints() {
+    if (!this.hintPanel) return
+    this.hintPanel.hidden = !this.hintPanel.hidden
+    this.hintToggle.setAttribute('aria-expanded', String(!this.hintPanel.hidden))
   }
 
   /** 3-2-1-GO countdown overlay; resolves when done. */
@@ -120,13 +151,13 @@ export class HUD {
         if (n > 0) {
           const d = this.el('div', 'count-num', String(n))
           audio?.play('countdown')
-          setTimeout(() => d.remove(), 850)
+          this.later(() => d.remove(), 850)
           n--
-          setTimeout(show, 900)
+          this.later(show, 900)
         } else {
           const d = this.el('div', 'count-num go', 'GO!')
           audio?.play('go')
-          setTimeout(() => d.remove(), 800)
+          this.later(() => d.remove(), 800)
           res()
         }
       }

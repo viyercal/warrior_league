@@ -56,11 +56,11 @@ export class DuelFighter {
     this.glow = appearance.glow || color
     this.isPlayer = isPlayer
 
-    this.hero = createHero(appearance)
+    this.hero = createHero(appearance, { equipmentPose: 'stowed' })
     // the crucible's torch ring pushes bright skin/bone albedos past the bloom
     // threshold — sun-starved pit fighters run darker (our hero instances only)
     if (this.hero.mats.skin) {
-      this.hero.mats.skin.color.multiplyScalar(0.5)
+      this.hero.mats.skin.color.multiplyScalar(0.85)
       this.hero.mats.skin.envMapIntensity = 0.1
     }
     if (this.hero.mats.bone) {
@@ -502,7 +502,7 @@ export class DuelFighter {
         const jitter = this.blockstun > 0 ? Math.sin(this.hero.t * 55) * 0.06 : 0
         for (const [key, s] of [['L', -1], ['R', 1]]) {
           arms[key].pivot.rotation.x = -1.75 + jitter
-          arms[key].pivot.rotation.z = s * 0.38
+          arms[key].pivot.rotation.z = s * 0.38 + (this.hero.armRestOffset?.[key] || 0)
           arms[key].elbow.rotation.x = -1.85
         }
         hips.rotation.x = -0.06
@@ -512,7 +512,7 @@ export class DuelFighter {
         this.hero.head.rotation.x = -0.5
         for (const [key, s] of [['L', -1], ['R', 1]]) {
           arms[key].pivot.rotation.x = 0.5 + Math.sin(this.hero.t * 9 + s) * 0.3
-          arms[key].pivot.rotation.z = s * 0.7
+          arms[key].pivot.rotation.z = s * 0.7 + (this.hero.armRestOffset?.[key] || 0)
         }
       }
       // hit-cringe: blends in fast, releases smoothly — a launch or recovery
@@ -567,7 +567,8 @@ export class DuelFighter {
     const roll = smooth(clamp(k / 0.55, 0, 1))          // prone -> over the knees
     const rise = smooth(clamp((k - 0.55) / 0.45, 0, 1)) // crouch -> standing
     hips.rotation.x = lerp(lerp(-1.42, 0.5, roll), hips.rotation.x, rise)
-    hips.position.y = lerp(lerp(0.42, 0.52, roll), hips.position.y, rise)
+    const hipHeight = this.hero.hipHeight ?? .92
+    hips.position.y = lerp(lerp(hipHeight - .5, hipHeight - .4, roll), hips.position.y, rise)
     for (const key of ['L', 'R']) {
       const leg = this.hero.legs[key]
       leg.pivot.rotation.x = lerp(lerp(0, -1.15, roll), leg.pivot.rotation.x, rise)
@@ -576,7 +577,7 @@ export class DuelFighter {
     for (const [key, s] of [['L', -1], ['R', 1]]) {
       const arm = this.hero.arms[key] // arms brace against the ground on the roll
       arm.pivot.rotation.x = lerp(arm.pivot.rotation.x, 0.55, roll * (1 - rise))
-      arm.pivot.rotation.z = lerp(arm.pivot.rotation.z, s * 0.3, roll * (1 - rise))
+      arm.pivot.rotation.z = lerp(arm.pivot.rotation.z, s * 0.3 + (this.hero.armRestOffset?.[key] || 0), roll * (1 - rise))
     }
   }
 
@@ -619,7 +620,7 @@ export class DuelFighter {
       return
     }
     arm.pivot.rotation.x = lerp(arm.pivot.rotation.x, pose, w)
-    arm.pivot.rotation.z = lerp(arm.pivot.rotation.z, (def.arm === 'R' ? 1 : -1) * 0.1, w)
+    arm.pivot.rotation.z = lerp(arm.pivot.rotation.z, (def.arm === 'R' ? 1 : -1) * 0.1 + (this.hero.armRestOffset?.[def.arm] || 0), w)
     arm.elbow.rotation.x = lerp(arm.elbow.rotation.x, elbow, w)
     if (def.rise) this.hero.hips.rotation.x = lerp(this.hero.hips.rotation.x, -0.35, w)
     if (def.low) this.hero.hips.rotation.x = 0.55

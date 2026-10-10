@@ -6,6 +6,7 @@ import { disposeObject3D, damp, clamp, v3 } from '../core/utils.js'
 import { buildForgeStage } from './loadoutStage.js'
 import { buildLoadoutPanel } from './loadoutPanel.js'
 import '../ui/loadout.css'
+import '../ui/forge.css'
 
 /**
  * LOADOUT — the Hero Forge. Configure the ONE hero (appearance + Q/W/E/R
@@ -16,7 +17,7 @@ import '../ui/loadout.css'
 export default class LoadoutScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.6, bloomThreshold: 0.85, bloomRadius: 0.38, vignette: 0.6, saturation: 1.08 }
+    this.postOpts = { bloom: 0.28, bloomThreshold: 1.0, bloomRadius: 0.38, vignette: 0.35, grain: 0.006, saturation: 0.94 }
   }
 
   async init() {
@@ -69,6 +70,10 @@ export default class LoadoutScene {
     })
     this._canvas = engine.renderer.domElement
     this._canvas.style.cursor = 'grab'
+    input.onReset(() => {
+      this._dragging = false
+      this._canvas.style.cursor = 'grab'
+    })
 
     audio.music('hub')
     audio.ambience('forge')
@@ -117,6 +122,7 @@ export default class LoadoutScene {
   rebuildHero() { this.buildHero(true) }
 
   toggleDance() {
+    this.panel.showModel()
     this._dancing = !this._dancing
     this.hero.setState(this._dancing ? 'dance' : 'normal')
     this.ctx.audio.play(this._dancing ? 'levelup' : 'click', { vol: 0.5 })
@@ -131,7 +137,7 @@ export default class LoadoutScene {
     if (this._dragging) {
       const dx = input.mousePx.x - this._lastX
       this._lastX = input.mousePx.x
-      this._spin = clamp(dx * 0.0085 / Math.max(dt, 1 / 240), -9, 9)
+      this._spin = clamp(dx * input.mouseSensitivity * 0.0085 / Math.max(dt, 1 / 240), -9, 9)
     } else {
       this._spin = damp(this._spin, 0, 3, dt)
     }
@@ -140,13 +146,18 @@ export default class LoadoutScene {
     this.hero.update(dt)
 
     // camera: gentle breathing + mouse parallax (paused while dragging)
-    const mx = this._dragging ? 0 : input.mouse.x
-    const my = this._dragging ? 0 : input.mouse.y
+    const mx = this._dragging ? 0 : input.cameraMouse.x
+    const my = this._dragging ? 0 : input.cameraMouse.y
     this.camera.position.x = this._camBase.x + Math.sin(t * 0.4) * 0.1 + mx * 0.2
     this.camera.position.y = this._camBase.y + Math.sin(t * 0.9) * 0.06 + my * 0.12
     this.camera.position.z = this._camBase.z
     this.camera.lookAt(this._camLook)
 
+    if (innerWidth < 760) {
+      // Portrait on the upper fifth of the screen, above the narrow forge panel.
+      this.camera.position.set(0, 2.3, 9)
+      this.camera.lookAt(0, 0.4, 0)
+    }
     this.vfx.update(dt)
   }
 

@@ -126,7 +126,7 @@ export function makeCasters(g) {
       hero.group.position.set(c.x, 0, c.z)
       hero.group.traverse(o => {
         if (o.material && !o.isSprite) {
-          o.material = o.material.clone()
+          // createHero owns its materials, including the face shader and texture.
           o.material.transparent = true
           o.material.opacity = 0.42
         }
@@ -187,9 +187,11 @@ export function makeCasters(g) {
     ghost: def => {
       g.ghostT = def.params.duration
       g.ghostMats = []
+      const seen = new Set()
       g.hero.group.traverse(o => {
         // skip sprites: the floating health bars share materials across all units
-        if (o.material && !o.isSprite && o !== g.bubble) {
+        if (o.material && !o.isSprite && o !== g.bubble && !seen.has(o.material)) {
+          seen.add(o.material)
           g.ghostMats.push([o.material, o.material.transparent, o.material.opacity])
           o.material.transparent = true
           o.material.opacity = Math.min(o.material.opacity ?? 1, 0.35)

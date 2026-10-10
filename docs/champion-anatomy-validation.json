@@ -1,0 +1,16 @@
+{
+  "branch": "feat/astra-immersive-realms",
+  "testedSourceSha256": "69ba1148662411f135e10ba86330d3af96bd0b5114744a84cfec49ffe8096e1c",
+  "sourceFileCount": 117,
+  "build": "npm run build passed; large entry chunk warning retained",
+  "rosterAssertions": 247,
+  "lifecycleAssertions": 16,
+  "lifecycleEnvironments": [
+    "Vite development on 5302",
+    "Vite production preview on 5303"
+  ],
+  "unexpectedBrowserErrors": 0,
+  "expectedFaultInjection": "Aborted hair-atlas.webp once; retry succeeded",
+  "independentReview": "Astra scoped runtime review and crown geometry follow-up passed",
+  "deployment": "local only"
+}

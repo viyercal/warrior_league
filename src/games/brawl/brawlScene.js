@@ -6,6 +6,7 @@ import { clamp, lerp, damp, rand, randInt, pick, disposeObject3D } from '../../c
 import { buildStage, PLATFORMS, MAIN, BLAST } from './stage.js'
 import { Fighter, ATTACKS } from './fighter.js'
 import { BrawlAI } from './brawlAi.js'
+import { cpuDifficulty } from '../../core/cpuDifficulty.js'
 import { BrawlHud } from './brawlHud.js'
 import { BrawlIntro } from './brawlIntro.js'
 import '../../ui/brawl.css'
@@ -37,7 +38,7 @@ export default class BrawlScene {
     // filmic vignette + grain, slight exposure lift so the blacks stay deep.
     // SSAO benchmarked at +5ms/frame (p95 21ms) on an integrated GPU — left off;
     // grounding comes from painted AO, contact blobs and the shadow key instead.
-    this.postOpts = { bloom: 0.75, bloomThreshold: 0.92, bloomRadius: 0.5, vignette: 0.52, saturation: 1.0, grain: 0.038, exposure: 1.05 }
+    this.postOpts = { bloom: 0.75, bloomThreshold: 0.92, bloomRadius: 0.5, vignette: 0.52, saturation: 1.0, grain: 0.006, exposure: 1.05 }
   }
 
   async init() {
@@ -63,7 +64,7 @@ export default class BrawlScene {
     const ai2 = mk({ ...AI_ROSTER[1], team: 2, spawnX: 0 })
     this.baseFighters = [this.player, ai1, ai2]
     this.fighters = [...this.baseFighters]
-    this.ais = [new BrawlAI(ai1), new BrawlAI(ai2)]
+    this.ais = [ai1, ai2].map(f => new BrawlAI(f, { difficulty: this.ctx.cpuDifficulty.brawl }))
     this._heroTrail = null // created after the entrance cinematic (_beginRoundFlow)
 
     // shield bubble (Iron Bulwark) — pale forged-steel sheen
@@ -115,17 +116,21 @@ export default class BrawlScene {
     this._pIntent = { move: 0, jump: false, fastFall: false, drop: false, jab: false, smash: false, dodge: 0 }
     this._tapA = -9
     this._tapD = -9
+    input.onReset(() => {
+      this._tapA = this._tapD = -Infinity
+      Object.assign(this._buf, { jump: false, jab: false, smash: false, drop: false, dodge: 0 })
+    })
     input.onKey((code, down) => {
       if (!down || this.disposed) return
       if (this.intro) { this._dismissIntro(); this._beginRoundFlow(); return } // ANY key skips the entrance
-      const now = performance.now() / 1000
+      const now = this.ctx.engine.elapsedTime
       if (code === 'Space') this._buf.jump = true
       else if (code === 'KeyJ') this._buf.jab = true
       else if (code === 'KeyK') this._buf.smash = true
       else if (code === 'KeyS') this._buf.drop = true
       else if (code === 'KeyA') { if (now - this._tapA < 0.27) this._buf.dodge = -1; this._tapA = now }
       else if (code === 'KeyD') { if (now - this._tapD < 0.27) this._buf.dodge = 1; this._tapD = now }
-      else if (code === 'KeyH') this.hintBox.style.display = this.hintBox.style.display === 'none' ? '' : 'none'
+      else if (code === 'KeyH') this.hud.toggleHints()
       else {
         const i = KEY_CODES.indexOf(code)
         if (i >= 0) this._castSkill(i)
@@ -138,8 +143,8 @@ export default class BrawlScene {
     this.abilityUi = hud.abilityBar(this.skillDefs, { game: 'brawl' })
     this.abilityUi.root.style.bottom = '118px'
     this.hintBox = hud.hints([
-      ['A / D', 'Move'], ['SPACE', 'Jump / air jump'], ['S', 'Fast-fall / drop through'],
-      ['A A / D D', 'Dodge roll'], ['J', 'Jab combo'], ['K', 'Smash attack'],
+      ['← → / A D', 'Move'], ['↑ / SPACE', 'Jump / air jump'], ['↓ / S', 'Fast-fall / drop through'],
+      ['← ← / → →', 'Dodge; A A / D D also work'], ['J', 'Jab combo'], ['K', 'Smash attack'],
       ['Q W E R', 'Skills (jump is SPACE, not W)'], ['H', 'Toggle help'],
     ])
 
@@ -745,7 +750,7 @@ export default class BrawlScene {
             o.material.opacity = Math.min(o.material.opacity ?? 1, 0.55)
           }
         })
-        this.clone = { f, ai: new BrawlAI(f, { jabsOnly: true }), t: def.params.duration }
+        this.clone = { f, ai: new BrawlAI(f, { jabsOnly: true, difficulty: cpuDifficulty(5).brawl }), t: def.params.duration }
         this.fighters.push(f)
         _v1.set(f.pos.x, f.pos.y + 1, 0)
         this.vfx.flash(_v1, { color: def.color, size: 2.6 })
@@ -1010,14 +1015,14 @@ export default class BrawlScene {
   // ============================== plumbing ==============================
 
   _timeout(fn, ms) {
-    const id = setTimeout(() => { if (!this.disposed) fn() }, ms)
+    const id = this.ctx.setTimeout(() => { if (!this.disposed) fn() }, ms)
     this._timeouts.push(id)
     return id
   }
 
   dispose() {
     this.disposed = true
-    for (const id of this._timeouts) clearTimeout(id)
+    for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this._heroTrail?.stop()
     this._buffTrail?.stop()
     for (const f of this.fighters) f.dispose()

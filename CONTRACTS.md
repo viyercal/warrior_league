@@ -1,7 +1,6 @@
 # IWL — Immortal Warlords League: Module Contracts
 
-Read this fully before writing any code. The shared core/art layer is FROZEN —
-do not modify any file outside the ones you own.
+Read this fully before writing any code. File ownership below describes the original scene implementation campaign. For the Astra immersion pass, the user authorized shared core, presentation, and scene lifecycle changes; check current task ownership before editing shared files.
 
 ## Warrior theme (READ FIRST — overrides all older neon references below)
 
@@ -85,7 +84,7 @@ export default class MyScene {
 }
 ```
 
-`ctx` = `{ engine, input, audio, profile, saveProfile(), goTo(name, params), params }`
+`ctx` = `{ engine, input, audio, profile, saveProfile(), goTo(name, params), preload(name), setTimeout(fn, ms), clearTimeout(id), params }`
 
 - `engine`: `.renderer`, `.envMap` (PMREM texture for `scene.environment`),
   `.shake(amp, dur)`, `.onResize(fn)`. Do NOT call engine.setScene yourself.
@@ -108,11 +107,11 @@ export default class MyScene {
   `.startEngine()` / `.setEngine(speed0to1, boost0to1)` / `.stopEngine()` — the kart
   engine loop; SceneManager backstops stopEngine on scene change.
   `.setVolumes({master, music, sfx, amb})` — persisted to localStorage 'ipl-audio-v1'.
-- `profile`: `{ name, appearance: {primary, secondary, glow, head, hair, trail, cape},
+- `profile`: `{ name, champion, skins: {caelan, nyra, orren, serai}, appearance: {championId, skinId, primary, secondary, glow, head, hair, archetype, trail, cape},
   loadout: [4 skill ids], stats: {wins: {}, plays: {}} }`. Mutate then call
   `saveProfile()`. Record results: `profile.stats.wins[game] = (…|0) + 1`.
 - `goTo(name, params)`: e.g. `goTo('loadout', { game: 'moba' })`,
-  `goTo('hub')`. Escape → hub is already global.
+  `goTo('hub')`. P / Escape opens the shared pause menu in games. Escape closes it, and leaves the forge for the hub.
 
 HUD DOM goes in `#ui` (auto-cleared between scenes). Use `HUD` from `src/ui/hud.js`.
 Panels are click-through unless you add class `ui-interactive`.
@@ -174,10 +173,19 @@ thetaStart toward -z for the hub camera. COST NOTE: a single scaled dragon in
 kart cost ~12fps at dpr2 — keep gameplay-scene dragons rare and distant.
 
 `src/art/characterFactory.js` —
-- `createHero(profile.appearance, {auraRing})` → Hero: `.group` (origin at feet, ≈2 units
+- `createHero(profile.appearance, {auraRing, equipmentPose: 'held'|'stowed'})` → Hero: `.group` (origin at feet, ≈2 units
   tall), `.update(dt)` (call every frame), `.setMoveSpeed(unitsPerSec)` (drives run anim),
   `.setState('normal'|'dance'|'ko')`, `.cast()` (arm-raise anim), `.faceTowards(vec3, dt, rate)`,
   `.castPoint(out)` (world pos of casting hand), `.ring` (ground aura mesh, toggle .visible).
+- `unifiedCharacters.js` loads complete local textured assets for Caelan and Nyra (`modelVersion: 4`). Their geometry, UVs and PBR atlases come from the approved full-body production references, with eighteen deformation anchors fitted offline. Orren and Serai still use `rosterModels.js` version 3 pending external mesh generation. `championEquipment.js` owns signature weapons. Legacy NPCs retain `championSculpt.js`.
+- Keep `hips`, `torso`, `head`, `gem`, `arms.L/R.{pivot,elbow,glove}` and `legs.L/R.{pivot,knee}` intact. Games directly layer their combat poses over these anchors. Weapon geometry does not change collision, reach or stats.
+- Use `hero.hipHeight` for the champion's resting pelvis height, with `.92` only as the legacy fallback. Never force all champions to one height or nonuniformly stretch the whole model.
+- Startup awaits `preloadUnifiedCharacters()` and the remaining version 3 textures before enabling entry. `createHero` stays synchronous and fails explicitly if a required asset was not preloaded. `hero.assetsReady` remains a supported promise. Failed startup has a visible reload/retry action. All runtime assets are local; gameplay never calls Hugging Face or needs credentials.
+- Version 4 characters use one complete `SkinnedMesh` and one private skeleton per hero. Version 3 human bodies retain their separate material parts. Each hero owns its geometry, materials and texture objects; decoded source images may be shared. Preserve material shader hooks when applying ghost or clone effects, including the facial sampler's multiplication by the diffuse tint. `disposeObject3D` releases skeleton bone textures and the custom `referenceMap` texture.
+- Prepared version 4 GLBs reuse the source position storage and contain no unused source body. `_RIGINDEX` is an unnormalized unsigned byte `VEC4` for eighteen anchors; `_RIGWEIGHT` remains float32. Runtime `skinIndex` must accept the loaded integer attribute without assuming a Uint16Array. Packing does not simplify triangles, change UVs or recompress textures.
+- Combat and driving poses must add `hero.armRestOffset[key] || 0` to shoulder Z rotation targets. This adapts the source A-pose while preserving the animation intent. Cloth anchors have a smoothed surface weight field and independent secondary motion.
+- `setEquipmentPose('stowed')` moves signature gear to the hips/back. Court, chariot and fist-fighting modes, including their clones, use this pose. The other games and forge hold equipment. Orren's shield follows the same rule.
+- Version 4 `mats.primary` addresses the complete body for hit flashes, with white diffuse tint preserving its authored texture. Do not assume its color equals `appearance.primary`. Skin variants recolor textile/metal regions while retaining the face. Version 3 aliases retain their existing palette behavior.
 - `createMinion({color, evil, scale})` → Minion: `.group`, `.update(dt)`, `.setMoving(bool)`,
   `.hitFlash()`. Evil minions get an angry red visor; friendly get cute eyes.
 
@@ -190,6 +198,8 @@ text(pos, str, {color,size}) — damage numbers/announcements, impact(pos,opts),
 shockwave(pos,{color,radius}).
 
 ## Realism kit (REALISM PASS — read before styling any game scene)
+
+Vivek approved the current version 4 Caelan and Nyra rendering as the character and game-art benchmark on September 18, 2026. Read [the approved art standard](docs/art-standard.md) and inspect its Forge and gameplay references before changing characters, creatures, equipment, environments or lighting. Compare new art and rendering changes against this baseline; preserve individual silhouettes, coherent faces and bodies, material detail and grounded lighting.
 
 Game scenes must read as REALISTIC-STYLIZED (God of War / Elden Ring screenshot
 energy at low-poly scale), not toon-arcade. The warrior THEME is unchanged —
@@ -292,8 +302,11 @@ feed `abilityBar.setCooldown(i, remaining/cd, remaining)` each frame, call
 
 ## Three.js conventions
 
-three r166. Import addons from `three/addons/...`. No external assets, CDNs, fonts,
-or network fetches — everything procedural. Renderer already uses ACES tone mapping +
+three r166. Import addons from `three/addons/...`. No runtime CDNs, remote fonts,
+or external network fetches. The approved illustrations live in `public/concepts/images/`.
+The anatomical rebuild uses vendored CC0 graphical data in `tools/character-assets/`,
+compiled mesh data in `src/art/anatomy/`, and local textures in `public/models/textures/`.
+See `docs/champion-models.md` for provenance and generation prompts. Renderer already uses ACES tone mapping +
 sRGB; the composer adds bloom (threshold ≈0.82) — emissive/HDR colors > 1 will glow.
 Shadows: PCFSoft enabled globally; set castShadow/receiveShadow per mesh.
 Scene fog + matching sky colors = depth. `scene.environment = ctx.engine.envMap`
@@ -320,3 +333,38 @@ for PBR sparkle on standard materials.
 4. All 12 skill archetypes function (games only).
 5. Win AND lose paths reachable and end with banner + stat save + return path to hub.
 6. Runs at 60fps-ish (no obvious hitching).
+
+
+## Astra immersion lifecycle additions
+
+- Use `ctx.setTimeout` and `ctx.clearTimeout` for scene events. They run on simulation time, pause with the game, and are cancelled on scene teardown. Shared `HUD` objects capture this scheduler at construction.
+- `engine.elapsedTime` is simulation time. Gameplay timing must use it rather than wall clocks. `engine.setPaused(on, reason)` composes named reasons; transitions and menus cannot accidentally resume each other.
+- `input.setBlocked(on, reason)` clears held keys/buttons. `input.onReset(callback)` cancels local input state such as charge meters or dragging. Input handlers ignore UI controls and are cleared on scene change.
+- `GameSession` owns pause, resume, restart, hub return, blur/visibility pause, saved graphics preferences, and sound toggling. Dispatch `iwl:settings` from hub UI to open settings.
+- `SceneManager.preload` caches module promises; callers doing speculative preload must catch rejection. `goTo` returns success/failure and supplies a visible retry or hub recovery route.
+- `disposeObject3D` also releases instanced attributes and light shadow targets. Composer teardown releases all pass targets and shader materials.
+- `src/meta/realms.js` owns realm copy and control hints; `realmWorld.js` builds the procedural hub vista. `public/realms/` contains game captures used for the small selection cards.
+
+## Approved champion roster
+
+- `src/meta/champions.js` owns the four champion identities, twelve stable skin IDs, signature defaults, artwork paths, and authored model identity with palette presets.
+- `profile.champion` selects a character. `profile.skins[championId]` remembers that character's costume. `selectChampion` changes appearance but preserves the name, four equipped arts, results, and destination realm.
+- `loadProfile` validates roster IDs and restores the selected skin's canonical appearance. It preserves validated glow/trail choices, player name, loadout and results. Legacy paint and cape overrides no longer overwrite the authored outfit. New profiles use Caelan / Dawnsworn; each other champion starts with its signature skin.
+- Faces and hair follow champion/costume identity. Generic head/hair values remain supported only by legacy NPC models. Forge customization exposes skin choices and battle effects (glow/trail), with a restore-defaults action. Generic paint and cape switches are removed.
+- `championSelect.js` builds the artwork preview, roster and skin controls inside the forge. `championPortrait.js` supplies the selected portrait to the hub and shared ability HUD.
+- Small portraits are children of the ability bar so cinematic and result visibility rules apply to them. Responsive placement must clear the health/energy bars, race instruments, and pause/help controls.
+
+## CPU difficulty and Crucible modes
+
+- `profile.cpuLevel` is a normalized integer from 1 through 10, default 6. `profile.duelMode` is `tower` (default) or `single`. Both persist on this device without changing roster, loadout or existing results.
+- `src/core/cpuDifficulty.js` owns immutable behavior tiers and mode eligibility. Only `brawl` and `duel` with `params.mode === 'single'` receive a non-null `ctx.cpuDifficulty`, snapshotted on scene creation. A pause-menu edit affects the next match or restart, never the active brain's config.
+- `SceneManager.goTo('duel', { mode })` normalizes the mode, falling back to the saved preference when omitted. Invalid explicit modes resolve to Tower. Restart preserves the current mode; a direct link may use `?scene=duel&mode=single`.
+- `SingleDuelAI` uses delayed visible-state reads and one combo decision per confirmed hit opening. The Tower keeps `DuelAI` and its original `TOWER` configurations. Difficulty changes do not modify fighter health, damage, movement speed, cooldown durations or hitboxes. Brawl's allied Phantom Twin remains fixed at level 5.
+- Single Duel faces Ashborn in one best-of-three bout. It records plays and wins under `stats.*.duelSingle`, with rematch and hub return actions, and never advances the Tower. Existing `stats.*.duel` remain Tower records.
+- `createCpuPicker` uses native radio inputs. Dispose scene-owned pickers and remove their `iwl:cpu-settings` listeners on teardown. Keep CPU choices out of the Tower and other progression-based battlegrounds.
+
+## Mouse controls
+
+- `Input.mouse` and `mousePx` remain raw cursor coordinates used for picking and aiming. `cameraMouse` scales normalized coordinates by `mouseSensitivity` for camera parallax. `setMouseSensitivity(number)` clamps to 0.25 through 2 (default 1). Never use scaled coordinates for raycasts. Mouse-down refreshes raw coordinates before callbacks.
+- `GameSession` persists sensitivity in `iwl-session-v1`; the hub settings and pause menu expose a slider and reset action. Forge drag and War Rift edge scrolling also apply the multiplier.
+- `ClickMove` owns scene-local right-click navigation for arena, siege and hoops. It uses the input reset lifecycle, cancels on keyboard movement, and exposes a destination ring disposed with the scene. Siege uses a visibility graph around its citadel. Existing moba movement/attack orders remain scene-owned.

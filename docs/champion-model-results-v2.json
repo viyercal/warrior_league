@@ -1,0 +1,2165 @@
+{
+  "date": "2026-09-18",
+  "branch": "feat/astra-immersive-realms",
+  "build": "passed",
+  "deployed": false,
+  "browser": "isolated headless Chrome",
+  "checks": {
+    "passed": 247,
+    "failed": 0,
+    "errors": []
+  },
+  "independentReview": {
+    "modelAndProfileReview": "passed after two verified fixes",
+    "profileAssertions": 86,
+    "fixes": [
+      "Duel twin uses stowed equipment",
+      "Orren hit flash reaches stone body and fabric"
+    ]
+  },
+  "costumes": [
+    {
+      "champion": "caelan",
+      "skin": "dawnsworn",
+      "meshes": 80,
+      "triangles": 77640,
+      "valid": true,
+      "bounds": [
+        [
+          -0.7093092356624958,
+          0.013534482487232657,
+          -0.6844261207901339
+        ],
+        [
+          0.613091078353016,
+          2.3757758795188324,
+          0.38461296050226457
+        ]
+      ],
+      "calls": 80
+    },
+    {
+      "champion": "caelan",
+      "skin": "ashen-oath",
+      "meshes": 81,
+      "triangles": 78060,
+      "valid": true,
+      "bounds": [
+        [
+          -0.7091472389150314,
+          0.013534482487232657,
+          -0.6837016902090853
+        ],
+        [
+          0.613091078353016,
+          2.3757758795188324,
+          0.38461296050226457
+        ]
+      ],
+      "calls": 81
+    },
+    {
+      "champion": "caelan",
+      "skin": "celestial-guard",
+      "meshes": 87,
+      "triangles": 78680,
+      "valid": true,
+      "bounds": [
+        [
+          -0.7093092356624958,
+          0.013534482487232657,
+          -0.6844261207901339
+        ],
+        [
+          0.613091078353016,
+          2.3757758795188324,
+          0.38461296050226457
+        ]
+      ],
+      "calls": 87
+    },
+    {
+      "champion": "nyra",
+      "skin": "veil-huntress",
+      "meshes": 84,
+      "triangles": 66684,
+      "valid": true,
+      "bounds": [
+        [
+          -0.5410516505310079,
+          0.014299224535014587,
+          -0.273127825192935
+        ],
+        [
+          0.6533982355594323,
+          2.0229547740731917,
+          0.3704633336942058
+        ]
+      ],
+      "calls": 84
+    },
+    {
+      "champion": "nyra",
+      "skin": "lunar-phantom",
+      "meshes": 88,
+      "triangles": 66628,
+      "valid": true,
+      "bounds": [
+        [
+          -0.5410516505310079,
+          0.014299224535014587,
+          -0.273127825192935
+        ],
+        [
+          0.6533982355594323,
+          2.123116013578006,
+          0.3704633336942058
+        ]
+      ],
+      "calls": 89
+    },
+    {
+      "champion": "nyra",
+      "skin": "thornbound",
+      "meshes": 86,
+      "triangles": 68980,
+      "valid": true,
+      "bounds": [
+        [
+          -0.5412652601697103,
+          0.014299224535014587,
+          -0.2995427108383524
+        ],
+        [
+          0.7049036861289506,
+          2.0229547740731917,
+          0.37707198474753656
+        ]
+      ],
+      "calls": 86
+    },
+    {
+      "champion": "orren",
+      "skin": "rootbound",
+      "meshes": 62,
+      "triangles": 50992,
+      "valid": true,
+      "bounds": [
+        [
+          -0.7738902032511645,
+          0.011508244285719449,
+          -0.3696029232377341
+        ],
+        [
+          0.7615740718631107,
+          2.272430555394717,
+          0.5686543824406964
+        ]
+      ],
+      "calls": 62
+    },
+    {
+      "champion": "orren",
+      "skin": "furnace-king",
+      "meshes": 90,
+      "triangles": 57868,
+      "valid": true,
+      "bounds": [
+        [
+          -0.7705463232545187,
+          0.011508244285719449,
+          -0.3696029232377341
+        ],
+        [
+          0.7615740718631107,
+          2.117312952375837,
+          0.5501897466874258
+        ]
+      ],
+      "calls": 90
+    },
+    {
+      "champion": "orren",
+      "skin": "frost-relic",
+      "meshes": 66,
+      "triangles": 47560,
+      "valid": true,
+      "bounds": [
+        [
+          -0.7705463232545187,
+          0.011508244285719449,
+          -0.3696029232377341
+        ],
+        [
+          0.7615740718631107,
+          2.1596175892863947,
+          0.5501897466874258
+        ]
+      ],
+      "calls": 66
+    },
+    {
+      "champion": "serai",
+      "skin": "tidecaller",
+      "meshes": 97,
+      "triangles": 73580,
+      "valid": true,
+      "bounds": [
+        [
+          -0.6810933676437557,
+          0.014299224535014587,
+          -0.6515302811107921
+        ],
+        [
+          0.5426121576364041,
+          2.0296896989555973,
+          0.4292696507127924
+        ]
+      ],
+      "calls": 97
+    },
+    {
+      "champion": "serai",
+      "skin": "star-cartographer",
+      "meshes": 98,
+      "triangles": 79164,
+      "valid": true,
+      "bounds": [
+        [
+          -0.6810933676437557,
+          0.014299224535014587,
+          -0.6515302811107921
+        ],
+        [
+          0.5426121576364041,
+          2.0971167953525267,
+          0.4292696507127924
+        ]
+      ],
+      "calls": 98
+    },
+    {
+      "champion": "serai",
+      "skin": "desert-oracle",
+      "meshes": 100,
+      "triangles": 75940,
+      "valid": true,
+      "bounds": [
+        [
+          -0.6810933676437557,
+          0.014299224535014587,
+          -0.6515302811107921
+        ],
+        [
+          0.5426121576364041,
+          2.043803652735302,
+          0.4292696507127924
+        ]
+      ],
+      "calls": 100
+    }
+  ],
+  "results": [
+    {
+      "name": "caelan/dawnsworn idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/dawnsworn run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/dawnsworn cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/dawnsworn dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/dawnsworn ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/dawnsworn stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "caelan/dawnsworn held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "caelan/dawnsworn material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "caelan/dawnsworn clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "caelan/ashen-oath idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/ashen-oath run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/ashen-oath cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/ashen-oath dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/ashen-oath ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/ashen-oath stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "caelan/ashen-oath held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "caelan/ashen-oath material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "caelan/ashen-oath clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "caelan/celestial-guard idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/celestial-guard run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/celestial-guard cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/celestial-guard dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/celestial-guard ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "caelan/celestial-guard stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "caelan/celestial-guard held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "caelan/celestial-guard material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "caelan/celestial-guard clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "nyra/veil-huntress idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/veil-huntress run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/veil-huntress cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/veil-huntress dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/veil-huntress ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/veil-huntress stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "nyra/veil-huntress held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "nyra/veil-huntress material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "nyra/veil-huntress clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "nyra/lunar-phantom idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/lunar-phantom run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/lunar-phantom cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/lunar-phantom dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/lunar-phantom ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/lunar-phantom stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "nyra/lunar-phantom held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "nyra/lunar-phantom material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "nyra/lunar-phantom clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "nyra/thornbound idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/thornbound run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/thornbound cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/thornbound dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/thornbound ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "nyra/thornbound stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "nyra/thornbound held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "nyra/thornbound material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "nyra/thornbound clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound hit flash reaches stone body",
+      "ok": true
+    },
+    {
+      "name": "orren/rootbound clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king hit flash reaches stone body",
+      "ok": true
+    },
+    {
+      "name": "orren/furnace-king clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic hit flash reaches stone body",
+      "ok": true
+    },
+    {
+      "name": "orren/frost-relic clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "serai/tidecaller idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/tidecaller run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/tidecaller cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/tidecaller dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/tidecaller ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/tidecaller stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "serai/tidecaller held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "serai/tidecaller material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "serai/tidecaller clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "serai/star-cartographer idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/star-cartographer run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/star-cartographer cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/star-cartographer dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/star-cartographer ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/star-cartographer stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "serai/star-cartographer held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "serai/star-cartographer material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "serai/star-cartographer clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "serai/desert-oracle idle: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/desert-oracle run: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/desert-oracle cast: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/desert-oracle dance: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/desert-oracle ko: bounded articulated mesh and casting hand",
+      "ok": true
+    },
+    {
+      "name": "serai/desert-oracle stowed gear leaves both hands free",
+      "ok": true
+    },
+    {
+      "name": "serai/desert-oracle held gear restores exact attachments",
+      "ok": true
+    },
+    {
+      "name": "serai/desert-oracle material aliases retain saved colors",
+      "ok": true
+    },
+    {
+      "name": "serai/desert-oracle clone has independent tint and intact identity",
+      "ok": true
+    },
+    {
+      "name": "Repeated roster rebuilds release GPU resources",
+      "ok": true,
+      "detail": [
+        {
+          "geometries": 101,
+          "textures": 11
+        },
+        {
+          "geometries": 101,
+          "textures": 11
+        },
+        {
+          "geometries": 101,
+          "textures": 11
+        }
+      ]
+    },
+    {
+      "name": "Appearance swatch 1 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 2 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 3 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 4 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 5 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 6 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 7 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 8 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 9 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 10 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 11 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 12 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 13 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 14 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 15 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 16 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 17 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 18 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 19 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 20 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 21 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Appearance swatch 22 applies to authored materials",
+      "ok": true
+    },
+    {
+      "name": "Cape ON updates selected model",
+      "ok": true
+    },
+    {
+      "name": "Cape OFF updates selected model",
+      "ok": true
+    },
+    {
+      "name": "Trail NONE updates selected model",
+      "ok": true
+    },
+    {
+      "name": "Trail RIBBON updates selected model",
+      "ok": true
+    },
+    {
+      "name": "Trail SPARK updates selected model",
+      "ok": true
+    },
+    {
+      "name": "Restoring skin preserves the authored model",
+      "ok": true
+    },
+    {
+      "name": "Caelan skin 1 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Caelan skin 2 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Caelan skin 3 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Caelan war dance starts",
+      "ok": true
+    },
+    {
+      "name": "Caelan war dance returns to idle",
+      "ok": true
+    },
+    {
+      "name": "Caelan appears as the selected playable model in moba",
+      "ok": true,
+      "detail": {
+        "champion": "caelan",
+        "skin": "dawnsworn",
+        "pose": "held",
+        "pos": [
+          -42.5,
+          0,
+          0
+        ],
+        "t": 4.484621041301126,
+        "time": 10.788299999952287
+      }
+    },
+    {
+      "name": "Caelan arrow movement and rig animation work in moba",
+      "ok": true,
+      "detail": {
+        "before": [
+          -42.5,
+          0,
+          0
+        ],
+        "after": [
+          -38.18800000000001,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Caelan casting action works in moba",
+      "ok": true
+    },
+    {
+      "name": "Caelan appears as the selected playable model in arena",
+      "ok": true,
+      "detail": {
+        "champion": "caelan",
+        "skin": "dawnsworn",
+        "pose": "held",
+        "pos": [
+          0,
+          0,
+          0
+        ],
+        "t": 0.30037103944757765,
+        "time": 15.078900000095313
+      }
+    },
+    {
+      "name": "Caelan arrow movement and rig animation work in arena",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          5.537699999570848,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Caelan casting action works in arena",
+      "ok": true
+    },
+    {
+      "name": "Caelan appears as the selected playable model in siege",
+      "ok": true,
+      "detail": {
+        "champion": "caelan",
+        "skin": "dawnsworn",
+        "pose": "held",
+        "pos": [
+          0,
+          0,
+          7.5
+        ],
+        "t": 9.87693413929264,
+        "time": 19.193000000476776
+      }
+    },
+    {
+      "name": "Caelan arrow movement and rig animation work in siege",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          7.5
+        ],
+        "after": [
+          5.697899999141691,
+          0,
+          7.5
+        ]
+      }
+    },
+    {
+      "name": "Caelan casting action works in siege",
+      "ok": true
+    },
+    {
+      "name": "Caelan appears as the selected playable model in hoops",
+      "ok": true,
+      "detail": {
+        "champion": "caelan",
+        "skin": "dawnsworn",
+        "pose": "stowed",
+        "pos": [
+          0,
+          0,
+          5.4
+        ],
+        "t": 5.242852224243034,
+        "time": 23.69760000014298
+      }
+    },
+    {
+      "name": "Caelan arrow movement and rig animation work in hoops",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          5.4
+        ],
+        "after": [
+          2.704107517540218,
+          0,
+          5.021710805036797
+        ]
+      }
+    },
+    {
+      "name": "Caelan casting action works in hoops",
+      "ok": true
+    },
+    {
+      "name": "Caelan appears as the selected playable model in kart",
+      "ok": true,
+      "detail": {
+        "champion": "caelan",
+        "skin": "dawnsworn",
+        "pose": "stowed",
+        "pos": [
+          -82.13199127612552,
+          0,
+          80.84533960920842
+        ],
+        "t": 6.687904257426147,
+        "time": 31.524900000095236
+      }
+    },
+    {
+      "name": "Caelan arrow movement and rig animation work in kart",
+      "ok": true,
+      "detail": {
+        "before": [
+          -82.13199127612552,
+          0,
+          80.84533960920842
+        ],
+        "after": [
+          -78.82633959632697,
+          0,
+          84.14519891838876
+        ]
+      }
+    },
+    {
+      "name": "Caelan casting action works in kart",
+      "ok": true
+    },
+    {
+      "name": "Caelan appears as the selected playable model in brawl",
+      "ok": true,
+      "detail": {
+        "champion": "caelan",
+        "skin": "dawnsworn",
+        "pose": "stowed",
+        "pos": [
+          -7,
+          0,
+          0
+        ],
+        "t": 9.554549838719483,
+        "time": 39.732100000142964
+      }
+    },
+    {
+      "name": "Caelan arrow movement and rig animation work in brawl",
+      "ok": true,
+      "detail": {
+        "before": [
+          -7,
+          0,
+          0
+        ],
+        "after": [
+          -2.4487649588774723,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Caelan casting action works in brawl",
+      "ok": true
+    },
+    {
+      "name": "Caelan appears as the selected playable model in duel",
+      "ok": true,
+      "detail": {
+        "champion": "caelan",
+        "skin": "dawnsworn",
+        "pose": "stowed",
+        "pos": [
+          -4.2,
+          0,
+          0
+        ],
+        "t": 2.936238758814058,
+        "time": 47.27259999990458
+      }
+    },
+    {
+      "name": "Caelan arrow movement and rig animation work in duel",
+      "ok": true,
+      "detail": {
+        "before": [
+          -4.2,
+          0,
+          0
+        ],
+        "after": [
+          0.5516249547991903,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Caelan casting action works in duel",
+      "ok": true
+    },
+    {
+      "name": "Nyra skin 1 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Nyra skin 2 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Nyra skin 3 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Nyra war dance starts",
+      "ok": true
+    },
+    {
+      "name": "Nyra war dance returns to idle",
+      "ok": true
+    },
+    {
+      "name": "Nyra appears as the selected playable model in moba",
+      "ok": true,
+      "detail": {
+        "champion": "nyra",
+        "skin": "veil-huntress",
+        "pose": "held",
+        "pos": [
+          -42.5,
+          0,
+          0
+        ],
+        "t": 6.0108151478094385,
+        "time": 55.45860000014297
+      }
+    },
+    {
+      "name": "Nyra arrow movement and rig animation work in moba",
+      "ok": true,
+      "detail": {
+        "before": [
+          -42.5,
+          0,
+          0
+        ],
+        "after": [
+          -38.413400000333795,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Nyra casting action works in moba",
+      "ok": true
+    },
+    {
+      "name": "Nyra appears as the selected playable model in arena",
+      "ok": true,
+      "detail": {
+        "champion": "nyra",
+        "skin": "veil-huntress",
+        "pose": "held",
+        "pos": [
+          0,
+          0,
+          0
+        ],
+        "t": 9.971388280048952,
+        "time": 60.772999999761595
+      }
+    },
+    {
+      "name": "Nyra arrow movement and rig animation work in arena",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          5.245199999570845,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Nyra casting action works in arena",
+      "ok": true
+    },
+    {
+      "name": "Nyra appears as the selected playable model in siege",
+      "ok": true,
+      "detail": {
+        "champion": "nyra",
+        "skin": "veil-huntress",
+        "pose": "held",
+        "pos": [
+          0,
+          0,
+          7.5
+        ],
+        "t": 5.4044875200149765,
+        "time": 66.12879999971378
+      }
+    },
+    {
+      "name": "Nyra arrow movement and rig animation work in siege",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          7.5
+        ],
+        "after": [
+          5.398199999570846,
+          0,
+          7.5
+        ]
+      }
+    },
+    {
+      "name": "Nyra casting action works in siege",
+      "ok": true
+    },
+    {
+      "name": "Nyra appears as the selected playable model in hoops",
+      "ok": true,
+      "detail": {
+        "champion": "nyra",
+        "skin": "veil-huntress",
+        "pose": "stowed",
+        "pos": [
+          0,
+          0,
+          5.4
+        ],
+        "t": 10.051495403785582,
+        "time": 72.07059999942729
+      }
+    },
+    {
+      "name": "Nyra arrow movement and rig animation work in hoops",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          5.4
+        ],
+        "after": [
+          3.1510503671502135,
+          0,
+          5.029214370637262
+        ]
+      }
+    },
+    {
+      "name": "Nyra casting action works in hoops",
+      "ok": true
+    },
+    {
+      "name": "Nyra appears as the selected playable model in kart",
+      "ok": true,
+      "detail": {
+        "champion": "nyra",
+        "skin": "veil-huntress",
+        "pose": "stowed",
+        "pos": [
+          -82.13199127612552,
+          0,
+          80.84533960920842
+        ],
+        "t": 2.9376371681122073,
+        "time": 79.0657999989977
+      }
+    },
+    {
+      "name": "Nyra arrow movement and rig animation work in kart",
+      "ok": true,
+      "detail": {
+        "before": [
+          -82.13199127612552,
+          0,
+          80.84533960920842
+        ],
+        "after": [
+          -78.64523518285368,
+          0,
+          84.32598598932712
+        ]
+      }
+    },
+    {
+      "name": "Nyra casting action works in kart",
+      "ok": true
+    },
+    {
+      "name": "Nyra appears as the selected playable model in brawl",
+      "ok": true,
+      "detail": {
+        "champion": "nyra",
+        "skin": "veil-huntress",
+        "pose": "stowed",
+        "pos": [
+          -7,
+          0,
+          0
+        ],
+        "t": 10.695897546957811,
+        "time": 88.31509999918748
+      }
+    },
+    {
+      "name": "Nyra arrow movement and rig animation work in brawl",
+      "ok": true,
+      "detail": {
+        "before": [
+          -7,
+          0,
+          0
+        ],
+        "after": [
+          -2.4830728251346144,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Nyra casting action works in brawl",
+      "ok": true
+    },
+    {
+      "name": "Nyra appears as the selected playable model in duel",
+      "ok": true,
+      "detail": {
+        "champion": "nyra",
+        "skin": "veil-huntress",
+        "pose": "stowed",
+        "pos": [
+          -4.2,
+          0,
+          0
+        ],
+        "t": 8.103672220417307,
+        "time": 94.63339999937772
+      }
+    },
+    {
+      "name": "Nyra arrow movement and rig animation work in duel",
+      "ok": true,
+      "detail": {
+        "before": [
+          -4.2,
+          0,
+          0
+        ],
+        "after": [
+          -1.8599578720991363,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Nyra casting action works in duel",
+      "ok": true
+    },
+    {
+      "name": "Orren skin 1 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Orren skin 2 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Orren skin 3 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Orren war dance starts",
+      "ok": true
+    },
+    {
+      "name": "Orren war dance returns to idle",
+      "ok": true
+    },
+    {
+      "name": "Orren appears as the selected playable model in moba",
+      "ok": true,
+      "detail": {
+        "champion": "orren",
+        "skin": "rootbound",
+        "pose": "held",
+        "pos": [
+          -42.5,
+          0,
+          0
+        ],
+        "t": 9.22545091123629,
+        "time": 105.48349999928152
+      }
+    },
+    {
+      "name": "Orren arrow movement and rig animation work in moba",
+      "ok": true,
+      "detail": {
+        "before": [
+          -42.5,
+          0,
+          0
+        ],
+        "after": [
+          -38.29720000100138,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Orren casting action works in moba",
+      "ok": true
+    },
+    {
+      "name": "Orren appears as the selected playable model in arena",
+      "ok": true,
+      "detail": {
+        "champion": "orren",
+        "skin": "rootbound",
+        "pose": "held",
+        "pos": [
+          0,
+          0,
+          0
+        ],
+        "t": 4.816883073775855,
+        "time": 109.90519999932874
+      }
+    },
+    {
+      "name": "Orren arrow movement and rig animation work in arena",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          5.561999999999999,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Orren casting action works in arena",
+      "ok": true
+    },
+    {
+      "name": "Orren appears as the selected playable model in siege",
+      "ok": true,
+      "detail": {
+        "champion": "orren",
+        "skin": "rootbound",
+        "pose": "held",
+        "pos": [
+          0,
+          0,
+          7.5
+        ],
+        "t": 9.580869467764845,
+        "time": 114.87909999942384
+      }
+    },
+    {
+      "name": "Orren arrow movement and rig animation work in siege",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          7.5
+        ],
+        "after": [
+          5.4045000000000005,
+          0,
+          7.5
+        ]
+      }
+    },
+    {
+      "name": "Orren casting action works in siege",
+      "ok": true
+    },
+    {
+      "name": "Orren appears as the selected playable model in hoops",
+      "ok": true,
+      "detail": {
+        "champion": "orren",
+        "skin": "rootbound",
+        "pose": "stowed",
+        "pos": [
+          0,
+          0,
+          5.4
+        ],
+        "t": 9.215785284641678,
+        "time": 121.25339999913723
+      }
+    },
+    {
+      "name": "Orren arrow movement and rig animation work in hoops",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          5.4
+        ],
+        "after": [
+          2.795080507418173,
+          0,
+          5.01664274489084
+        ]
+      }
+    },
+    {
+      "name": "Orren casting action works in hoops",
+      "ok": true
+    },
+    {
+      "name": "Orren appears as the selected playable model in kart",
+      "ok": true,
+      "detail": {
+        "champion": "orren",
+        "skin": "rootbound",
+        "pose": "stowed",
+        "pos": [
+          -82.13199127612552,
+          0,
+          80.84533960920842
+        ],
+        "t": 11.031391299580122,
+        "time": 134.59339999913658
+      }
+    },
+    {
+      "name": "Orren arrow movement and rig animation work in kart",
+      "ok": true,
+      "detail": {
+        "before": [
+          -82.13199127612552,
+          0,
+          80.84533960920842
+        ],
+        "after": [
+          -78.81447348969402,
+          0,
+          84.15704423248388
+        ]
+      }
+    },
+    {
+      "name": "Orren casting action works in kart",
+      "ok": true
+    },
+    {
+      "name": "Orren appears as the selected playable model in brawl",
+      "ok": true,
+      "detail": {
+        "champion": "orren",
+        "skin": "rootbound",
+        "pose": "stowed",
+        "pos": [
+          -7,
+          0,
+          0
+        ],
+        "t": 10.172182398399714,
+        "time": 143.4123999993751
+      }
+    },
+    {
+      "name": "Orren arrow movement and rig animation work in brawl",
+      "ok": true,
+      "detail": {
+        "before": [
+          -7,
+          0,
+          0
+        ],
+        "after": [
+          -2.7583848562692226,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Orren casting action works in brawl",
+      "ok": true
+    },
+    {
+      "name": "Orren appears as the selected playable model in duel",
+      "ok": true,
+      "detail": {
+        "champion": "orren",
+        "skin": "rootbound",
+        "pose": "stowed",
+        "pos": [
+          -4.2,
+          0,
+          0
+        ],
+        "t": 7.656310206520792,
+        "time": 149.93559999942292
+      }
+    },
+    {
+      "name": "Orren arrow movement and rig animation work in duel",
+      "ok": true,
+      "detail": {
+        "before": [
+          -4.2,
+          0,
+          0
+        ],
+        "after": [
+          -1.4766800946622618,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Orren casting action works in duel",
+      "ok": true
+    },
+    {
+      "name": "Serai skin 1 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Serai skin 2 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Serai skin 3 creates matching model identity",
+      "ok": true
+    },
+    {
+      "name": "Serai war dance starts",
+      "ok": true
+    },
+    {
+      "name": "Serai war dance returns to idle",
+      "ok": true
+    },
+    {
+      "name": "Serai appears as the selected playable model in moba",
+      "ok": true,
+      "detail": {
+        "champion": "serai",
+        "skin": "tidecaller",
+        "pose": "held",
+        "pos": [
+          -42.5,
+          0,
+          0
+        ],
+        "t": 9.6796986319227,
+        "time": 162.3098999991373
+      }
+    },
+    {
+      "name": "Serai arrow movement and rig animation work in moba",
+      "ok": true,
+      "detail": {
+        "before": [
+          -42.5,
+          0,
+          0
+        ],
+        "after": [
+          -38.18659999966622,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Serai casting action works in moba",
+      "ok": true
+    },
+    {
+      "name": "Serai appears as the selected playable model in arena",
+      "ok": true,
+      "detail": {
+        "champion": "serai",
+        "skin": "tidecaller",
+        "pose": "held",
+        "pos": [
+          0,
+          0,
+          0
+        ],
+        "t": 2.7065255718167607,
+        "time": 166.53319999885136
+      }
+    },
+    {
+      "name": "Serai arrow movement and rig animation work in arena",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          5.549400001287459,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Serai casting action works in arena",
+      "ok": true
+    },
+    {
+      "name": "Serai appears as the selected playable model in siege",
+      "ok": true,
+      "detail": {
+        "champion": "serai",
+        "skin": "tidecaller",
+        "pose": "held",
+        "pos": [
+          0,
+          0,
+          7.5
+        ],
+        "t": 4.651054202423341,
+        "time": 171.97699999904242
+      }
+    },
+    {
+      "name": "Serai arrow movement and rig animation work in siege",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          7.5
+        ],
+        "after": [
+          5.242499999999999,
+          0,
+          7.5
+        ]
+      }
+    },
+    {
+      "name": "Serai casting action works in siege",
+      "ok": true
+    },
+    {
+      "name": "Serai appears as the selected playable model in hoops",
+      "ok": true,
+      "detail": {
+        "champion": "serai",
+        "skin": "tidecaller",
+        "pose": "stowed",
+        "pos": [
+          0,
+          0,
+          5.4
+        ],
+        "t": 9.044408194424449,
+        "time": 177.62619999885177
+      }
+    },
+    {
+      "name": "Serai arrow movement and rig animation work in hoops",
+      "ok": true,
+      "detail": {
+        "before": [
+          0,
+          0,
+          5.4
+        ],
+        "after": [
+          2.784114953264963,
+          0,
+          5.012601950656952
+        ]
+      }
+    },
+    {
+      "name": "Serai casting action works in hoops",
+      "ok": true
+    },
+    {
+      "name": "Serai appears as the selected playable model in kart",
+      "ok": true,
+      "detail": {
+        "champion": "serai",
+        "skin": "tidecaller",
+        "pose": "stowed",
+        "pos": [
+          -82.13199127612552,
+          0,
+          80.84533960920842
+        ],
+        "t": 12.571070243390109,
+        "time": 184.83389999889985
+      }
+    },
+    {
+      "name": "Serai arrow movement and rig animation work in kart",
+      "ok": true,
+      "detail": {
+        "before": [
+          -82.13199127612552,
+          0,
+          80.84533960920842
+        ],
+        "after": [
+          -78.82446741136307,
+          0,
+          84.14706782279247
+        ]
+      }
+    },
+    {
+      "name": "Serai casting action works in kart",
+      "ok": true
+    },
+    {
+      "name": "Serai appears as the selected playable model in brawl",
+      "ok": true,
+      "detail": {
+        "champion": "serai",
+        "skin": "tidecaller",
+        "pose": "stowed",
+        "pos": [
+          -7,
+          0,
+          0
+        ],
+        "t": 12.017219533088875,
+        "time": 193.80009999894784
+      }
+    },
+    {
+      "name": "Serai arrow movement and rig animation work in brawl",
+      "ok": true,
+      "detail": {
+        "before": [
+          -7,
+          0,
+          0
+        ],
+        "after": [
+          -2.4768942865663086,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Serai casting action works in brawl",
+      "ok": true
+    },
+    {
+      "name": "Serai appears as the selected playable model in duel",
+      "ok": true,
+      "detail": {
+        "champion": "serai",
+        "skin": "tidecaller",
+        "pose": "stowed",
+        "pos": [
+          -4.2,
+          0,
+          0
+        ],
+        "t": 3.949260750092397,
+        "time": 200.72389999866184
+      }
+    },
+    {
+      "name": "Serai arrow movement and rig animation work in duel",
+      "ok": true,
+      "detail": {
+        "before": [
+          -4.2,
+          0,
+          0
+        ],
+        "after": [
+          -1.7841800130312322,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Serai casting action works in duel",
+      "ok": true
+    },
+    {
+      "name": "3D preview and selection remain available at 900px",
+      "ok": true
+    },
+    {
+      "name": "3D preview and selection remain available at 390px",
+      "ok": true
+    },
+    {
+      "name": "No browser errors during model and gameplay checks",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "gameplayFrameSamples": [
+    {
+      "champion": "caelan",
+      "game": "moba",
+      "frames": 51,
+      "medianMs": 16.5,
+      "p95Ms": 17.5,
+      "geometries": 529
+    },
+    {
+      "champion": "caelan",
+      "game": "arena",
+      "frames": 40,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 17.40000009536743,
+      "geometries": 157
+    },
+    {
+      "champion": "caelan",
+      "game": "siege",
+      "frames": 40,
+      "medianMs": 16.700000047683716,
+      "p95Ms": 17.199999809265137,
+      "geometries": 271
+    },
+    {
+      "champion": "caelan",
+      "game": "hoops",
+      "frames": 52,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 17.799999952316284,
+      "geometries": 194
+    },
+    {
+      "champion": "caelan",
+      "game": "kart",
+      "frames": 49,
+      "medianMs": 16.699999809265137,
+      "p95Ms": 17.5,
+      "geometries": 319
+    },
+    {
+      "champion": "caelan",
+      "game": "brawl",
+      "frames": 43,
+      "medianMs": 16.700000047683716,
+      "p95Ms": 18.799999952316284,
+      "geometries": 311
+    },
+    {
+      "champion": "caelan",
+      "game": "duel",
+      "frames": 87,
+      "medianMs": 16.59999990463257,
+      "p95Ms": 18.199999809265137,
+      "geometries": 221
+    },
+    {
+      "champion": "nyra",
+      "game": "moba",
+      "frames": 42,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 17.5,
+      "geometries": 532
+    },
+    {
+      "champion": "nyra",
+      "game": "arena",
+      "frames": 51,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 18.399999856948853,
+      "geometries": 160
+    },
+    {
+      "champion": "nyra",
+      "game": "siege",
+      "frames": 43,
+      "medianMs": 16.699999809265137,
+      "p95Ms": 17.299999952316284,
+      "geometries": 294
+    },
+    {
+      "champion": "nyra",
+      "game": "hoops",
+      "frames": 53,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 17.899999856948853,
+      "geometries": 198
+    },
+    {
+      "champion": "nyra",
+      "game": "kart",
+      "frames": 54,
+      "medianMs": 16.700000047683716,
+      "p95Ms": 17.59999990463257,
+      "geometries": 323
+    },
+    {
+      "champion": "nyra",
+      "game": "brawl",
+      "frames": 54,
+      "medianMs": 16.59999990463257,
+      "p95Ms": 18.90000009536743,
+      "geometries": 316
+    },
+    {
+      "champion": "nyra",
+      "game": "duel",
+      "frames": 47,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 17.700000047683716,
+      "geometries": 225
+    },
+    {
+      "champion": "orren",
+      "game": "moba",
+      "frames": 42,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 17.600000143051147,
+      "geometries": 519
+    },
+    {
+      "champion": "orren",
+      "game": "arena",
+      "frames": 47,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 17.90000009536743,
+      "geometries": 139
+    },
+    {
+      "champion": "orren",
+      "game": "siege",
+      "frames": 48,
+      "medianMs": 16.700000047683716,
+      "p95Ms": 17.899999856948853,
+      "geometries": 269
+    },
+    {
+      "champion": "orren",
+      "game": "hoops",
+      "frames": 48,
+      "medianMs": 16.5,
+      "p95Ms": 19.09999990463257,
+      "geometries": 176
+    },
+    {
+      "champion": "orren",
+      "game": "kart",
+      "frames": 47,
+      "medianMs": 16.700000047683716,
+      "p95Ms": 17.799999952316284,
+      "geometries": 302
+    },
+    {
+      "champion": "orren",
+      "game": "brawl",
+      "frames": 42,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 18.90000009536743,
+      "geometries": 292
+    },
+    {
+      "champion": "orren",
+      "game": "duel",
+      "frames": 64,
+      "medianMs": 16.699999809265137,
+      "p95Ms": 19.299999952316284,
+      "geometries": 203
+    },
+    {
+      "champion": "serai",
+      "game": "moba",
+      "frames": 53,
+      "medianMs": 16.700000047683716,
+      "p95Ms": 17.5,
+      "geometries": 539
+    },
+    {
+      "champion": "serai",
+      "game": "arena",
+      "frames": 44,
+      "medianMs": 16.699999809265137,
+      "p95Ms": 17.700000047683716,
+      "geometries": 173
+    },
+    {
+      "champion": "serai",
+      "game": "siege",
+      "frames": 44,
+      "medianMs": 16.699999809265137,
+      "p95Ms": 17.40000009536743,
+      "geometries": 301
+    },
+    {
+      "champion": "serai",
+      "game": "hoops",
+      "frames": 51,
+      "medianMs": 16.700000047683716,
+      "p95Ms": 20.799999952316284,
+      "geometries": 211
+    },
+    {
+      "champion": "serai",
+      "game": "kart",
+      "frames": 42,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 17.5,
+      "geometries": 332
+    },
+    {
+      "champion": "serai",
+      "game": "brawl",
+      "frames": 52,
+      "medianMs": 16.700000047683716,
+      "p95Ms": 17.299999952316284,
+      "geometries": 329
+    },
+    {
+      "champion": "serai",
+      "game": "duel",
+      "frames": 46,
+      "medianMs": 16.600000143051147,
+      "p95Ms": 18.200000047683716,
+      "geometries": 239
+    }
+  ]
+}

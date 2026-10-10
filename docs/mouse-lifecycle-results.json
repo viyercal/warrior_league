@@ -1,0 +1,58 @@
+{
+  "base": "http://127.0.0.1:5189",
+  "checks": [
+    {
+      "name": "arena order exists before blur",
+      "ok": true
+    },
+    {
+      "name": "arena blur cancels and pauses",
+      "ok": true
+    },
+    {
+      "name": "arena paused sensitivity applies without movement order",
+      "ok": true
+    },
+    {
+      "name": "arena result cancels destination",
+      "ok": true
+    },
+    {
+      "name": "siege order exists before blur",
+      "ok": true
+    },
+    {
+      "name": "siege blur cancels and pauses",
+      "ok": true
+    },
+    {
+      "name": "siege paused sensitivity applies without movement order",
+      "ok": true
+    },
+    {
+      "name": "siege result cancels destination",
+      "ok": true
+    },
+    {
+      "name": "hoops order exists before blur",
+      "ok": true
+    },
+    {
+      "name": "hoops blur cancels and pauses",
+      "ok": true
+    },
+    {
+      "name": "hoops paused sensitivity applies without movement order",
+      "ok": true
+    },
+    {
+      "name": "hoops result cancels destination",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true
+    }
+  ],
+  "errors": []
+}

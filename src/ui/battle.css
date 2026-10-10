@@ -1,0 +1,230 @@
+/* One quiet, legible field interface across the seven battlegrounds. */
+#ui.battle-ui {
+  --field: #101614ed;
+  --field-line: #c9b48d45;
+  --field-text: #e4dfd0;
+  --field-muted: #b7b8aa;
+  --field-gold: #cbb28a;
+  font-family: var(--font-controls);
+}
+#ui.battle-ui::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(#080e1166, transparent 18%, transparent 72%, #080e1173);
+}
+
+/* Announcements leave the action readable underneath. */
+#ui.battle-ui .big-banner { top: 19%; width: min(760px, 82vw); }
+#ui.battle-ui .banner-main { font: 400 clamp(23px, 3.1vw, 42px)/1.15 Georgia, serif; letter-spacing: .07em; text-shadow: 0 3px 18px #000; -webkit-text-stroke: 0; }
+#ui.battle-ui .banner-sub { font: 10px/1.6 var(--font-controls); letter-spacing: .15em; margin-top: 12px; }
+#ui.battle-ui .banner-orn { width: 32px; opacity: .6; }
+
+/* Art icons and cooldowns keep their game-specific colors and state. */
+#ui.battle-ui .ability-bar { --slot-w: 80px; --slot-gap: 8px; bottom: 22px; }
+#ui.battle-ui .ability-slot {
+  height: 78px; padding: 8px 0 16px; clip-path: none; border-radius: 3px;
+  background: linear-gradient(145deg, #29302bd9, #101713ef);
+  border: 1px solid var(--field-line); border-top-color: #d3bc9270;
+  filter: none; box-shadow: 0 5px 18px #0003; overflow: hidden;
+}
+#ui.battle-ui .ability-slot::before { display: none; }
+#ui.battle-ui .ability-icon { font-size: 28px; filter: none; color: color-mix(in srgb, var(--skill-color) 65%, #d5c8af); }
+#ui.battle-ui .key-badge { top: 4px; left: 7px; transform: none; clip-path: none; background: none; box-shadow: none; color: #e0d3b9; font: 10px var(--font-controls); padding: 0; text-shadow: none; }
+#ui.battle-ui .ability-name { position: absolute; bottom: 7px; left: 3px; right: 3px; color: #d0cfbf; text-align: center; font: 8px/1.25 var(--font-controls); }
+#ui.battle-ui .cd-sweep { clip-path: none; background: linear-gradient(to top, #050b0ccf calc(var(--cd) * 100%), transparent calc(var(--cd) * 100%)); }
+#ui.battle-ui .cd-text { padding: 0 0 14px; font: 24px Georgia, serif; color: #f1e7d2; text-shadow: 0 2px 8px #000; }
+#ui.battle-ui .ability-slot.on-cd .ability-icon { filter: grayscale(.8); opacity: .28; }
+#ui.battle-ui .ability-slot.active { border-color: var(--skill-color); box-shadow: inset 0 -3px var(--skill-color), 0 0 12px #d9b07122; }
+#ui.battle-ui .ability-slot.cast-flash { animation: field-cast .35s ease-out; }
+@keyframes field-cast { from { background-color: #bbaa73; border-color: #f4dba4; transform: translateY(-4px); } }
+#ui.battle-ui .ability-tip { clip-path: none; background: var(--field); color: var(--field-text); border: 1px solid var(--field-line); filter: none; font: 12px/1.5 var(--font-controls); }
+#ui.battle-ui .ability-tip b { color: var(--field-gold); text-shadow: none; font: 17px Georgia, serif; letter-spacing: 0; }
+#ui.battle-ui .ability-tip i { color: var(--field-muted); }
+
+/* Resource information, with clean fills and a restrained damage trail. */
+#ui.battle-ui .stat-bar { filter: none; max-width: calc(28vw - 70px); }
+#ui.battle-ui .stat-bar-label { font: 10px var(--font-controls); color: #e0daca; letter-spacing: .13em; text-shadow: 0 2px 5px #000; margin-bottom: 7px; }
+#ui.battle-ui .stat-bar-track { height: 14px; clip-path: none; border: 1px solid #ccbb9140; background: #101713d9; box-shadow: none; border-radius: 2px; }
+#ui.battle-ui .stat-bar-fill { background: linear-gradient(90deg, color-mix(in srgb, var(--bar-color) 60%, #293029), color-mix(in srgb, var(--bar-color) 50%, #d4c9a8)); box-shadow: none; }
+#ui.battle-ui .stat-bar-text { font: 10px var(--font-controls); letter-spacing: .04em; }
+#ui.battle-ui :is(.stat-bar-cap, .stat-bar-fill::after, .stat-bar-track::after) { display: none; }
+#ui.battle-ui .stat-bar-ghost { background: #d4bda36b; }
+
+/* Compact controls can be opened without leaving the match. */
+#ui.battle-ui .hint-box { right: 22px; bottom: 80px; max-width: min(380px, calc(100vw - 32px)); max-height: calc(100vh - 180px); overflow: auto; pointer-events: auto; border-radius: 3px; box-shadow: 0 12px 35px #0004; }
+#ui.battle-ui .hint-box[hidden] { display: none; }
+#ui.battle-ui:is(.arena-cine-on, .hoops-cine-mode, .siege-cinema, .moba-cinemode) :is(.battle-help-toggle, .hint-box, .ability-bar),
+#ui.battle-ui:has(.hint-box.brawl-ui-hide, .hint-box.kart-chrome-hide, .duel-cine.on) :is(.battle-help-toggle, .hint-box, .ability-bar) { visibility: hidden; pointer-events: none; }
+#ui.battle-ui .hint-row { font-size: 11px; gap: 13px; margin-top: 8px; }
+#ui.battle-ui .hint-key { flex: none; min-width: 48px; text-align: center; }
+#ui.battle-ui .battle-help-toggle {
+  position: absolute; right: 148px; bottom: 22px; z-index: 20; display: flex; align-items: center; gap: 9px;
+  height: 40px; padding: 10px 12px; color: #d7cfbb; background: #111815de; border: 1px solid var(--field-line);
+  clip-path: none; border-radius: 3px; box-shadow: none; filter: none; font: 11px var(--font-controls); letter-spacing: .02em; text-shadow: none;
+}
+#ui.battle-ui .battle-help-toggle::before, #ui.battle-ui .battle-help-toggle::after { display: none; }
+#ui.battle-ui .battle-help-toggle kbd { font: 10px var(--font-controls); padding: 2px 4px; border: 1px solid #bda88455; }
+#ui.battle-ui .battle-help-toggle:hover, #ui.battle-ui .battle-help-toggle[aria-expanded="true"] { background: #31382b; border-color: #cbb28a; transform: none; }
+body .session-menu[data-scene] { right: 22px; left: auto; bottom: 22px; height: 40px; border-radius: 3px; background: #111815de; }
+
+/* Match readouts keep their familiar positions; decoration recedes. */
+#ui.battle-ui :is(.ui-panel, .moba-clock, .moba-foeplate, .arena-score, .kart-top, .siege-wave, .siege-gold, .hs-team, .hs-mid, .duel-timer, .duel-chip) {
+  background: var(--field); border: 1px solid var(--field-line); clip-path: none; border-radius: 3px; box-shadow: 0 5px 18px #0002; filter: none; text-shadow: none;
+}
+#ui.battle-ui :is(.ui-panel, .moba-foeplate, .arena-score, .kart-top, .siege-wave, .siege-gold, .hs-team, .hs-mid, .duel-chip)::before { display: none; }
+#ui.battle-ui :is(.moba-stat span, .moba-foe-name, .arena-score span, .kart-lap, .siege-wave-num, .hs-name, .duel-nameplate, .duel-chip-name) { font: 11px/1.4 var(--font-controls); letter-spacing: .11em; color: var(--field-text); text-shadow: none; }
+#ui.battle-ui :is(.moba-stat b, .arena-score b, .siege-gold b, .hs-pts) { font: 28px/1.1 Georgia, serif; color: var(--field-text); text-shadow: none; }
+#ui.battle-ui :is(.moba-clock, .kart-clock, .hs-clock) { font: 18px/1.3 var(--font-controls); letter-spacing: .06em; text-shadow: none; }
+#ui.battle-ui :is(.moba-foe-sigil, .duel-sigil, .duel-chip-sigil) { background: #c7aa7740; border: 1px solid #c7aa7760; color: #e6d5b1; clip-path: none; box-shadow: none; filter: none; border-radius: 2px; }
+#ui.battle-ui .moba-level { background: #172019eb; border: 1px solid #baa07877; box-shadow: none; font: 26px Georgia, serif; }
+#ui.battle-ui .moba-level::after { display: none; }
+#ui.battle-ui .moba-minimap { bottom: 82px; padding: 5px; }
+#ui.battle-ui .moba-minimap-frame { clip-path: none; background: #101713e6; border: 1px solid #b09a7866; border-radius: 3px; }
+#ui.battle-ui .moba-minimap-frame::before, #ui.battle-ui .moba-minimap-frame::after { display: none; }
+#ui.battle-ui[data-scene="moba"] .hint-box { bottom: 218px !important; }
+
+/* The Crucible: fine health rails, clear clock and subdued tower progress. */
+#ui.battle-ui .duel-top { top: 28px; gap: 22px; }
+#ui.battle-ui .duel-blade { height: 12px; margin-top: 10px; }
+#ui.battle-ui .duel-hp { clip-path: none; border: 1px solid #d6c19b55; border-radius: 2px; background: #171a17d9; box-shadow: none; }
+#ui.battle-ui .duel-hpfill { background: linear-gradient(90deg, #846847, #ceb48a); box-shadow: none; }
+#ui.battle-ui .duel-right .duel-hpfill { background: linear-gradient(90deg, #ae6660, #673d38); }
+#ui.battle-ui .duel-hpghost { background: #dbcab966; }
+#ui.battle-ui :is(.duel-hpcap, .duel-hpticks, .duel-blade::before, .duel-timer-finial) { display: none; }
+#ui.battle-ui .duel-timer { min-width: 70px; font: 36px/1 Georgia, serif; padding: 9px 12px; }
+#ui.battle-ui .duel-pip { width: 6px; height: 6px; border: 1px solid #b9a38177; box-shadow: none; background: #111; }
+#ui.battle-ui .duel-pip.on { background: #d7be8e; box-shadow: 0 0 6px #c6a46045; }
+#ui.battle-ui .duel-chip { padding: 7px 10px; opacity: .65; }
+#ui.battle-ui .duel-chip.current { border-color: #c8ac7e; opacity: 1; }
+#ui.battle-ui .duel-chip.done { opacity: .35; }
+#ui.battle-ui .duel-tower { top: 115px; }
+#ui.battle-ui .duel-meter { bottom: 114px; }
+#ui.battle-ui .duel-meter-seg { height: 5px; clip-path: none; background: #101713a6; border: 1px solid #b89c634f; box-shadow: none; }
+#ui.battle-ui .duel-meter-seg i { background: #c4a777; box-shadow: none; }
+#ui.battle-ui .duel-meter-label { font: 9px var(--font-controls); letter-spacing: .1em; color: #cbb99a; text-shadow: none; }
+
+/* Court, survival and defense readouts. */
+#ui.battle-ui .hoops-score { top: 24px; gap: 0; filter: none; }
+#ui.battle-ui .hs-team { padding: 10px 18px; gap: 18px; }
+#ui.battle-ui .hs-mid { min-width: 68px; border-left: 0; border-right: 0; border-radius: 0; }
+#ui.battle-ui .hs-clock-tag { background: none; clip-path: none; box-shadow: none; }
+#ui.battle-ui .hs-name { max-width: 110px; }
+#ui.battle-ui .arena-wave { background: #111813b8; padding: 12px 24px; color: #d8c8a7; font: 13px var(--font-controls); letter-spacing: .16em; border-bottom: 1px solid #b39b7055; }
+#ui.battle-ui .arena-wave::before, #ui.battle-ui .arena-wave::after { display: none; }
+#ui.battle-ui :is(.arena-boss-track, .siege-boss-track, .siege-citadel-track) { height: 12px; clip-path: none; box-shadow: none; border: 1px solid #b6a17c55; background: #111813d9; }
+#ui.battle-ui :is(.arena-boss-fill, .siege-boss-fill) { background: #984d47; box-shadow: none; }
+#ui.battle-ui .siege-citadel-fill { background: linear-gradient(90deg, #7e795d, #c2b087); box-shadow: none; }
+#ui.battle-ui :is(.siege-citadel-label, .arena-boss-name, .siege-boss-name) { font: 11px var(--font-controls); letter-spacing: .13em; color: #e2d5bd; text-shadow: 0 2px 5px #000; }
+#ui.battle-ui .siege-citadel-text { font: 10px var(--font-controls); letter-spacing: .03em; }
+#ui.battle-ui .siege-cit-finial { display: none; }
+#ui.battle-ui .siege-citadel { width: min(38vw, 500px); top: 25px; }
+#ui.battle-ui :is(.siege-wave-sub, .kart-boost span, .kart-dmg span) { font: 10px var(--font-controls); color: #c8c6b6; letter-spacing: .08em; text-shadow: none; }
+
+/* Chariots: a compact race instrument cluster. */
+#ui.battle-ui .kart-pos { width: 86px; height: 75px; background: var(--field); border: 1px solid var(--field-line); border-radius: 3px; box-shadow: none; filter: none; }
+#ui.battle-ui .kp-ring { display: none; }
+#ui.battle-ui .kart-pos b { font: 40px Georgia, serif; color: #e0cfac; text-shadow: none; }
+#ui.battle-ui .kart-pos .kp-of { color: #abae9f; text-shadow: none; font: 13px var(--font-controls); }
+#ui.battle-ui .kart-cluster { width: min(23vw, 280px); }
+#ui.battle-ui :is(.kart-boost-track, .kart-dmg-track) { clip-path: none; background: #121713d9; box-shadow: none; border: 1px solid #b9a17d44; height: 7px; }
+#ui.battle-ui .kart-boost-fill { background: #c1a275; box-shadow: none; }
+#ui.battle-ui .kart-boost::after, #ui.battle-ui .kart-boost-fill::after { display: none; }
+#ui.battle-ui .kart-speed { font: 42px/1 Georgia, serif; text-shadow: 0 2px 8px #0008; }
+#ui.battle-ui .kart-speed i { font: 10px var(--font-controls); margin-left: 7px; }
+#ui.battle-ui .kart-minimap { bottom: 82px; background: #101713b8; border: 1px solid #bda88355; border-radius: 3px; padding: 5px; }
+#ui.battle-ui .kart-minimap::before, #ui.battle-ui .kart-minimap::after { display: none; }
+#ui.battle-ui[data-scene="kart"] .hint-box { bottom: 278px; }
+
+/* Brawler identities: less armor around the information itself. */
+#ui.battle-ui .brawl-chips { bottom: 115px; gap: 9px; }
+#ui.battle-ui[data-scene="brawl"] .ability-bar { bottom: 22px !important; }
+#ui.battle-ui .brawl-chip { min-width: 112px; border: 1px solid #ad9a7640; border-top: 2px solid var(--fc); border-radius: 3px; background: var(--field); }
+#ui.battle-ui .brawl-chip::before, #ui.battle-ui .brawl-chip::after { display: none; }
+#ui.battle-ui .brawl-chip-face { clip-path: none; background: none; margin: 0; padding: 10px 12px; }
+#ui.battle-ui .brawl-chip-name { font: 10px var(--font-controls); letter-spacing: .08em; text-shadow: none; }
+#ui.battle-ui .brawl-pct { font: 30px/1.2 Georgia, serif; text-shadow: none; }
+#ui.battle-ui .brawl-pip { width: 5px; height: 5px; box-shadow: none; background: #434b42; }
+#ui.battle-ui .brawl-pip.on { background: #d9c39a; box-shadow: none; }
+
+/* The result card follows the same calm field palette. */
+#ui.battle-ui :is(.arena-end, .siege-end, .moba-end, .duel-panel, .hoops-panel, .kart-finish, .brawl-results) { background: #121a17f5; border: 1px solid #c5ae795c; clip-path: none; border-radius: 4px; box-shadow: 0 25px 90px #0007; max-width: calc(100vw - 32px); max-height: calc(100vh - 48px); overflow: auto; }
+#ui.battle-ui :is(.arena-end, .siege-end, .moba-end, .duel-panel, .hoops-panel, .kart-finish, .brawl-results)::before { display: none; }
+#ui.battle-ui :is(.arena-end, .siege-end, .moba-end, .duel-panel, .hoops-panel, .brawl-results) { top: auto; bottom: 116px; max-height: calc(100vh - 190px); }
+#ui.battle-ui:has(.arena-end, .siege-end, .moba-end, .duel-panel, .hoops-panel, .kart-finish, .brawl-results) :is(.ability-bar, .battle-help-toggle, .hint-box) { visibility: hidden; pointer-events: none; }
+body:has(#ui.battle-ui :is(.arena-end, .siege-end, .moba-end, .duel-panel, .hoops-panel, .kart-finish, .brawl-results)) .session-menu { bottom: 22px; }
+#ui.battle-ui :is(.arena-end-title, .siege-end-title, .moba-end-title, .duel-panel-title, .hoops-panel-title, .kart-finish-title, .brawl-results-title) { font-family: Georgia, serif; font-weight: 400; letter-spacing: .04em; text-shadow: none; color: #e0cfac; }
+#ui.battle-ui :is(.arena-end-ledger, .siege-stats, .moba-end-grid, .hoops-panel-stats, .kart-finish-list, .kart-finish-stats, .brawl-results-table) { background: #ffffff04; border-color: #bfab7e40; clip-path: none; box-shadow: none; color: #ded6c2; }
+#ui.battle-ui :is(.arena-stat-label, .siege-stat-label, .moba-end-stat span, .kart-stat span, .brawl-results-head) { color: #b7b8a8; text-shadow: none; }
+#ui.battle-ui :is(.arena-stat-val, .siege-stat-value, .moba-end-stat b, .kart-stat b, .kart-finish-row .kn, .kart-finish-row .kt, .brawl-results-row) { color: #e2dac9; text-shadow: none; }
+#ui.battle-ui .ui-interactive button { clip-path: none; border-radius: 3px; background: #cfb88c; color: #182018; border: 1px solid #dfc99d; font: 11px var(--font-controls); letter-spacing: .07em; text-shadow: none; filter: none; box-shadow: none; }
+#ui.battle-ui .ui-interactive button::before, #ui.battle-ui .ui-interactive button::after { display: none; }
+#ui.battle-ui .ui-interactive button:hover { background: #ead2a7; transform: none; }
+#ui.battle-ui .ui-interactive button.ghost, #ui.battle-ui .ui-interactive .duel-btn-ghost { background: transparent; color: #d7c6a5; }
+
+@media (max-width: 1000px) {
+  #ui.battle-ui .ability-bar { --slot-w: 68px; --slot-gap: 6px; }
+  #ui.battle-ui .ability-slot { height: 72px; }
+  #ui.battle-ui .battle-help-toggle { right: 138px; }
+  #ui.battle-ui .duel-hpwrap { width: 35vw; }
+  #ui.battle-ui .brawl-chip { min-width: 100px; }
+  #ui.battle-ui .siege-wave { max-width: 26vw; }
+}
+@media (min-width: 601px) and (max-width: 800px) {
+  #ui.battle-ui .battle-help-toggle { left: 14px; right: auto; bottom: 210px; }
+  body .session-menu[data-scene] { right: 14px; bottom: 210px; }
+  #ui.battle-ui .hint-box { bottom: 263px !important; }
+  #ui.battle-ui :is(.moba-minimap, .kart-minimap) { bottom: 270px; }
+}
+@media (max-width: 600px) {
+  #ui.battle-ui .ability-bar { --slot-w: 66px; bottom: 16px; }
+  #ui.battle-ui .stat-bar { max-width: 44vw; left: 16px !important; bottom: 118px !important; }
+  #ui.battle-ui[data-scene="moba"] .stat-bar { left: 75px !important; max-width: 48vw; }
+  #ui.battle-ui[data-scene="moba"] .moba-health { bottom: 158px !important; }
+  #ui.battle-ui .moba-level { bottom: 118px; left: 14px; }
+  #ui.battle-ui .battle-help-toggle { left: 14px; right: auto; bottom: 210px; }
+  body .session-menu[data-scene] { right: 14px; bottom: 210px; }
+  #ui.battle-ui .hint-box, #ui.battle-ui[data-scene="moba"] .hint-box, #ui.battle-ui[data-scene="kart"] .hint-box { bottom: 263px !important; right: 14px; max-height: calc(100vh - 340px); }
+  #ui.battle-ui .moba-minimap { bottom: auto; top: 105px; right: 12px; }
+  #ui.battle-ui .moba-minimap canvas { width: 145px; height: auto; }
+  #ui.battle-ui .moba-clock { top: 76px; }
+  #ui.battle-ui .moba-stats { right: 12px; gap: 10px; padding: 8px; }
+  #ui.battle-ui .moba-foeplate { left: 12px; max-width: 42vw; }
+  #ui.battle-ui .moba-foe-name { font-size: 9px; }
+  #ui.battle-ui .duel-top { top: 20px; gap: 10px; }
+  #ui.battle-ui .duel-hpwrap { width: 34vw; }
+  #ui.battle-ui .duel-timer { min-width: 46px; font-size: 28px; padding: 8px; }
+  #ui.battle-ui .duel-nameplate { font-size: 9px; gap: 5px; letter-spacing: .04em; }
+  #ui.battle-ui .duel-tower { right: 14px; top: 106px; }
+  #ui.battle-ui .duel-chip { padding: 4px 6px; }
+  #ui.battle-ui .duel-chip-name { font-size: 9px; }
+  #ui.battle-ui .duel-meter { bottom: 117px; }
+  #ui.battle-ui .duel-meter-seg { width: 30px; }
+  #ui.battle-ui .hoops-score { width: calc(100vw - 24px); justify-content: center; }
+  #ui.battle-ui .hs-team { min-width: 0; gap: 7px; padding: 10px; }
+  #ui.battle-ui .hs-name { font-size: 9px; letter-spacing: .02em; max-width: 70px; }
+  #ui.battle-ui .hs-mid { min-width: 50px; padding: 5px; }
+  #ui.battle-ui .arena-wave { max-width: 58vw; padding: 10px; font-size: 10px; }
+  #ui.battle-ui .arena-score { padding: 8px 14px; }
+  #ui.battle-ui .arena-heat { bottom: 116px; left: auto; right: 22px; }
+  #ui.battle-ui .siege-citadel { top: 100px; width: calc(100vw - 48px); }
+  #ui.battle-ui .siege-wave { max-width: 60vw; }
+  #ui.battle-ui .kart-cluster { bottom: 112px; left: 16px; width: 43vw; }
+  #ui.battle-ui .kart-speed { font-size: 30px; }
+  #ui.battle-ui .kart-minimap { top: 130px; bottom: auto; right: 12px; }
+  #ui.battle-ui .kart-minimap canvas { width: 115px; height: 115px; }
+  #ui.battle-ui .kart-top { left: 16px; transform: none; padding: 9px 16px; }
+  #ui.battle-ui .kart-pos { right: 14px; }
+  #ui.battle-ui .brawl-chips { width: calc(100vw - 28px); gap: 5px; bottom: 112px; }
+  #ui.battle-ui .brawl-chip { flex: 1; min-width: 0; }
+  #ui.battle-ui .brawl-chip-face { padding: 7px 3px; }
+  #ui.battle-ui .brawl-chip-name { font-size: 8px; letter-spacing: 0; overflow-wrap: anywhere; }
+  #ui.battle-ui .brawl-pct { font-size: 25px; }
+  #ui.battle-ui .brawl-dot { display: none; }
+  #ui.battle-ui .brawl-results { padding: 18px 12px; }
+  #ui.battle-ui .brawl-results-table { padding: 8px 4px; }
+  #ui.battle-ui .brawl-results-row { grid-template-columns: minmax(86px, 1fr) 24px 32px 38px 30px 52px; padding: 7px 3px; font: 10px var(--font-controls); letter-spacing: 0; }
+  #ui.battle-ui .brawl-results-head { font-size: 8px; }
+  #ui.battle-ui .brawl-results-name { gap: 4px; font-size: 9px; overflow: hidden; }
+  #ui.battle-ui .brawl-laurel { display: none; }
+  #ui.battle-ui .brawl-results-fav { font-size: 8px; }
+  #ui.battle-ui .ability-tip { left: 50%; width: min(270px, calc(100vw - 40px)); }
+}

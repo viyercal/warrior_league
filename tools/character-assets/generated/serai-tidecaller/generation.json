@@ -1,0 +1,13 @@
+{
+  "provider": "https://huggingface.co/spaces/microsoft/TRELLIS.2",
+  "input": "tools/character-assets/production-references/serai-tidecaller.png",
+  "inputSha256": "db399fdb89d13aa3a3739c1fa6e97133648b03c95bbe058f55ae28d024bd2800",
+  "resolution": "1536",
+  "decimationTarget": 150000,
+  "textureSize": 4096,
+  "seed": 41,
+  "status": "failed",
+  "elapsedSeconds": 5.89,
+  "sessionHash": "d49d8b44-81eb-46e9-bbc3-d8a1dd5cedad",
+  "error": "AppError: You have exceeded your free ZeroGPU quota (120s requested vs. 149s left). Try again in 23:54:57. Subscribe to Hugging Face PRO to get 25 min of ZeroGPU quota a day - https://huggingface.co/subscribe/pro?from=ZeroGPU"
+}

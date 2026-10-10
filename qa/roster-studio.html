@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><meta charset="UTF-8"><title>Champion model inspection</title>
+<link rel="icon" href="data:,">
+<style>body{margin:0;background:#121923;color:#efe5ce;font:14px system-ui}canvas{display:block}#label{position:absolute;left:40px;top:28px;font-size:24px;letter-spacing:.12em}#detail{position:absolute;left:40px;top:68px;color:#9dabb8;font-size:12px;letter-spacing:.14em}</style>
+<div id="label"></div><div id="detail">LIVE GAME GEOMETRY / NEUTRAL STUDIO LIGHT</div>
+<script type="module">
+import * as THREE from 'three'
+import { createHero } from '../src/art/characterFactory.js'
+import { CHAMPIONS,skinAppearance } from '../src/meta/champions.js'
+import { makeEnvMap } from '../src/core/assets.js'
+import { disposeObject3D } from '../src/core/utils.js'
+import { preloadUnifiedCharacters } from '../src/art/unifiedCharacters.js'
+await preloadUnifiedCharacters()
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true})
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(1)
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap
+document.body.append(renderer.domElement)
+const scene=new THREE.Scene();scene.background=new THREE.Color('#121923');scene.environment=makeEnvMap(renderer)
+const camera=new THREE.PerspectiveCamera(32,innerWidth/innerHeight,.01,100)
+camera.position.set(3,2.6,7);camera.lookAt(0,1.2,0)
+scene.add(new THREE.HemisphereLight('#f0f3ff','#504638',.45))
+for(const [c,p,power] of [['#fff2d7',[3,5,5],2],['#81a8d0',[-3,3,-3],1.5],['#b9beca',[-3,2,2],.3]]) {
+ const light=new THREE.DirectionalLight(c,power);light.position.set(...p);scene.add(light)
+ if(power===2){light.castShadow=true;light.shadow.mapSize.set(2048,2048);light.shadow.camera.left=light.shadow.camera.bottom=-4;light.shadow.camera.right=light.shadow.camera.top=4;light.shadow.bias=-.0002}
+}
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshStandardMaterial({color:'#1b222d',roughness:.9,envMapIntensity:.1}));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor)
+let hero
+function show(id,index=0,{pose='idle',angle=.22,equipmentPose='held'}={}) {
+ if(hero){scene.remove(hero.group);disposeObject3D(hero.group)}
+ const c=CHAMPIONS.find(c=>c.id===id),skin=c.skins[index]
+ hero=createHero(skinAppearance(c,skin),{equipmentPose});scene.add(hero.group)
+ hero.t=1;hero._lookTimer=999;hero._lookTarget={yaw:0,pitch:0}
+ hero.group.rotation.y=angle
+ hero.setMoveSpeed(pose==='run'?5:0);hero.setState(pose==='dance'?'dance':pose==='ko'?'ko':'normal')
+ for(let i=0;i<30;i++)hero.update(1/60)
+ if(pose==='cast'){hero.cast();for(let i=0;i<9;i++)hero.update(1/60)}
+ document.querySelector('#label').textContent=`${c.name.toUpperCase()} / ${skin.name}`
+ renderer.render(scene,camera)
+ return hero
+}
+window.studio={show,get hero(){return hero},renderer,scene,camera,THREE,CHAMPIONS,createHero,skinAppearance,disposeObject3D,render:()=>renderer.render(scene,camera)}
+show('caelan')
+</script></html>

@@ -1,0 +1,13 @@
+{
+  "provider": "https://huggingface.co/spaces/microsoft/TRELLIS.2",
+  "input": "tools/character-assets/production-references/caelan-dawnsworn.png",
+  "inputSha256": "90e7875fd7a0550133076984d78e743f509cb42c53dbb11f1b7e65fe2cf3aa78",
+  "resolution": "1536",
+  "decimationTarget": 200000,
+  "textureSize": 4096,
+  "seed": 41,
+  "status": "failed",
+  "elapsedSeconds": 61.73,
+  "sessionHash": "ed18e074-788c-4b9e-be0a-88d177a0ea26",
+  "error": "AppError: You have exceeded your free ZeroGPU quota (120s requested vs. 149s left). Try again in 23:55:17. Subscribe to Hugging Face PRO to get 25 min of ZeroGPU quota a day - https://huggingface.co/subscribe/pro?from=ZeroGPU"
+}

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><meta charset="UTF-8"><title>Character asset inspection</title>
+<link rel="icon" href="data:,">
+<style>body{margin:0;background:#181d25;color:#ddd;font:14px system-ui}canvas{display:block}#label{position:absolute;left:28px;top:24px;letter-spacing:.12em}</style>
+<div id="label">TEXTURED ASSET / NEUTRAL LIGHT</div>
+<script type="module">
+import * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { makeEnvMap } from '../src/core/assets.js'
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true})
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(1)
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap
+document.body.append(renderer.domElement)
+const scene=new THREE.Scene();scene.background=new THREE.Color('#181d25');scene.environment=makeEnvMap(renderer)
+const camera=new THREE.PerspectiveCamera(30,innerWidth/innerHeight,.01,100)
+camera.position.set(0,1.2,5);camera.lookAt(0,1,0)
+scene.add(new THREE.HemisphereLight('#e8edff','#444039',1.15))
+for(const [color,pos,power] of [['#fff0db',[3,5,5],2.5],['#92b6df',[-3,3,-3],2],['#c8cfdb',[-3,2,3],.5]]) {
+ const light=new THREE.DirectionalLight(color,power);light.position.set(...pos);scene.add(light)
+ if(power===2.5){light.castShadow=true;light.shadow.mapSize.set(2048,2048);light.shadow.camera.left=light.shadow.camera.bottom=-3;light.shadow.camera.right=light.shadow.camera.top=3;light.shadow.bias=-.0001}
+}
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshStandardMaterial({color:'#232b35',roughness:.95,envMapIntensity:.15}));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor)
+const root=new THREE.Group();scene.add(root)
+async function load(url) {
+ const gltf=await new GLTFLoader().loadAsync(url)
+ root.clear();root.rotation.set(0,0,0);root.scale.setScalar(1);root.position.set(0,0,0)
+ root.add(gltf.scene)
+ const box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3())
+ const scale=2/size.y
+ gltf.scene.scale.setScalar(scale);gltf.scene.position.set(-center.x*scale,-box.min.y*scale,-center.z*scale)
+ root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}})
+ render();return {bounds:box.toArray?.(),min:box.min.toArray(),max:box.max.toArray(),size:size.toArray()}
+}
+const render=()=>renderer.render(scene,camera)
+window.assetStudio={load,renderer,scene,root,camera,THREE,render}
+</script></html>

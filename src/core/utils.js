@@ -27,6 +27,10 @@ export function distXZ(a, b) {
 /** Deep-dispose an Object3D subtree: geometries, materials, textures. */
 export function disposeObject3D(root) {
   root.traverse(obj => {
+    // Instance attributes and shadow targets belong to the object, not its geometry.
+    if (obj.isInstancedMesh) obj.dispose()
+    if (obj.isSkinnedMesh) obj.skeleton.dispose()
+    if (obj.isLight && obj.shadow) obj.shadow.dispose()
     if (obj.geometry) obj.geometry.dispose()
     const mats = Array.isArray(obj.material) ? obj.material : obj.material ? [obj.material] : []
     for (const m of mats) {

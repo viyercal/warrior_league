@@ -61,8 +61,8 @@ export class HoopsHud {
     this.fireTag.style.display = 'none'
 
     this.hints = this.hud.hints([
-      ['WASD', 'move'], ['SHIFT', 'sprint'], ['SPACE', 'shoot / block'],
-      ['A A / D D', 'crossover'], ['F', 'steal'], ['1-4', 'skills'], ['H', 'hide help'],
+      ['↑ ↓ ← → / WASD', 'Move'], ['RMB', 'Click to move'], ['SHIFT', 'sprint'], ['SPACE', 'shoot / block'],
+      ['← ← / → →', 'Crossover; A A / D D also work'], ['F', 'steal'], ['1-4', 'skills'], ['H', 'hide help'],
     ])
   }
 
@@ -119,16 +119,16 @@ export class HoopsHud {
     this.hud.el('div', 'hoops-vs-sub', 'WARDEN OF THE RIM', r)
     this.hud.el('div', 'hoops-intro-rule', 'FIRST TO 11 — CHECK UP', w)
     this.hud.el('div', 'hoops-intro-skip', 'PRESS ANY KEY', w)
-    return () => { w.classList.add('out'); setTimeout(() => w.remove(), 420) }
+    return () => { w.classList.add('out'); this.hud.later(() => w.remove(), 420) }
   }
 
   /** Small release-read label: OPEN LOOK / CONTESTED! / HEAT CHECK. */
   microLabel(text, kind = 'open') {
     this._micro?.remove()
     const m = this._micro = this.hud.el('div', `hoops-micro hoops-micro-${kind}`, text)
-    setTimeout(() => {
+    this.hud.later(() => {
       m.classList.add('out')
-      setTimeout(() => m.remove(), 320)
+      this.hud.later(() => m.remove(), 320)
     }, 950)
   }
 
@@ -158,7 +158,7 @@ export class HoopsHud {
   }
 
   toggleHints() {
-    this.hints.style.display = this.hints.style.display === 'none' ? 'block' : 'none'
+    this.hud.toggleHints()
   }
 
   /** Duel-style end-of-game stats tablet. Returns the panel element. */

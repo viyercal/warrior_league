@@ -1,0 +1,43 @@
+{
+  "base": "http://127.0.0.1:5189",
+  "checks": [
+    {
+      "name": "sensitivity scales camera input without shifting cursor",
+      "ok": true,
+      "detail": {
+        "ratio": 8,
+        "rawUnchanged": true
+      }
+    },
+    {
+      "name": "invalid saved sensitivity defaults safely",
+      "ok": true
+    },
+    {
+      "name": "out-of-range saved sensitivity clamped",
+      "ok": true
+    },
+    {
+      "name": "Forge actual drag scales with sensitivity",
+      "ok": true,
+      "detail": [
+        0.425,
+        3.4
+      ]
+    },
+    {
+      "name": "War Rift edge pan scales",
+      "ok": true,
+      "detail": [
+        0.375,
+        3
+      ]
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,207 @@
+{
+  "base": "http://127.0.0.1:5188",
+  "checks": [
+    {
+      "name": "default sensitivity",
+      "ok": true
+    },
+    {
+      "name": "minimum through keyboard",
+      "ok": true
+    },
+    {
+      "name": "maximum through keyboard",
+      "ok": true
+    },
+    {
+      "name": "runtime applied",
+      "ok": true
+    },
+    {
+      "name": "saved across reload",
+      "ok": true
+    },
+    {
+      "name": "sensitivity fits 1440",
+      "ok": true
+    },
+    {
+      "name": "reset 1440",
+      "ok": true
+    },
+    {
+      "name": "sensitivity fits 900",
+      "ok": true
+    },
+    {
+      "name": "reset 900",
+      "ok": true
+    },
+    {
+      "name": "sensitivity fits 390",
+      "ok": true
+    },
+    {
+      "name": "reset 390",
+      "ok": true
+    },
+    {
+      "name": "arena right-click orders movement",
+      "ok": true,
+      "detail": [
+        2.9988379381004706,
+        0,
+        -0.010656604400871572
+      ]
+    },
+    {
+      "name": "arena moves toward destination",
+      "ok": true
+    },
+    {
+      "name": "arena arrives and clears marker",
+      "ok": true
+    },
+    {
+      "name": "arena keyboard cancels order",
+      "ok": true
+    },
+    {
+      "name": "arena pause cancels order",
+      "ok": true
+    },
+    {
+      "name": "arena help includes mouse movement",
+      "ok": true
+    },
+    {
+      "name": "arena aim follows cursor",
+      "ok": true
+    },
+    {
+      "name": "arena left-click still fires",
+      "ok": true
+    },
+    {
+      "name": "siege right-click orders movement",
+      "ok": true,
+      "detail": [
+        2.998837938100471,
+        0,
+        7.4893433955992155
+      ]
+    },
+    {
+      "name": "siege moves toward destination",
+      "ok": true
+    },
+    {
+      "name": "siege arrives and clears marker",
+      "ok": true
+    },
+    {
+      "name": "siege keyboard cancels order",
+      "ok": true
+    },
+    {
+      "name": "siege pause cancels order",
+      "ok": true
+    },
+    {
+      "name": "siege help includes mouse movement",
+      "ok": true
+    },
+    {
+      "name": "siege aim follows cursor",
+      "ok": true
+    },
+    {
+      "name": "siege left-click still fires",
+      "ok": true
+    },
+    {
+      "name": "hoops right-click orders movement",
+      "ok": true,
+      "detail": [
+        2.9986569809625214,
+        0,
+        5.3896137383158855
+      ]
+    },
+    {
+      "name": "hoops moves toward destination",
+      "ok": true
+    },
+    {
+      "name": "hoops arrives and clears marker",
+      "ok": true
+    },
+    {
+      "name": "hoops keyboard cancels order",
+      "ok": true
+    },
+    {
+      "name": "hoops pause cancels order",
+      "ok": true
+    },
+    {
+      "name": "hoops help includes mouse movement",
+      "ok": true
+    },
+    {
+      "name": "moba right-click orders movement",
+      "ok": true,
+      "detail": [
+        -39.50617775791208,
+        0,
+        -0.029025126687095337
+      ]
+    },
+    {
+      "name": "moba moves toward destination",
+      "ok": true
+    },
+    {
+      "name": "citadel route goes around collision and arrives",
+      "ok": true,
+      "detail": {
+        "path": [
+          [
+            -4.972353585525437,
+            0,
+            28.44165303010778
+          ],
+          [
+            -1.7460583820443472,
+            0,
+            29.77802825960891
+          ],
+          [
+            1.7460583820443485,
+            0,
+            29.77802825960891
+          ],
+          [
+            4.97235358552544,
+            0,
+            28.44165303010778
+          ],
+          [
+            12,
+            0,
+            21
+          ]
+        ],
+        "min": 8.706000788836805,
+        "remaining": 0,
+        "error": 0.04582025907045847
+      }
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

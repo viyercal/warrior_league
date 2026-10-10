@@ -1,0 +1,70 @@
+{
+  "source": "https://github.com/makehumancommunity/makehuman",
+  "commit": "a8bc2d54ff0ac92e78ff71431b1023eda42bf482",
+  "license": "CC0-1.0 (graphical assets only)",
+  "profiles": {
+    "caelan": {
+      "height": 2.02,
+      "width": 1.06,
+      "depth": 1.04,
+      "targets": [
+        [
+          "macrodetails/caucasian-male-young",
+          1
+        ],
+        [
+          "macrodetails/universal-male-young-maxmuscle-averageweight",
+          0.65
+        ],
+        [
+          "head/head-age-incr",
+          0.3
+        ],
+        [
+          "head/head-square",
+          0.18
+        ]
+      ]
+    },
+    "nyra": {
+      "height": 1.76,
+      "width": 1,
+      "depth": 1,
+      "targets": [
+        [
+          "macrodetails/african-female-young",
+          1
+        ],
+        [
+          "macrodetails/universal-female-young-maxmuscle-minweight",
+          0.45
+        ]
+      ]
+    },
+    "serai": {
+      "height": 2.0,
+      "width": 0.94,
+      "depth": 1,
+      "targets": [
+        [
+          "macrodetails/african-female-young",
+          0.7
+        ],
+        [
+          "macrodetails/african-female-old",
+          0.3
+        ],
+        [
+          "head/head-age-incr",
+          0.2
+        ],
+        [
+          "head/head-oval",
+          0.25
+        ]
+      ]
+    }
+  },
+  "builder": "tools/character-assets/build_anatomy.py",
+  "outputs": "src/art/anatomy/*.json"
+}

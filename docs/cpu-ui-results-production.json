@@ -1,0 +1,238 @@
+{
+  "base": "http://127.0.0.1:5303",
+  "time": "2026-09-20T00:18:36.118Z",
+  "checks": [
+    {
+      "name": "new profile defaults to level 6 and Tower",
+      "ok": true
+    },
+    {
+      "name": "Tower selected without CPU controls",
+      "ok": true
+    },
+    {
+      "name": "Single Duel exposes CPU selector",
+      "ok": true
+    },
+    {
+      "name": "level 1 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "level 2 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "level 3 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "level 4 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "level 5 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "level 6 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "level 7 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "level 8 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "level 9 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "level 10 radio changes saved profile",
+      "ok": true
+    },
+    {
+      "name": "native arrow key changes level without realm navigation",
+      "ok": true
+    },
+    {
+      "name": "level and Single Duel persist after reload",
+      "ok": true
+    },
+    {
+      "name": "battle button visible before scrolling at 1440x1000",
+      "ok": true
+    },
+    {
+      "name": "guide visible and fits at 1440x1000",
+      "ok": true,
+      "details": {
+        "top": 590.5625,
+        "bottom": 727.9375,
+        "width": 420,
+        "height": 137.375,
+        "parentBottom": 740
+      }
+    },
+    {
+      "name": "battle button reachable at 1440x1000",
+      "ok": true
+    },
+    {
+      "name": "no horizontal hub overflow at 1440x1000",
+      "ok": true
+    },
+    {
+      "name": "battle button visible before scrolling at 1440x900",
+      "ok": true
+    },
+    {
+      "name": "guide visible and fits at 1440x900",
+      "ok": true,
+      "details": {
+        "top": 502.609375,
+        "bottom": 639.984375,
+        "width": 420,
+        "height": 137.375,
+        "parentBottom": 640
+      }
+    },
+    {
+      "name": "battle button reachable at 1440x900",
+      "ok": true
+    },
+    {
+      "name": "no horizontal hub overflow at 1440x900",
+      "ok": true
+    },
+    {
+      "name": "battle button visible before scrolling at 1440x810",
+      "ok": true
+    },
+    {
+      "name": "guide visible and fits at 1440x810",
+      "ok": true,
+      "details": {
+        "top": 425.609375,
+        "bottom": 562.984375,
+        "width": 420,
+        "height": 137.375,
+        "parentBottom": 575
+      }
+    },
+    {
+      "name": "battle button reachable at 1440x810",
+      "ok": true
+    },
+    {
+      "name": "no horizontal hub overflow at 1440x810",
+      "ok": true
+    },
+    {
+      "name": "battle button visible before scrolling at 1280x720",
+      "ok": true
+    },
+    {
+      "name": "guide visible and fits at 1280x720",
+      "ok": true,
+      "details": {
+        "top": 365.78125,
+        "bottom": 503.15625,
+        "width": 420,
+        "height": 137.375,
+        "parentBottom": 515
+      }
+    },
+    {
+      "name": "battle button reachable at 1280x720",
+      "ok": true
+    },
+    {
+      "name": "no horizontal hub overflow at 1280x720",
+      "ok": true
+    },
+    {
+      "name": "battle button visible before scrolling at 900x800",
+      "ok": true
+    },
+    {
+      "name": "guide visible and fits at 900x800",
+      "ok": true,
+      "details": {
+        "top": 662.28125,
+        "bottom": 799.65625,
+        "width": 420,
+        "height": 137.375,
+        "parentBottom": 799.65625
+      }
+    },
+    {
+      "name": "battle button reachable at 900x800",
+      "ok": true
+    },
+    {
+      "name": "no horizontal hub overflow at 900x800",
+      "ok": true
+    },
+    {
+      "name": "battle button visible before scrolling at 390x844",
+      "ok": true
+    },
+    {
+      "name": "guide visible and fits at 390x844",
+      "ok": true,
+      "details": {
+        "top": 706.875,
+        "bottom": 844.25,
+        "width": 331.5,
+        "height": 137.375,
+        "parentBottom": 844.25
+      }
+    },
+    {
+      "name": "battle button reachable at 390x844",
+      "ok": true
+    },
+    {
+      "name": "no horizontal hub overflow at 390x844",
+      "ok": true
+    },
+    {
+      "name": "Tower hides selector and explains progression",
+      "ok": true
+    },
+    {
+      "name": "Brawl shares saved level without duel-mode toggle",
+      "ok": true
+    },
+    {
+      "name": "moba has no CPU match options",
+      "ok": true
+    },
+    {
+      "name": "hoops has no CPU match options",
+      "ok": true
+    },
+    {
+      "name": "arena has no CPU match options",
+      "ok": true
+    },
+    {
+      "name": "kart has no CPU match options",
+      "ok": true
+    },
+    {
+      "name": "siege has no CPU match options",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "details": []
+    }
+  ],
+  "errors": []
+}

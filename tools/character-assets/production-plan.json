@@ -1,0 +1,109 @@
+{
+  "updatedAtUtc": "2026-09-19T01:46:43.892099+00:00",
+  "branch": "feat/astra-immersive-realms",
+  "userDecision": "Continue available work and wait for the free GPU quota reset",
+  "provider": "https://huggingface.co/spaces/microsoft/TRELLIS.2",
+  "uploadScope": "The four approved roster production references",
+  "automaticRetry": false,
+  "quota": {
+    "status": "waiting-for-reset",
+    "evidence": "generated/orren-rootbound/generation.json",
+    "failureFileModifiedAtUtc": "2026-09-18T22:24:24Z",
+    "providerRetryDelay": "23:54:58",
+    "estimatedNextAttemptAtUtc": "2026-09-19T22:20:00Z",
+    "estimateBasis": "Last failure record's filesystem timestamp plus the provider's retry delay, rounded up; this is an estimate, not a guaranteed provider reset time"
+  },
+  "jobs": [
+    {
+      "priority": 1,
+      "champion": "orren",
+      "skin": "rootbound",
+      "reference": "production-references/orren-rootbound.png",
+      "candidateDirectory": "generated/orren-rootbound-hq-r1",
+      "resolution": "1536",
+      "faces": 150000,
+      "textureSize": 4096,
+      "seed": 41,
+      "status": "awaiting-quota",
+      "integrationGates": [
+        "Inspect reconstructed face, branch crown, stone hands and distinct broad silhouette against the reference",
+        "Fit shoulder, elbow, hand, hip and knee landmarks; the current profile is unvalidated",
+        "Fit the bell hammer and shield to the generated hands and back anchors",
+        "Use stone-specific face and material treatment; do not reuse the human skin mask",
+        "Verify all three skins, held and stowed equipment, casting, movement and clone disposal before enabling the model"
+      ]
+    },
+    {
+      "priority": 2,
+      "champion": "serai",
+      "skin": "tidecaller",
+      "reference": "production-references/serai-tidecaller.png",
+      "candidateDirectory": "generated/serai-tidecaller-hq-r1",
+      "resolution": "1536",
+      "faces": 150000,
+      "textureSize": 4096,
+      "seed": 41,
+      "status": "awaiting-quota",
+      "integrationGates": [
+        "Inspect face, curls, fingers, layered sleeves and long distinct silhouette against the reference",
+        "Fit shoulders and wrists inside the bell cuffs; the current profile is unvalidated",
+        "Fit split robe and lower cloth weights without pulling the sleeves or face",
+        "Align the ring staff grip and casting hand, then inspect front, side and back",
+        "Verify all three skins, every pose, equipment and affected gameplay before enabling the model"
+      ]
+    },
+    {
+      "priority": 3,
+      "champion": "caelan",
+      "skin": "dawnsworn",
+      "reference": "production-references/caelan-dawnsworn.png",
+      "candidateDirectory": "generated/caelan-dawnsworn-hq-r1",
+      "resolution": "1536",
+      "faces": 200000,
+      "textureSize": 4096,
+      "seed": 41,
+      "status": "awaiting-quota",
+      "integrationGates": [
+        "Regenerate the candidate; the previous high-detail preview has no durable exported GLB",
+        "Compare hair, eyes, fingers, face/body consistency and geometry with the playable asset",
+        "Replace the playable model only after visual and gameplay verification"
+      ],
+      "purpose": "Refinement of an approved visual baseline; preserve the accepted runtime asset until a candidate demonstrably improves it"
+    },
+    {
+      "priority": 4,
+      "champion": "nyra",
+      "skin": "veil-huntress",
+      "reference": "production-references/nyra-veil-huntress.png",
+      "candidateDirectory": "generated/nyra-veil-huntress-hq-r1",
+      "resolution": "1536",
+      "faces": 200000,
+      "textureSize": 4096,
+      "seed": 41,
+      "status": "awaiting-quota",
+      "integrationGates": [
+        "Compare braids, eyes, fingers, shoulder anatomy and skin material response with the playable asset",
+        "Inspect fitted cloth and crescent grips in motion",
+        "Replace the playable model only after visual and gameplay verification"
+      ],
+      "purpose": "Refinement of an approved visual baseline; preserve the accepted runtime asset until a candidate demonstrably improves it"
+    }
+  ],
+  "executionNotes": [
+    "Run jobs one at a time on the already authorized official provider, with only HF_TOKEN loaded through the Desktop credential helper",
+    "Stop the batch on a quota response; record the reported delay and preserve completed candidates",
+    "Use the listed fresh candidate directories so earlier successes, rejected previews and quota evidence remain inspectable",
+    "Never publish a candidate into public/models before its preparation and integration gates pass",
+    "Do not assume all four high-detail jobs will fit within one free quota window"
+  ],
+  "artStandard": "../../docs/art-standard.md",
+  "visualAcceptance": {
+    "recordedAtUtc": "2026-09-19T01:46:43.892099+00:00",
+    "champions": [
+      "caelan",
+      "nyra"
+    ],
+    "decision": "User approved the current rendering as the standard for character art and game art in general",
+    "priority": "Bring Orren and Serai to the approved standard; evaluate later Caelan and Nyra candidates as refinements of accepted assets"
+  }
+}

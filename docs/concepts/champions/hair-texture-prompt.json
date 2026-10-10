@@ -1,0 +1,6 @@
+{
+  "mode": "built-in image_gen",
+  "prompt": "Create a production 3D game hair-card texture atlas on a genuinely transparent alpha background. Square 1024 x 1024. Exactly four equal vertical columns, each occupying 25% of image width, generous transparent margin of 8% of each column. Each column contains one long dense lock of realistic fine individual hair strands from y=3% to y=97%, feathering into individual wispy tips at bottom. Column 1 straight-to-gently-wavy dark espresso brown hair. Column 2 wavy black brown hair with 8% warm brown strands. Column 3 tight natural black-brown curly hair with subtle silver threads, 15% silver only. Column 4 finely interwoven dark brown braid strand with fine flyaway fibers. Roots at top, tapered tips at bottom. Front orthographic flat diffuse albedo, no strong lighting or baked shadows, photorealistic fiber detail, no background, no labels, no text, no head or people, no border. Dense connected hair fibers, not isolated lines, and never thick tubes or plastic.",
+  "asset": "public/models/textures/hair-atlas.webp",
+  "source": "tools/character-assets/texture-sources/hair-atlas.png"
+}

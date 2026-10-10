@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { ClickMove } from '../../core/clickMove.js'
 import { getSkill, WASD_KEY_LABELS, wasdKeyIndex } from '../../meta/skills.js'
 import { VFX } from '../../art/vfx.js'
 import { createHero } from '../../art/characterFactory.js'
@@ -38,7 +39,7 @@ export default class SiegeScene {
     // (SSAO benchmarked: 100fps -> 62fps at the 45-raider gate on an M-series
     // integrated GPU — too thin for the fleet's slowest target, so it stays off;
     // grounding comes from contact shadows + painted AO instead.)
-    this.postOpts = { bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.45, vignette: 0.58, saturation: 1.02, grain: 0.032, exposure: 1.04 }
+    this.postOpts = { bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.45, vignette: 0.58, saturation: 1.02, grain: 0.006, exposure: 1.04 }
   }
 
   async init() {
@@ -174,6 +175,12 @@ export default class SiegeScene {
       else if (code === 'KeyF') this._padAction()
       else if (code === 'KeyH') this.hud.toggleHints()
     })
+    this.clickMove = new ClickMove({
+      input, camera: this.camera, scene: this.scene, vfx: this.vfx,
+      position: () => this.hero.group.position, active: () => this.phase === 'play' && !this.over && this.deadT <= 0,
+      clamp: p => this._clampToField(p),
+      obstacle: { ...CITADEL_POS, radius: 8.6 },
+    })
     input.onMouse((btn, down) => {
       if (down && this.phase !== 'play') this._skipCine()
     })
@@ -205,6 +212,7 @@ export default class SiegeScene {
   // ============================== main loop ==============================
 
   update(dt, t) {
+    if (!this.clickMove.active()) this.clickMove.cancel()
     if (this.slowmoT > 0) {
       this.slowmoT -= dt
       this.timeScale = this.slowmoT > 0.55 ? 0.22 : lerp(0.22, 1, 1 - Math.max(0, this.slowmoT) / 0.55)
@@ -332,6 +340,7 @@ export default class SiegeScene {
 
     // downed: wait out the respawn timer while the siege continues
     if (this.deadT > 0) {
+      this.clickMove.cancel()
       this.deadT -= gdt
       if (this.deadT <= 0) this._respawn()
       this.hero.update(dt)
@@ -344,12 +353,20 @@ export default class SiegeScene {
     const mx = (input.isDown('KeyD') ? 1 : 0) - (input.isDown('KeyA') ? 1 : 0)
     const mz = (input.isDown('KeyS') ? 1 : 0) - (input.isDown('KeyW') ? 1 : 0)
     const speed = HERO_SPEED * (this.buffT > 0 ? 1.6 : 1)
+    let moving = false
     if (mx || mz) {
+      this.clickMove.cancel()
+      moving = true
       const il = 1 / Math.hypot(mx, mz)
       pos.x += mx * il * speed * gdt
       pos.z += mz * il * speed * gdt
       this.hero.setMoveSpeed(speed)
-    } else this.hero.setMoveSpeed(0)
+    } else {
+      const distance = this.clickMove.direction(_v2)
+      moving = distance > 0
+      pos.addScaledVector(_v2, Math.min(distance, speed * gdt))
+      this.hero.setMoveSpeed(moving ? speed : 0)
+    }
 
     pos.x += this.heroK.x * gdt
     pos.z += this.heroK.z * gdt
@@ -367,7 +384,7 @@ export default class SiegeScene {
     // titan form: scale + stomp shockwaves per step
     this.heroScale = damp(this.heroScale, this.giantT > 0 ? 1.75 : 1, 9, dt)
     this.hero.group.scale.setScalar(this.heroScale)
-    if (this.giantT > 0 && (mx || mz)) {
+    if (this.giantT > 0 && moving) {
       this.stompT -= gdt
       if (this.stompT <= 0) {
         this.stompT = 0.42
@@ -390,7 +407,8 @@ export default class SiegeScene {
     // keep bodies off the citadel platform
     const dx = v.x - CITADEL_POS.x, dz = v.z - CITADEL_POS.z
     const d = Math.hypot(dx, dz)
-    if (d < 8.6 && d > 0.001) {
+    if (d < 0.001) { v.x = CITADEL_POS.x; v.z = CITADEL_POS.z - 8.6 }
+    else if (d < 8.6) {
       v.x = CITADEL_POS.x + (dx / d) * 8.6
       v.z = CITADEL_POS.z + (dz / d) * 8.6
     }
@@ -447,6 +465,7 @@ export default class SiegeScene {
     this.hp = 0
     this.deadT = 5
     this.hero.setState('ko')
+    this.clickMove?.cancel()
     this.hero.setMoveSpeed(0)
     this.hud.setPrompt(null)
     this.ctx.audio.play('defeat', { vol: 0.35 })
@@ -1307,6 +1326,7 @@ export default class SiegeScene {
     this.hud.setPrepare(null)
     this.ctx.audio.play('victory')
     this.hero.setState('dance')
+    this.clickMove?.cancel()
     this.hero.setMoveSpeed(0)
     const profile = this.ctx.profile
     profile.stats.wins.siege = (profile.stats.wins.siege || 0) + 1
@@ -1378,6 +1398,7 @@ export default class SiegeScene {
     this.hud.setPrepare(null)
     this.hud.hideBoss()
     this.ctx.audio.play('defeat')
+    this.clickMove?.cancel()
     this.hero.setMoveSpeed(0)
     this.citadel.shatter()
 
@@ -1453,7 +1474,7 @@ export default class SiegeScene {
 
   _updateCamera(dt) {
     const hp = this.hero.group.position
-    const m = this.ctx.input.mouse
+    const m = this.ctx.input.cameraMouse
     _v1.set(hp.x + this.camOffset.x + m.x * 2.6, this.camOffset.y, hp.z + this.camOffset.z - m.y * 2)
     const k = 1 - Math.exp(-7 * dt)
     this.camera.position.lerp(_v1, k)
@@ -1463,14 +1484,14 @@ export default class SiegeScene {
   }
 
   _timeout(fn, ms) {
-    const id = setTimeout(() => { if (!this.disposed) fn() }, ms)
+    const id = this.ctx.setTimeout(() => { if (!this.disposed) fn() }, ms)
     this._timeouts.push(id)
     return id
   }
 
   dispose() {
     this.disposed = true
-    for (const id of this._timeouts) clearTimeout(id)
+    for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this.ctx.engine.setExposure(1.12) // undo boss-dip / dawn grade
     this.hud.setCine(false) // don't leak the cinema class on #ui to the next scene
     this.buffTrail?.stop()

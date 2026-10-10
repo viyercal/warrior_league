@@ -1,0 +1,24 @@
+/* Shared presentation: warm metal, quieter surfaces, readable controls. */
+:root { --font-controls: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+button:focus-visible, input:focus-visible, [role="button"]:focus-visible { outline: 2px solid #ddc196; outline-offset: 4px; }
+#boot { background: radial-gradient(ellipse at 70% 35%, #69777918, #0b1013cf 70%), #0a0f12bb; backdrop-filter: blur(12px); }
+#boot .boot-inner { width: min(560px, 88vw); }
+#boot .boot-bg { animation: none; background: none; }
+#boot .boot-logo { font-family: Georgia, serif; font-weight: 400; font-size: 76px; letter-spacing: -.18em; color: #d3b78e; -webkit-text-stroke: 0; background: none; filter: none; animation: none; margin-left: -.2em; }
+#boot .boot-logo span { position: relative; top: 17px; }
+#boot .boot-title { color: #e2ddd0; font-size: clamp(21px, 4vw, 31px); font-weight: 400; letter-spacing: .2em; text-shadow: none; margin-top: 32px; }
+#boot .boot-rule { color: #ae927059; opacity: .5; margin: 15px auto; }
+#boot .boot-sub { font: 13px var(--font-controls); color: #a5ada5; letter-spacing: .07em; text-transform: none; font-variant: normal; margin-top: 8px; }
+#bootStatus { min-height: 38px; margin: 24px auto 0; max-width: 350px; font: 11px/1.7 var(--font-controls); color: #8e9b95; }
+#boot .boot-bar { width: 120px; height: 1px; margin: 3px auto 30px; background: #b49e7630; clip-path: none; border: 0; box-shadow: none; }
+#boot .boot-fill { background: #cbb38b; box-shadow: none; }
+#boot .boot-enter { font: 10px var(--font-controls); letter-spacing: .15em; background: #d5bc94; color: #1b211e; padding: 18px 35px; border: 1px solid #f1dcb249; clip-path: none; box-shadow: none; filter: none; text-shadow: none; }
+#boot .boot-enter::before { display: none; }
+#boot .boot-enter:disabled { opacity: .4; pointer-events: none; }
+.boot-note { margin-top: 34px; font: 9px var(--font-controls); color: #73827b; letter-spacing: .1em; }
+/* Existing game HUDs retain their scene-specific geometry and controls. */
+#ui .hint-box { background: #101718eb; color: #afb9ae; border: 1px solid #c3b18c33; clip-path: none; filter: none; font-family: var(--font-controls); padding: 13px 16px; bottom: 69px; }
+#ui .hint-title { font: 9px var(--font-controls); letter-spacing: .17em; color: #d6bc93; text-shadow: none; border-bottom-color: #c4aa772b; }
+#ui .hint-key { font: 9px var(--font-controls); background: #d2c9a90f; color: #d6ccb6; clip-path: none; text-shadow: none; box-shadow: inset 0 0 0 1px #c7b99133; padding: 4px 6px; }
+#ui .ui-toast { background: #141c1eef; border: 1px solid #c4ad7945; color: #d9d6c7; clip-path: none; box-shadow: 0 10px 40px #0003; filter: none; font: 12px/1.5 var(--font-controls); text-shadow: none; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } }

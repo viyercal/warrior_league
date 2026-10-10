@@ -19,6 +19,13 @@ export class Engine {
     container.appendChild(this.renderer.domElement)
 
     this.clock = new THREE.Clock()
+    this.elapsedTime = 0
+    this._pauseReasons = new Set()
+    this._timers = new Map()
+    this._nextTimer = 1
+    this._dueTimers = []
+    this.quality = 'auto'
+    this.reducedMotion = false
     this.scene = null
     this.camera = null
     this.composer = null
@@ -37,7 +44,8 @@ export class Engine {
     this._dprSteps = [1, 1.25, 1.5, 1.75, 2].filter(s => s <= native)
     if (!this._dprSteps.length) this._dprSteps = [native]
     this._dprIdx = this._dprSteps.length - 1
-    this._dprLock = params.has('dpr') ? parseFloat(params.get('dpr')) : null
+    const requestedDpr = Number(params.get('dpr'))
+    this._dprLock = params.has('dpr') && Number.isFinite(requestedDpr) && requestedDpr > 0 ? Math.min(requestedDpr, 2) : null
     this._fpsAcc = 0
     this._fpsFrames = 0
     this._dprCooldown = 0
@@ -50,7 +58,41 @@ export class Engine {
   }
 
   /** Current dynamic-resolution scale (1 = full). */
-  get dprScale() { return this._dprLock ?? this._dprSteps[this._dprIdx] }
+  get dprScale() { return this._dprLock ?? (this.quality === 'performance' ? 1 : this.quality === 'high' ? this._dprSteps.at(-1) : this._dprSteps[this._dprIdx]) }
+
+  get paused() { return this._pauseReasons.size > 0 }
+
+  setPaused(paused, reason = 'session') {
+    if (paused) this._pauseReasons.add(reason)
+    else this._pauseReasons.delete(reason)
+    // Drain wall time so returning to the tab cannot advance the simulation.
+    this.clock.getDelta()
+    this._lastFrameT = performance.now()
+  }
+
+  setQuality(quality) {
+    this.quality = ['auto', 'high', 'performance'].includes(quality) ? quality : 'auto'
+    this._fpsAcc = this._fpsFrames = this._dprUpTime = 0
+    this._applyDpr(this.dprScale)
+  }
+
+  setReducedMotion(enabled) {
+    this.reducedMotion = Boolean(enabled)
+    if (enabled) { this._shake.t = 0; this._aberr = 0 }
+    if (this.composer?.gradePass) this.composer.gradePass.uniforms.uAberr.value = 0
+  }
+
+  /** Scene-scoped timers advance only with simulation time, including countdowns. */
+  setTimeout(fn, ms, scope = this.timerScope) {
+    const id = this._nextTimer++
+    this._timers.set(id, { fn, at: this.elapsedTime + Math.max(0, ms) / 1000, scope })
+    return id
+  }
+  clearTimeout(id) { this._timers.delete(id) }
+  clearTimers(scope) {
+    for (const [id, timer] of this._timers) if (timer.scope === scope) this._timers.delete(id)
+  }
+
 
   _applyDpr(pr) {
     this.renderer.setPixelRatio(pr)
@@ -69,7 +111,7 @@ export class Engine {
     this.fps = 1000 / (this._fpsAcc / this._fpsFrames)
     this._fpsAcc = 0
     this._fpsFrames = 0
-    if (this._dprLock || !this.composer) return
+    if (this._dprLock || this.quality !== 'auto' || this.paused || !this.composer) return
     this._dprCooldown--
     const stepDown = this.fps < 50 && this._dprIdx > 0
     const stepUp = this.fps > 57.5 && this._dprIdx < this._dprSteps.length - 1
@@ -92,7 +134,7 @@ export class Engine {
   }
 
   /** Pulse chromatic aberration (impact feel) — decays back to 0 automatically. */
-  aberrPulse(amount = 0.012) { this._aberr = Math.max(this._aberr, amount) }
+  aberrPulse(amount = 0.012) { if (this.reducedMotion) return; this._aberr = Math.max(this._aberr, amount) }
 
   /** Cached PMREM room environment for PBR materials. */
   get envMap() { return makeEnvMap(this.renderer) }
@@ -101,10 +143,13 @@ export class Engine {
   setExposure(v) { this.renderer.toneMappingExposure = v }
 
   setScene(scene, camera, postOpts = {}) {
+    this._shake.t = 0
+    this._aberr = 0
     this.scene = scene
     this.camera = camera
     this.composer?.dispose?.()
     this.composer = buildComposer(this.renderer, scene, camera, postOpts)
+    this._applyDpr(this.dprScale)
   }
 
   /** Register a per-frame callback fn(dt, t). Returns unsubscribe. */
@@ -113,6 +158,7 @@ export class Engine {
 
   /** Impulse camera shake — safe to call from any scene. */
   shake(amp = 0.35, dur = 0.35) {
+    if (this.reducedMotion) return
     const cur = this._shake.t > 0 ? this._shake.amp * (this._shake.t / this._shake.dur) : 0
     if (amp >= cur) this._shake = { t: dur, dur, amp }
   }
@@ -121,14 +167,31 @@ export class Engine {
 
   _tick() {
     this._watchPerf(performance.now())
-    const dt = Math.min(this.clock.getDelta(), 0.05)
-    const t = this.clock.elapsedTime
-    for (const f of this._tickers) f(dt, t)
-    this.updater?.(dt, t)
+    const delta = Math.min(this.clock.getDelta(), 0.05)
+    const dt = this.paused ? 0 : delta
+    this.elapsedTime += dt
+    const t = this.elapsedTime
+    if (!this.paused) {
+      // Snapshot IDs so a timer scheduled by a timer waits until the next frame.
+      const due = this._dueTimers
+      due.length = 0
+      for (const [id, timer] of this._timers) if (timer.at <= t) due.push(id)
+      for (const id of due) {
+        if (this.paused) break
+        const timer = this._timers.get(id)
+        if (!timer) continue
+        this._timers.delete(id)
+        timer.fn()
+      }
+      if (!this.paused) {
+        for (const f of this._tickers) f(dt, t)
+        this.updater?.(dt, t)
+      }
+    }
     if (!this.scene || !this.camera) return
 
     let shaken = false
-    if (this._shake.t > 0) {
+    if (this._shake.t > 0 && !this.paused) {
       this._shake.t -= dt
       const k = this._shake.amp * Math.pow(Math.max(this._shake.t, 0) / this._shake.dur, 1.4)
       this._shakeOff.set((Math.random() * 2 - 1) * k, (Math.random() * 2 - 1) * k, (Math.random() * 2 - 1) * k * 0.4)

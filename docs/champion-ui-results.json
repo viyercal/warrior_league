@@ -1,0 +1,1171 @@
+{
+  "branch": "feat/astra-immersive-realms",
+  "environment": "Vite production preview on 127.0.0.1:5301, isolated headless Chrome",
+  "status": "implemented and tested locally; not deployed",
+  "provenance": "121 roster and integration checks and 64 combat regression checks pass. The final subsequent CSS change only crops artwork inside existing portrait frames; four portrait captures and reduced-motion verification checked that final revision. Valid functional and layout results are reused for unchanged behavior.",
+  "runs": [
+    {
+      "script": "qa/probe-champion-ui.mjs",
+      "passed": 121,
+      "total": 121,
+      "results": [
+        {
+          "name": "new player starts with Caelan and all four signature skins",
+          "ok": true
+        },
+        {
+          "name": "all four champions and three current skins are visible",
+          "ok": true
+        },
+        {
+          "name": "signature appearance needs no reset",
+          "ok": true
+        },
+        {
+          "name": "Caelan opens its signature skin on first selection",
+          "ok": true
+        },
+        {
+          "name": "Caelan / Dawnsworn: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Caelan / Ashen Oath: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Caelan / Celestial Guard: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Nyra opens its signature skin on first selection",
+          "ok": true
+        },
+        {
+          "name": "Nyra / Veil Huntress: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Nyra / Lunar Phantom: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Nyra / Thornbound: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Orren opens its signature skin on first selection",
+          "ok": true
+        },
+        {
+          "name": "Orren / Rootbound: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Orren / Furnace King: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Orren / Frost Relic: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Serai opens its signature skin on first selection",
+          "ok": true
+        },
+        {
+          "name": "Serai / Tidecaller: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Serai / Star Cartographer: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "Serai / Desert Oracle: selected, saved, illustrated and applied to playable rig",
+          "ok": true
+        },
+        {
+          "name": "champion and skin changes preserve all equipped arts and stats",
+          "ok": true
+        },
+        {
+          "name": "returning to a champion remembers its last skin",
+          "ok": true
+        },
+        {
+          "name": "champion, skin, name and artwork survive reload",
+          "ok": true
+        },
+        {
+          "name": "customizing appearance enables the skin reset",
+          "ok": true
+        },
+        {
+          "name": "reset restores current skin and preserves champion",
+          "ok": true
+        },
+        {
+          "name": "full artwork opens the selected original without losing loadout",
+          "ok": true
+        },
+        {
+          "name": "3D preview exposes the model controls",
+          "ok": true
+        },
+        {
+          "name": "war dance starts on the selected champion",
+          "ok": true
+        },
+        {
+          "name": "war dance stops",
+          "ok": true
+        },
+        {
+          "name": "3D turntable still responds to dragging",
+          "ok": true
+        },
+        {
+          "name": "artwork mode restores art and hides model controls",
+          "ok": true
+        },
+        {
+          "name": "all twelve battle arts and four slots remain usable",
+          "ok": true
+        },
+        {
+          "name": "1440px forge keeps controls contained and artwork before equipment",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "noOverflow": true,
+            "previewFirst": false,
+            "panelHeight": 948
+          }
+        },
+        {
+          "name": "1440px primary navigation remains reachable",
+          "ok": true
+        },
+        {
+          "name": "1280px forge keeps controls contained and artwork before equipment",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "noOverflow": true,
+            "previewFirst": false,
+            "panelHeight": 948
+          }
+        },
+        {
+          "name": "1280px primary navigation remains reachable",
+          "ok": true
+        },
+        {
+          "name": "900px forge keeps controls contained and artwork before equipment",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "noOverflow": true,
+            "previewFirst": false,
+            "panelHeight": 964
+          }
+        },
+        {
+          "name": "900px primary navigation remains reachable",
+          "ok": true
+        },
+        {
+          "name": "700px forge keeps controls contained and artwork before equipment",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "noOverflow": true,
+            "previewFirst": true,
+            "panelHeight": 1188
+          }
+        },
+        {
+          "name": "700px primary navigation remains reachable",
+          "ok": true
+        },
+        {
+          "name": "390px forge keeps controls contained and artwork before equipment",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "noOverflow": true,
+            "previewFirst": true,
+            "panelHeight": 1174
+          }
+        },
+        {
+          "name": "390px primary navigation remains reachable",
+          "ok": true
+        },
+        {
+          "name": "320px forge keeps controls contained and artwork before equipment",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "noOverflow": true,
+            "previewFirst": true,
+            "panelHeight": 1165
+          }
+        },
+        {
+          "name": "320px primary navigation remains reachable",
+          "ok": true
+        },
+        {
+          "name": "narrow Caelan / Dawnsworn is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Caelan / Ashen Oath is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Caelan / Celestial Guard is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Nyra / Veil Huntress is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Nyra / Lunar Phantom is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Nyra / Thornbound is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Orren / Rootbound is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Orren / Furnace King is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Orren / Frost Relic is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Serai / Tidecaller is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Serai / Star Cartographer is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow Serai / Desert Oracle is selectable",
+          "ok": true
+        },
+        {
+          "name": "narrow model preview and dance remain reachable",
+          "ok": true
+        },
+        {
+          "name": "champion selection works from the keyboard",
+          "ok": true
+        },
+        {
+          "name": "skin selection works from the keyboard",
+          "ok": true
+        },
+        {
+          "name": "seal and return shows the selected champion in the hub",
+          "ok": true
+        },
+        {
+          "name": "hub portrait opens champion selection",
+          "ok": true
+        },
+        {
+          "name": "forge Back returns to the hub",
+          "ok": true
+        },
+        {
+          "name": "moba receives the selected champion, skin and portrait",
+          "ok": true
+        },
+        {
+          "name": "moba 1600px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 461,
+            "right": 616,
+            "width": 1600
+          }
+        },
+        {
+          "name": "moba 1440px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 490,
+            "right": 538,
+            "width": 1440
+          }
+        },
+        {
+          "name": "moba 1280px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 410,
+            "right": 458,
+            "width": 1280
+          }
+        },
+        {
+          "name": "moba 900px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 305,
+            "right": 353,
+            "width": 900
+          }
+        },
+        {
+          "name": "moba 700px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 205,
+            "right": 239,
+            "width": 700
+          }
+        },
+        {
+          "name": "moba 390px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 11,
+            "right": 45,
+            "width": 390
+          }
+        },
+        {
+          "name": "moba 320px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 8,
+            "right": 36,
+            "width": 320
+          }
+        },
+        {
+          "name": "duel receives the selected champion, skin and portrait",
+          "ok": true
+        },
+        {
+          "name": "duel 1600px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 461,
+            "right": 616,
+            "width": 1600
+          }
+        },
+        {
+          "name": "duel 1440px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 490,
+            "right": 538,
+            "width": 1440
+          }
+        },
+        {
+          "name": "duel 1280px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 410,
+            "right": 458,
+            "width": 1280
+          }
+        },
+        {
+          "name": "duel 900px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 247,
+            "right": 295,
+            "width": 900
+          }
+        },
+        {
+          "name": "duel 700px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 162,
+            "right": 196,
+            "width": 700
+          }
+        },
+        {
+          "name": "duel 390px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 11,
+            "right": 45,
+            "width": 390
+          }
+        },
+        {
+          "name": "duel 320px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 8,
+            "right": 36,
+            "width": 320
+          }
+        },
+        {
+          "name": "arena receives the selected champion, skin and portrait",
+          "ok": true
+        },
+        {
+          "name": "arena 1600px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 461,
+            "right": 616,
+            "width": 1600
+          }
+        },
+        {
+          "name": "arena 1440px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 490,
+            "right": 538,
+            "width": 1440
+          }
+        },
+        {
+          "name": "arena 1280px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 410,
+            "right": 458,
+            "width": 1280
+          }
+        },
+        {
+          "name": "arena 900px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 247,
+            "right": 295,
+            "width": 900
+          }
+        },
+        {
+          "name": "arena 700px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 162,
+            "right": 196,
+            "width": 700
+          }
+        },
+        {
+          "name": "arena 390px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 11,
+            "right": 45,
+            "width": 390
+          }
+        },
+        {
+          "name": "arena 320px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 8,
+            "right": 36,
+            "width": 320
+          }
+        },
+        {
+          "name": "kart receives the selected champion, skin and portrait",
+          "ok": true
+        },
+        {
+          "name": "kart 1600px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 461,
+            "right": 616,
+            "width": 1600
+          }
+        },
+        {
+          "name": "kart 1440px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 490,
+            "right": 538,
+            "width": 1440
+          }
+        },
+        {
+          "name": "kart 1280px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 410,
+            "right": 458,
+            "width": 1280
+          }
+        },
+        {
+          "name": "kart 900px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 247,
+            "right": 295,
+            "width": 900
+          }
+        },
+        {
+          "name": "kart 700px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 205,
+            "right": 239,
+            "width": 700
+          }
+        },
+        {
+          "name": "kart 390px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 11,
+            "right": 45,
+            "width": 390
+          }
+        },
+        {
+          "name": "kart 320px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 8,
+            "right": 36,
+            "width": 320
+          }
+        },
+        {
+          "name": "brawl receives the selected champion, skin and portrait",
+          "ok": true
+        },
+        {
+          "name": "brawl 1600px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 461,
+            "right": 616,
+            "width": 1600
+          }
+        },
+        {
+          "name": "brawl 1440px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 490,
+            "right": 538,
+            "width": 1440
+          }
+        },
+        {
+          "name": "brawl 1280px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 410,
+            "right": 458,
+            "width": 1280
+          }
+        },
+        {
+          "name": "brawl 900px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 247,
+            "right": 295,
+            "width": 900
+          }
+        },
+        {
+          "name": "brawl 700px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 162,
+            "right": 196,
+            "width": 700
+          }
+        },
+        {
+          "name": "brawl 390px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 11,
+            "right": 45,
+            "width": 390
+          }
+        },
+        {
+          "name": "brawl 320px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 8,
+            "right": 36,
+            "width": 320
+          }
+        },
+        {
+          "name": "siege receives the selected champion, skin and portrait",
+          "ok": true
+        },
+        {
+          "name": "siege 1600px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 461,
+            "right": 616,
+            "width": 1600
+          }
+        },
+        {
+          "name": "siege 1440px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 490,
+            "right": 538,
+            "width": 1440
+          }
+        },
+        {
+          "name": "siege 1280px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 410,
+            "right": 458,
+            "width": 1280
+          }
+        },
+        {
+          "name": "siege 900px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 247,
+            "right": 295,
+            "width": 900
+          }
+        },
+        {
+          "name": "siege 700px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 162,
+            "right": 196,
+            "width": 700
+          }
+        },
+        {
+          "name": "siege 390px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 11,
+            "right": 45,
+            "width": 390
+          }
+        },
+        {
+          "name": "siege 320px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 8,
+            "right": 36,
+            "width": 320
+          }
+        },
+        {
+          "name": "hoops receives the selected champion, skin and portrait",
+          "ok": true
+        },
+        {
+          "name": "hoops 1600px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 461,
+            "right": 616,
+            "width": 1600
+          }
+        },
+        {
+          "name": "hoops 1440px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 490,
+            "right": 538,
+            "width": 1440
+          }
+        },
+        {
+          "name": "hoops 1280px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 410,
+            "right": 458,
+            "width": 1280
+          }
+        },
+        {
+          "name": "hoops 900px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 247,
+            "right": 295,
+            "width": 900
+          }
+        },
+        {
+          "name": "hoops 700px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 162,
+            "right": 196,
+            "width": 700
+          }
+        },
+        {
+          "name": "hoops 390px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 11,
+            "right": 45,
+            "width": 390
+          }
+        },
+        {
+          "name": "hoops 320px portrait clears combat controls and resources",
+          "ok": true,
+          "detail": {
+            "overlap": [],
+            "left": 8,
+            "right": 36,
+            "width": 320
+          }
+        },
+        {
+          "name": "selection and gameplay paths report no browser errors",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "slow artwork has a visible loading state",
+          "ok": true
+        },
+        {
+          "name": "failed artwork preserves a usable champion selection",
+          "ok": true
+        },
+        {
+          "name": "Retry artwork recovers the original illustration",
+          "ok": true
+        }
+      ],
+      "errors": []
+    },
+    {
+      "script": "qa/probe-field-tooltips.mjs",
+      "passed": 64,
+      "total": 64,
+      "results": [
+        {
+          "name": "duel cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "duel 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "brawl 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "moba 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "arena 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "siege 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "hoops 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "kart 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "tooltip checks have no page errors",
+          "ok": true
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "appearance_inspection": {
+    "coverage": {
+      "headHairCombinations": 12,
+      "swatches": 22,
+      "capeStates": 2,
+      "trailStates": 3
+    },
+    "captures": [
+      {
+        "champion": "Caelan",
+        "kind": "vanguard",
+        "meshes": 63,
+        "triangles": 18264,
+        "file": "qa/screens/champions/caelan.png"
+      },
+      {
+        "champion": "Nyra",
+        "kind": "raider",
+        "meshes": 59,
+        "triangles": 19196,
+        "file": "qa/screens/champions/nyra.png"
+      },
+      {
+        "champion": "Serai",
+        "kind": "mystic",
+        "meshes": 64,
+        "triangles": 19524,
+        "file": "qa/screens/champions/serai.png"
+      },
+      {
+        "champion": "Orren",
+        "kind": "juggernaut",
+        "meshes": 63,
+        "triangles": 19932,
+        "file": "qa/screens/champions/orren.png"
+      }
+    ],
+    "errors": []
+  },
+  "portrait_inspection": {
+    "results": [
+      {
+        "name": "Caelan",
+        "loaded": true,
+        "alt": "Caelan: Dawnsworn"
+      },
+      {
+        "name": "Nyra",
+        "loaded": true,
+        "alt": "Nyra: Veil Huntress"
+      },
+      {
+        "name": "Orren",
+        "loaded": true,
+        "alt": "Orren: Rootbound"
+      },
+      {
+        "name": "Serai",
+        "loaded": true,
+        "alt": "Serai: Tidecaller"
+      }
+    ],
+    "reducedMotion": true,
+    "errors": []
+  },
+  "review": {
+    "independent_reviewer": "Astra runtime_review",
+    "findings_fixed": [
+      "Mobile presentation ordering",
+      "Combat portrait/resource overlap at intermediate widths"
+    ],
+    "additional_browser_fixes": [
+      "MOBA tablet portrait placement",
+      "Kart tablet portrait placement"
+    ]
+  }
+}

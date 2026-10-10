@@ -1,0 +1,58 @@
+{
+  "results": [
+    {
+      "name": "caelan Phantom Twin tint darkens face and body",
+      "ok": true,
+      "detail": {
+        "before": {
+          "face": 377.7916666666667,
+          "body": 292.69444444444446
+        },
+        "after": {
+          "face": 223.79166666666666,
+          "body": 189.72222222222223
+        }
+      }
+    },
+    {
+      "name": "nyra Phantom Twin tint darkens face and body",
+      "ok": true,
+      "detail": {
+        "before": {
+          "face": 431.6875,
+          "body": 176.22222222222223
+        },
+        "after": {
+          "face": 263.4791666666667,
+          "body": 124.22916666666667
+        }
+      }
+    },
+    {
+      "name": "Legacy paint migrates while player identity, effects and results survive",
+      "ok": true
+    },
+    {
+      "name": "Dragging rotates the new 3D character",
+      "ok": true
+    },
+    {
+      "name": "Mobile glow control updates character effects",
+      "ok": true
+    },
+    {
+      "name": "Mobile trail control updates the selected character",
+      "ok": true
+    },
+    {
+      "name": "Restore defaults resets effects and disables itself",
+      "ok": true
+    },
+    {
+      "name": "No browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

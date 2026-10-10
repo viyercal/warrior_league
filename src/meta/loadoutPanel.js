@@ -1,5 +1,6 @@
-import { SKILLS, KEY_LABELS } from './skills.js'
+import { SKILLS, KEY_LABELS, WASD_KEY_LABELS } from './skills.js'
 import { icon } from '../ui/craft.js'
+import { buildChampionSelect } from './championSelect.js'
 
 export const GAME_TITLES = {
   moba: 'WAR RIFT', hoops: 'BLOOD COURT', arena: 'THE PIT',
@@ -9,16 +10,10 @@ export const GAME_TITLES = {
 const GAME_ORDER = ['moba', 'hoops', 'arena', 'kart', 'brawl', 'siege', 'duel']
 const GAME_SHORT = { moba: 'RIFT', hoops: 'COURT', arena: 'PIT', kart: 'CHARIOT', brawl: 'ARENA', siege: 'SIEGE', duel: 'CRUCIBLE' }
 
-// war paint: bronze, blood, iron, bone, witchfire, olive, nightshade, leather
-const PRIMARY = ['#b0793a', '#c23b2e', '#6b6f78', '#e8dcc4', '#7dff8a', '#8fae4a', '#75559e', '#4a352a']
 // rune-glow: torch gold, forge fire, crimson, moon steel, ember, venom, wraith bone, bone white
 const GLOWS = ['#ffb84d', '#ff5a26', '#c23b2e', '#9fb8c8', '#ff8a5c', '#9fce4a', '#d8d2c2', '#e8dcc4']
-const SECONDARY = ['#3a2a20', '#2a2621', '#3a3e46', '#4a1a1c', '#2c2233', '#5c3d1a']
 
 const SEGMENTS = [
-  { key: 'head', label: 'HEAD', opts: [['visor', 'VISOR'], ['orb', 'ORB'], ['classic', 'CLASSIC']] },
-  { key: 'hair', label: 'HAIR', opts: [['spikes', 'SPIKES'], ['swept', 'SWEPT'], ['horns', 'HORNS'], ['none', 'NONE']] },
-  { key: 'cape', label: 'CAPE', opts: [[true, 'ON'], [false, 'OFF']] },
   { key: 'trail', label: 'TRAIL', opts: [['spark', 'SPARK'], ['ribbon', 'RIBBON'], ['none', 'NONE']] },
 ]
 
@@ -30,6 +25,7 @@ const SEGMENTS = [
 export function buildLoadoutPanel(hud, ctx, hooks = {}) {
   const { profile, audio, saveProfile, goTo, params } = ctx
   const game = params?.game || null
+  const keyLabels = ['arena', 'hoops', 'kart', 'siege'].includes(game) ? WASD_KEY_LABELS : KEY_LABELS
   const syncs = []
   const sync = () => syncs.forEach(f => f())
 
@@ -38,10 +34,11 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
   // ---------- header ----------
   const head = hud.el('div', 'loadout-head', '', root)
   hud.el('div', 'loadout-kicker', game ? 'PREPARE FOR BATTLE' : 'FORGE YOUR LEGEND', head)
-  hud.el('div', 'loadout-title', 'WAR FORGE', head)
+  hud.el('div', 'loadout-title', 'Choose your legend.', head)
   const nameRow = hud.el('div', 'loadout-namerow', '', head)
   hud.el('div', 'loadout-namelabel', 'WAR NAME', nameRow)
   const nameInput = hud.el('input', 'loadout-name', '', nameRow)
+  nameInput.setAttribute('aria-label', 'War name')
   nameInput.maxLength = 12
   nameInput.spellcheck = false
   nameInput.value = profile.name || ''
@@ -56,6 +53,11 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
     `${icon('crossed-swords', { size: '1em' })}NEXT BATTLE &nbsp;·&nbsp; ${GAME_TITLES[game]}`, head)
 
   const scroll = hud.el('div', 'loadout-scroll', '', root)
+  const champions = buildChampionSelect(hud, ctx, scroll, () => {
+    sync()
+    hooks.onAppearance?.()
+  })
+  syncs.push(() => champions.sync())
   const section = title => {
     const s = hud.el('div', 'loadout-sec', '', scroll)
     hud.el('div', 'loadout-sec-title',
@@ -64,13 +66,17 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
   }
 
   // ---------- appearance ----------
-  const secA = section('WAR PAINT & ARMOR')
+  const appearance = hud.el('details', 'champion-customize ui-interactive', '', scroll)
+  hud.el('summary', '', 'Battle effects', appearance)
+  const secA = hud.el('div', 'loadout-sec', '', appearance)
   const swatchRow = (label, colors, key) => {
     const row = hud.el('div', 'loadout-row', '', secA)
     hud.el('div', 'loadout-label', label, row)
     const wrap = hud.el('div', 'loadout-swatches', '', row)
     const btns = colors.map(c => {
-      const b = hud.el('div', 'loadout-swatch', '', wrap)
+      const b = hud.el('button', 'loadout-swatch', '', wrap)
+      b.type = 'button'
+      b.setAttribute('aria-label', `${label} ${c}`)
       b.style.setProperty('--sw', c)
       b.onclick = () => {
         if (profile.appearance[key] === c) return
@@ -83,18 +89,18 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
       b.onmouseenter = () => audio.play('hover', { vol: 0.2 })
       return [b, c]
     })
-    syncs.push(() => { for (const [b, c] of btns) b.classList.toggle('sel', profile.appearance[key] === c) })
+    syncs.push(() => { for (const [b, c] of btns) { b.classList.toggle('sel', profile.appearance[key] === c); b.setAttribute('aria-pressed', String(profile.appearance[key] === c)) } })
   }
-  swatchRow('PRIMARY', PRIMARY, 'primary')
   swatchRow('GLOW', GLOWS, 'glow')
-  swatchRow('ARMOR', SECONDARY, 'secondary')
 
   for (const seg of SEGMENTS) {
     const row = hud.el('div', 'loadout-row', '', secA)
     hud.el('div', 'loadout-label', seg.label, row)
     const wrap = hud.el('div', 'loadout-seg', '', row)
     const btns = seg.opts.map(([val, name]) => {
-      const b = hud.el('div', 'loadout-seg-btn', name, wrap)
+      const b = hud.el('button', 'loadout-seg-btn', name, wrap)
+      b.type = 'button'
+      b.setAttribute('aria-label', `${seg.label}: ${name}`)
       b.onclick = () => {
         if (profile.appearance[seg.key] === val) return
         profile.appearance[seg.key] = val
@@ -106,20 +112,26 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
       b.onmouseenter = () => audio.play('hover', { vol: 0.2 })
       return [b, val]
     })
-    syncs.push(() => { for (const [b, val] of btns) b.classList.toggle('sel', profile.appearance[seg.key] === val) })
+    syncs.push(() => { for (const [b, val] of btns) { b.classList.toggle('sel', profile.appearance[seg.key] === val); b.setAttribute('aria-pressed', String(profile.appearance[seg.key] === val)) } })
   }
 
   // ---------- skillset ----------
   const secS = section('BATTLE ARTS')
-  hud.el('div', 'loadout-hintline', 'PICK A SLOT, THEN CLAIM AN ART — EQUIPPED ONES SWAP', secS)
+  hud.el('div', 'loadout-hintline', 'Choose a slot, then an art. Equipped arts swap places.', secS)
   let active = 0
+  let artDetail
+  const updateDetail = sk => {
+    if (!artDetail || !sk) return
+    artDetail.textContent = `${sk.name} · ${sk.cd}s cooldown. ${game ? sk.inGame[game] : sk.desc}`
+  }
   const slotsWrap = hud.el('div', 'loadout-slots', '', secS)
-  const slotEls = KEY_LABELS.map((k, i) => {
-    const s = hud.el('div', 'loadout-slot', '', slotsWrap)
+  const slotEls = keyLabels.map((k, i) => {
+    const s = hud.el('button', 'loadout-slot', '', slotsWrap)
+    s.type = 'button'
     hud.el('div', 'loadout-slot-key', k, s)
     const ic = hud.el('div', 'loadout-slot-icon', '', s)
     const nm = hud.el('div', 'loadout-slot-name', '', s)
-    s.onclick = () => { active = i; audio.play('click', { vol: 0.5 }); sync() }
+    s.onclick = () => { active = i; audio.play('click', { vol: 0.5 }); sync(); updateDetail(SKILLS.find(sk => sk.id === profile.loadout[i])) }
     return { s, ic, nm }
   })
   syncs.push(() => {
@@ -130,15 +142,22 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
       nm.textContent = sk ? sk.name : 'EMPTY'
       s.style.setProperty('--sw', sk ? sk.color : '#6b5a44')
       s.classList.toggle('active', i === active)
+      s.setAttribute('aria-pressed', String(i === active))
+      s.setAttribute('aria-label', `Slot ${keyLabels[i]}: ${sk?.name || 'Empty'}`)
     })
   })
 
   const grid = hud.el('div', 'loadout-grid', '', secS)
+  artDetail = hud.el('p', 'loadout-art-detail', '', secS)
+  artDetail.id = 'loadout-art-detail'
+  artDetail.setAttribute('aria-live', 'polite')
+  updateDetail(SKILLS.find(sk => sk.id === profile.loadout[0]))
   const tip = hud.el('div', 'loadout-tip')
   // 7 games per skill: with a destination game its line gets the full "hot"
   // row and the other six collapse into a compact dimmed stack; with no
   // destination (hub customize) all seven render as one tight legible list.
   const showTip = (sk, cell) => {
+    updateDetail(sk)
     let rows
     if (game) {
       rows = `<div class="loadout-tip-game hot"><b>${GAME_TITLES[game]}</b><span>${sk.inGame[game]}</span></div>` +
@@ -156,7 +175,7 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
     tip.classList.add('on')
     const r = cell.getBoundingClientRect()
     const pr = root.getBoundingClientRect()
-    tip.style.right = `${innerWidth - pr.left + 14}px`
+    tip.style.right = innerWidth < 760 ? '16px' : `${innerWidth - pr.left + 14}px`
     const th = tip.offsetHeight
     tip.style.top = `${Math.max(12, Math.min(innerHeight - th - 12, r.top + r.height / 2 - th / 2))}px`
   }
@@ -191,21 +210,27 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
   }
 
   const cells = SKILLS.map(sk => {
-    const c = hud.el('div', 'loadout-skill', '', grid)
+    const c = hud.el('button', 'loadout-skill', '', grid)
+    c.type = 'button'
+    c.setAttribute('aria-label', `Equip ${sk.name}`)
+    c.setAttribute('aria-describedby', 'loadout-art-detail')
     c.style.setProperty('--sw', sk.color)
     hud.el('div', 'loadout-skill-icon', sk.icon, c)
     hud.el('div', 'loadout-skill-name', sk.name, c)
     const badge = hud.el('div', 'loadout-skill-badge', '', c)
-    c.onclick = () => equip(sk, c)
+    c.onclick = () => { equip(sk, c); updateDetail(sk) }
     c.onmouseenter = () => { audio.play('hover', { vol: 0.25 }); showTip(sk, c) }
     c.onmouseleave = hideTip
+    c.onfocus = () => showTip(sk, c)
+    c.onblur = hideTip
     return { c, badge, sk }
   })
   syncs.push(() => {
     for (const { c, badge, sk } of cells) {
       const i = profile.loadout.indexOf(sk.id)
       c.classList.toggle('equipped', i >= 0)
-      badge.textContent = i >= 0 ? KEY_LABELS[i] : ''
+      c.setAttribute('aria-pressed', String(i >= 0))
+      badge.textContent = i >= 0 ? keyLabels[i] : ''
     }
   })
 
@@ -225,8 +250,9 @@ export function buildLoadoutPanel(hud, ctx, hooks = {}) {
   const stage = hud.el('div', 'loadout-stagebar ui-interactive')
   hud.el('div', 'loadout-draghint', '⟲ DRAG TO TURN', stage)
   const dance = hud.el('button', 'ghost loadout-dance', '♪ WAR DANCE <span>P</span>', stage)
+  dance.setAttribute('aria-pressed', 'false')
   dance.onclick = () => hooks.onDance?.()
 
   sync()
-  return { root, sync, setDance: on => dance.classList.toggle('on', on) }
+  return { root, sync, showModel: champions.showModel, setDance: on => { dance.classList.toggle('on', on); dance.setAttribute('aria-pressed', String(on)) } }
 }

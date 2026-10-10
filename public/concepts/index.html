@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101619">
+  <title>Warrior League · Character art gallery</title>
+  <link rel="stylesheet" href="gallery.css">
+</head>
+<body>
+  <header class="masthead"><a href="/" class="wordmark">WARRIOR LEAGUE</a><span>CHARACTER ART COLLECTION</span></header>
+  <main>
+    <section class="introduction">
+      <p class="eyebrow">FOUR CHARACTERS. TWELVE WORLDS.</p>
+      <h1>Meet your legends.</h1>
+      <p class="lede">Explore all twelve looks. Open an artwork to zoom in or compare costumes. There is no need to choose yet.</p>
+      <p class="explanation">A <strong>character</strong> is the person you play. A <strong>skin</strong> gives that person a different costume and visual theme.</p>
+    </section>
+    <nav class="filters" aria-label="Filter character artwork">
+      <button data-filter="all" aria-pressed="true">All artwork <span>12</span></button>
+      <button data-filter="caelan" aria-pressed="false">Caelan <span>The duelist</span></button>
+      <button data-filter="nyra" aria-pressed="false">Nyra <span>The huntress</span></button>
+      <button data-filter="orren" aria-pressed="false">Orren <span>The guardian</span></button>
+      <button data-filter="serai" aria-pressed="false">Serai <span>The spellcaster</span></button>
+    </nav>
+    <div id="collection"></div>
+    <footer>Original Warrior League concept art · Explore the look before deciding the roster.<a href="/">Return to the game <span aria-hidden="true">↗</span></a></footer>
+  </main>
+  <dialog class="viewer" aria-labelledby="art-title">
+    <header class="viewer-header"><div><p id="art-character" class="eyebrow"></p><h2 id="art-title"></h2></div><button id="close" autofocus aria-label="Close artwork">Close <kbd>Esc</kbd></button></header>
+    <div class="image-stage" tabindex="0" aria-label="Artwork viewport. Scroll to inspect when zoomed.">
+      <div class="image-frame"><img id="full-art" alt=""></div>
+      <div class="load-state"><p id="load-message" role="status">Loading artwork…</p><button id="retry" hidden>Try again</button></div>
+    </div>
+    <div class="viewer-tools">
+      <div class="navigation"><button id="previous" aria-label="Previous artwork">←</button><span id="position"></span><button id="next" aria-label="Next artwork">→</button></div>
+      <div class="zoom"><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom-level">Fit</span><button id="zoom-in" aria-label="Zoom in">+</button><button id="fit">Fit image</button></div>
+      <a id="original" target="_blank" rel="noopener">Open original <span aria-hidden="true">↗</span></a>
+    </div>
+    <p id="art-caption" class="viewer-caption"></p>
+  </dialog>
+  <script type="module" src="gallery.js"></script>
+</body>
+</html>

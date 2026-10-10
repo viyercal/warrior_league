@@ -1,0 +1,83 @@
+{
+  "time": "2026-09-20T00:20:03.988655+00:00",
+  "branch": "feat/astra-immersive-realms",
+  "build": {
+    "command": "npm run build",
+    "passed": true,
+    "note": "Existing large shared-bundle warning remains."
+  },
+  "suites": [
+    {
+      "artifact": "docs/cpu-ui-results.json",
+      "passed": 47,
+      "failed": 0,
+      "browserErrors": 0,
+      "time": "2026-09-20T00:17:35.989Z"
+    },
+    {
+      "artifact": "docs/cpu-ui-results-production.json",
+      "passed": 47,
+      "failed": 0,
+      "browserErrors": 0,
+      "time": "2026-09-20T00:18:36.118Z"
+    },
+    {
+      "artifact": "docs/cpu-match-results.json",
+      "passed": 49,
+      "failed": 0,
+      "browserErrors": 0,
+      "time": "2026-09-20T00:11:52.104Z"
+    },
+    {
+      "artifact": "docs/cpu-match-results-production.json",
+      "passed": 49,
+      "failed": 0,
+      "browserErrors": 0,
+      "time": "2026-09-20T00:14:40.259Z"
+    },
+    {
+      "artifact": "docs/cpu-behavior-results.json",
+      "passed": 42,
+      "failed": 0,
+      "browserErrors": 0,
+      "time": "2026-09-20T00:08:39.074Z"
+    }
+  ],
+  "towerRegression": {
+    "command": "IPL_PORT=5302 node qa/probe-duel-tower.mjs",
+    "passed": 10,
+    "failed": 0,
+    "browserErrors": 0
+  },
+  "independentReview": {
+    "reviewer": "/root/runtime_review",
+    "substantiveFindings": 0,
+    "scope": "CPU modules, eligibility, brain behavior, pause snapshot semantics, Single Duel results and stats, fixed ally tuning"
+  },
+  "resultReuse": "Production match checks passed before the final CSS change, which only adjusts hub layout at desktop height breakpoints. Production hub checks were rerun after the final build. Gameplay, pause and result code are unchanged from their passing checks.",
+  "sourceSha256": {
+    "src/core/cpuDifficulty.js": "4cf520836a7f6a8823764562137dc0216411a9e1ba18e6237761edced2e4058b",
+    "src/core/profile.js": "0346b634017dfd537ccf8bf0b82fcc025d1cf41958e5cee6388530e93c0d694e",
+    "src/core/sceneManager.js": "c7fdf7ca12dbbe9898bb2feacac9930371ade2aa6211954a23156607c6bc200e",
+    "src/core/session.js": "35677a46c0795adf15298cf982be70a2faf325a6dc1e868cde00a270fa0de972",
+    "src/core/input.js": "c55d36788815aef7d192212756c7beae4fe07eb1b6de558f8a1279b33362e1c1",
+    "src/ui/cpuDifficulty.js": "d7447118e87255c58e9766dffbfcbfaed900a8cb0936379e9e9c892f917b0395",
+    "src/ui/cpuDifficulty.css": "85468916525727c7ff02b3af3c2bc9f3f3633ff922b81f1a890829edf16faa76",
+    "src/ui/session.css": "00aa369ceeae0b15b889f88d49157eee7c239bbf3e57d4154452445344982aae",
+    "src/ui/battle.css": "3da847bd3d19823e8559123f38a4428121aaf92e047f2c0653a1b25799bff9d4",
+    "src/main.js": "cdc1e1c15d0a6db7fc60f155a367718eb40c8292c0337b8189af02320e324bbb",
+    "src/meta/hubScene.js": "c9caff231e5221560dfc14b4a304825e887e61ad915ac09eccb6e9bed9df7a7b",
+    "src/meta/loadoutPanel.js": "5e4f5787a1c1757c94385e3a804d07d14d4d731445cb0df431b460d9a404ae63",
+    "src/games/brawl/brawlAi.js": "18317e6611d55fe9f103c8ef0557a81afbb45e15696372f9339aa69e7c96e4e1",
+    "src/games/brawl/brawlScene.js": "2e333d1fe23b568dfac324d43a64329c8105cea841e8a0f27a8ab0163d1ab4cd",
+    "src/games/duel/singleDuelAi.js": "b14d4d392324790f3084e7d2a7b57f9231133563085d9debbb5b41977c1bbe4a",
+    "src/games/duel/duelScene.js": "ed5204c712e47adbf0d4c090c0739270f2fc33ddc091f58914bd1fdba58b2873",
+    "src/games/duel/duelHud.js": "fad121a4f859898f2354262b2dfb5210cfcc80652c84c0c48d53cdcf503fe00c",
+    "src/games/duel/duelAi.js": "7770eb28221aefab21d729a5b0b5b955e62fe9c20aa63451d78840c7eb6cf340",
+    "src/games/duel/tower.js": "30e7d14cf1775d820b51ab99da590baf6dda567ca41b0326280ff04bb4d37944"
+  },
+  "limits": [
+    "Behavior tiers are authored and mechanically verified, not calibrated to human win-rate data.",
+    "Flow checks force round outcomes through scene hooks while using native controls for navigation and settings."
+  ]
+}

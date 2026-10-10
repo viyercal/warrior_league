@@ -1,0 +1,10 @@
+<!doctype html><html><head><title>CPU behavior verification</title></head><body>
+<script type="module">
+import { SingleDuelAI } from '/src/games/duel/singleDuelAi.js'
+import { BrawlAI } from '/src/games/brawl/brawlAi.js'
+import { cpuDifficulty, normalizeCpuLevel } from '/src/core/cpuDifficulty.js'
+import { ATTACKS } from '/src/games/duel/fighters.js'
+import { TOWER } from '/src/games/duel/tower.js'
+import { loadProfile } from '/src/core/profile.js'
+window.cpuLab = { SingleDuelAI, BrawlAI, cpuDifficulty, normalizeCpuLevel, ATTACKS, TOWER, loadProfile }
+</script></body></html>

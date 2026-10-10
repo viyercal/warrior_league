@@ -1,0 +1,82 @@
+{
+  "results": [
+    {
+      "name": "caelan real block input preserves the authored arm pose",
+      "ok": true,
+      "detail": {
+        "blocking": true,
+        "valid": true
+      }
+    },
+    {
+      "name": "caelan duel light/heavy inputs animate without resetting the arm rest pose",
+      "ok": true,
+      "detail": {
+        "samples": 59,
+        "kinds": [
+          "jab",
+          "heavy"
+        ],
+        "maxZ": -0.3082243295792291
+      }
+    },
+    {
+      "name": "caelan brawl light/heavy inputs animate without resetting the arm rest pose",
+      "ok": true,
+      "detail": {
+        "samples": 53,
+        "kinds": [
+          "jab1",
+          "smash"
+        ],
+        "maxZ": -0.3082243295792291
+      }
+    },
+    {
+      "name": "caelan accelerating and steering preserves the driving pose",
+      "ok": true
+    },
+    {
+      "name": "nyra real block input preserves the authored arm pose",
+      "ok": true,
+      "detail": {
+        "blocking": true,
+        "valid": true
+      }
+    },
+    {
+      "name": "nyra duel light/heavy inputs animate without resetting the arm rest pose",
+      "ok": true,
+      "detail": {
+        "samples": 60,
+        "kinds": [
+          "jab",
+          "heavy"
+        ],
+        "maxZ": -0.3068918676655352
+      }
+    },
+    {
+      "name": "nyra brawl light/heavy inputs animate without resetting the arm rest pose",
+      "ok": true,
+      "detail": {
+        "samples": 53,
+        "kinds": [
+          "jab1",
+          "smash"
+        ],
+        "maxZ": -0.3068918676655352
+      }
+    },
+    {
+      "name": "nyra accelerating and steering preserves the driving pose",
+      "ok": true
+    },
+    {
+      "name": "No browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

@@ -1,21 +1,26 @@
 import { rand } from '../../core/utils.js'
 import { MAIN } from './stage.js'
+import { cpuDifficulty } from '../../core/cpuDifficulty.js'
 
 /**
  * Free-for-all brawler AI. Produces an intent object each frame:
  * { move, jump, fastFall, drop, jab, smash, dodge }.
  * Discrete decisions (attack / dodge / hop) happen on reaction ticks
- * (~200-350ms); steering and recovery run continuously.
+ * (about 100-720ms, depending on level); recovery runs continuously.
  */
 export class BrawlAI {
-  constructor(fighter, { jabsOnly = false } = {}) {
+  constructor(fighter, { jabsOnly = false, difficulty = cpuDifficulty().brawl } = {}) {
     this.f = fighter
+    this.difficulty = difficulty
     this.jabsOnly = jabsOnly
-    this.reaction = rand(0.2, 0.35)
-    this.decideT = rand(0.2, 0.6)
+    this.reaction = difficulty.reaction
+    this.decideT = this.reaction * rand(.8, 1.2)
     this.retargetT = 0
     this.target = null
-    this.spacing = rand(1.05, 1.45)
+    this.spacing = difficulty.spacing * rand(.9, 1.1)
+    this.seenX = 0
+    this.seenY = 0
+    this.dodgeRead = null
     this.intent = { move: 0, jump: false, fastFall: false, drop: false, jab: false, smash: false, dodge: 0 }
   }
 
@@ -30,8 +35,9 @@ export class BrawlAI {
 
     this.retargetT -= dt
     if (this.retargetT <= 0 || !this.target || this.target.stocks <= 0 || this.target.state === 'out') {
-      this.retargetT = rand(1.4, 2.8)
+      this.retargetT = this.difficulty.retarget * rand(.8, 1.2)
       this.target = this._pickTarget(fighters)
+      if (this.target) { this.seenX = this.target.pos.x; this.seenY = this.target.pos.y }
     }
 
     const pos = f.pos
@@ -41,7 +47,7 @@ export class BrawlAI {
       // burn the air jump LOW while holding toward stage — the jump's momentum
       // redirect kills outward launch velocity, then air-drift does the rest
       const canAct = f.hitstun <= 0 && !f.grounded && f.airJumps > 0
-      if (canAct && f.vel.y < 0 && pos.y < 0.8) it.jump = true
+      if (canAct && f.vel.y < 0 && pos.y < this.difficulty.recoveryHeight) it.jump = true
       if (canAct && pos.y < -7) it.jump = true
       return it
     }
@@ -52,13 +58,16 @@ export class BrawlAI {
       return it
     }
 
-    const dx = tgt.pos.x - pos.x
-    const dy = tgt.pos.y - pos.y
-    const adx = Math.abs(dx)
-
     this.decideT -= dt
     const decide = this.decideT <= 0
-    if (decide) this.decideT = this.reaction * rand(0.8, 1.5)
+    if (decide) {
+      this.decideT = this.reaction * rand(.85, 1.15)
+      this.seenX = tgt.pos.x + (tgt.vel?.x || 0) * this.difficulty.anticipation
+      this.seenY = tgt.pos.y
+    }
+    const dx = this.seenX - pos.x
+    const dy = this.seenY - pos.y
+    const adx = Math.abs(dx)
 
     // ---------- steering ----------
     let want = dx > 0 ? 1 : -1
@@ -79,16 +88,20 @@ export class BrawlAI {
     // ---------- attacks ----------
     if (decide && f.hitstun <= 0 && !f.attack && f.dodgeT <= 0) {
       const inRange = adx < 2.1 * f.scaleMul && Math.abs(dy) < 1.7
-      if (inRange && tgt.state === 'fight' && !tgt.untouchable()) {
+      if (inRange && tgt.state === 'fight' && !tgt.untouchable() && Math.random() < this.difficulty.aggression) {
         const killable = tgt.dmg >= 85
-        if (!this.jabsOnly && Math.random() < (killable ? 0.6 : 0.22)) it.smash = true
+        if (!this.jabsOnly && Math.random() < (killable ? this.difficulty.finishChance : this.difficulty.smashChance)) it.smash = true
         else it.jab = true
       }
     }
 
     // ---------- defensive dodge ----------
-    if (decide && tgt.attack && adx < 2.7 && f.grounded && Math.random() < 0.32) {
-      it.dodge = dx > 0 ? -1 : 1
+    if (decide && tgt.attack && this.dodgeRead !== tgt.attack && adx < 2.7 && f.grounded) {
+      this.dodgeRead = tgt.attack
+      if (Math.random() < this.difficulty.dodgeChance) {
+        it.dodge = dx > 0 ? -1 : 1
+        it.jab = it.smash = false
+      }
     }
     return it
   }
@@ -99,7 +112,7 @@ export class BrawlAI {
       if (o === this.f || o.team === this.f.team) continue
       if (o.stocks <= 0 || o.state === 'out') continue
       const d = Math.abs(o.pos.x - this.f.pos.x) + Math.abs(o.pos.y - this.f.pos.y) * 0.6
-      const score = d - (o.dmg >= 85 ? 7 : 0)
+      const score = d - (o.dmg >= 85 ? this.difficulty.targetFinishBias : 0)
       if (score < bs) { bs = score; best = o }
     }
     return best

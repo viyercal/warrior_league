@@ -1,0 +1,31 @@
+{
+  "assets": [
+    {
+      "champion": "caelan",
+      "beforeBytes": 9267368,
+      "afterBytes": 7769208,
+      "savedBytes": 1498160,
+      "savedPercent": 16.17,
+      "beforeSha256": "02afca990a26d8ac57f3c87397b28a28ebb93281af8517d3caf5f1c0930546e2",
+      "afterSha256": "9157c670e8ef3579c99e0d3e235d30070f2ea00634aafaa3e1d67dfc65240b1d",
+      "exactGeometry": true,
+      "exactRigWeights": true,
+      "exactEmbeddedImages": true,
+      "noUnusedBufferViews": true
+    },
+    {
+      "champion": "nyra",
+      "beforeBytes": 9885780,
+      "afterBytes": 8355224,
+      "savedBytes": 1530556,
+      "savedPercent": 15.48,
+      "beforeSha256": "26e0a9bdb8cc6c3eb6c2ae6af201230f06ea5bea32d762ae5a42babaef3e5b17",
+      "afterSha256": "44c1d056197ead4a20930dc4148aa78bcc387acd9391381fc2cb07ca49a067d6",
+      "exactGeometry": true,
+      "exactRigWeights": true,
+      "exactEmbeddedImages": true,
+      "noUnusedBufferViews": true
+    }
+  ],
+  "savedBytes": 3028716
+}

@@ -1,0 +1,15 @@
+{
+  "provider": "https://huggingface.co/spaces/microsoft/TRELLIS.2",
+  "input": "tools/character-assets/production-references/caelan-dawnsworn.png",
+  "inputSha256": "90e7875fd7a0550133076984d78e743f509cb42c53dbb11f1b7e65fe2cf3aa78",
+  "resolution": "1024",
+  "decimationTarget": 100000,
+  "textureSize": 2048,
+  "seed": 41,
+  "status": "complete",
+  "elapsedSeconds": 60.64,
+  "sessionHash": "8fa33e30-5d98-4626-9a9f-cbc9eaedaa03",
+  "output": "tools/character-assets/generated/caelan-dawnsworn/character.glb",
+  "outputSha256": "f6f339baf50a690d7b1aa4ff187c8ac4f92a0916d99db6ee4dbcb95018b0d637",
+  "bytes": 5895500
+}

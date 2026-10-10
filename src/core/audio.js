@@ -334,8 +334,9 @@ export class GameAudio {
 
   /** Start looping theme music (crossfades from any playing theme). */
   music(theme) {
-    if (!this.enabled || theme === this._theme) return
-    if (!this.ctx) { this._theme = theme; this._pendingTheme = theme; return }
+    if (!this.enabled) return
+    if (!this.ctx) { this._pendingTheme = theme; return }
+    if (theme === this._theme) return
     const T = THEMES[theme]
     if (!T) return
     const switching = this._timer != null
@@ -426,9 +427,9 @@ export class GameAudio {
    */
   ambience(name, { fade = 1.6 } = {}) {
     if (!this.enabled) return
+    if (!this.ctx) { this._pendingAmb = name; return }
     if (name === this._ambName) return
     this._ambName = name
-    if (!this.ctx) { this._pendingAmb = name; return }
     const want = new Set(SCENE_AMBIENCE[name] || [])
     // fade out beds no longer wanted
     for (const [bedName, bed] of this._amb) {

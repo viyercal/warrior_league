@@ -1,0 +1,57 @@
+{
+  "branch": "feat/astra-immersive-realms",
+  "checkedAtUtc": "2026-09-19T01:35:02.851520+00:00",
+  "runtimeSnapshotAlgorithm": "sha256 of sorted path-to-sha256 JSON, compact separators",
+  "runtimeSnapshotSha256": "f3f3a1d92496143e4bbc27fa15f62b191e31e0a971b8c3eb3e88838bb48daf28",
+  "runtimeFiles": 122,
+  "savedBytes": 3028716,
+  "assets": [
+    {
+      "champion": "caelan",
+      "beforeBytes": 9267368,
+      "afterBytes": 7769208,
+      "savedBytes": 1498160,
+      "savedPercent": 16.17,
+      "beforeSha256": "02afca990a26d8ac57f3c87397b28a28ebb93281af8517d3caf5f1c0930546e2",
+      "afterSha256": "9157c670e8ef3579c99e0d3e235d30070f2ea00634aafaa3e1d67dfc65240b1d",
+      "exactGeometry": true,
+      "exactRigWeights": true,
+      "exactEmbeddedImages": true,
+      "noUnusedBufferViews": true
+    },
+    {
+      "champion": "nyra",
+      "beforeBytes": 9885780,
+      "afterBytes": 8355224,
+      "savedBytes": 1530556,
+      "savedPercent": 15.48,
+      "beforeSha256": "26e0a9bdb8cc6c3eb6c2ae6af201230f06ea5bea32d762ae5a42babaef3e5b17",
+      "afterSha256": "44c1d056197ead4a20930dc4148aa78bcc387acd9391381fc2cb07ca49a067d6",
+      "exactGeometry": true,
+      "exactRigWeights": true,
+      "exactEmbeddedImages": true,
+      "noUnusedBufferViews": true
+    }
+  ],
+  "checks": {
+    "nativeRender": {
+      "passed": 61,
+      "failed": 0,
+      "errors": []
+    },
+    "productionLifecycle": {
+      "passed": 16,
+      "failed": 0,
+      "errors": []
+    }
+  },
+  "independentReview": "Closed after sparse accessor alias guard was fixed and independently verified",
+  "build": "passed; existing large-chunk warning remains",
+  "priorFunctionalChecks": "265 earlier checks retained; exact asset data and native render equality verified, with production lifecycle checks rerun for the new containers",
+  "status": "Caelan/Nyra losslessly packed, verified and visually approved; Orren/Serai replacements and later refinements await free GPU quota",
+  "subsequentUserAcceptance": {
+    "recordedAtUtc": "2026-09-19T01:46:43.892099+00:00",
+    "standard": "art-standard.md",
+    "decision": "Current Caelan/Nyra rendering approved as the character and game-art standard"
+  }
+}

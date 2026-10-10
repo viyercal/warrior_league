@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Immortal Warlords League</title>
+  <title>Warrior League | Seven realms. One legend.</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>" />
   <link rel="stylesheet" href="/src/ui/styles.css" />
   <!-- craft kit loads first so the boot screen gets its forged textures + ornament -->
@@ -13,15 +13,17 @@
   <div id="app"></div>
   <div id="ui"></div>
   <div id="fader"></div>
-  <div id="boot">
+  <div id="boot" role="dialog" aria-modal="true" aria-label="Enter Warrior League">
     <div class="boot-bg"></div>
     <div class="boot-inner">
-      <div class="boot-logo">IWL</div>
-      <div class="boot-title">IMMORTAL&nbsp;WARLORDS&nbsp;LEAGUE</div>
+      <div class="boot-logo">W<span>L</span></div>
+      <div class="boot-title">WARRIOR LEAGUE</div>
       <div class="boot-rule" id="bootRule" aria-hidden="true"></div>
-      <div class="boot-sub">forge your legend</div>
+      <div class="boot-sub">Seven realms. One legend.</div>
+      <p id="bootStatus" role="status">Preparing your realm...</p>
       <div class="boot-bar"><div class="boot-fill" id="bootFill"></div></div>
-      <button class="boot-enter" id="bootEnter">ENTER</button>
+      <button class="boot-enter" id="bootEnter" disabled>BEGIN YOUR JOURNEY</button>
+      <div class="boot-note">Keyboard + mouse · Solo vs AI</div>
     </div>
   </div>
   <script type="module" src="/src/main.js"></script>

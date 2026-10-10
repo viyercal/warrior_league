@@ -30,7 +30,7 @@ export default class KartScene {
     this.ctx = ctx
     // realism grade: only true fire crosses the bloom threshold, natural saturation
     // SSAO benchmarked at -13fps mid-race → left OFF (contact blobs + painted AO instead)
-    this.postOpts = { bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.42, vignette: 0.52, saturation: 1.02, grain: 0.032, exposure: 1.0 }
+    this.postOpts = { bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.42, vignette: 0.52, saturation: 1.02, grain: 0.006, exposure: 1.0 }
   }
 
   async init() {
@@ -74,7 +74,7 @@ export default class KartScene {
     const hud = this.hud = new HUD()
     this.ui = buildKartHud(hud, { skillDefs: this.skillDefs, minimapPts: this.track.minimapPts, audio })
     this.hintBox = hud.hints([
-      ['W / ↑', 'Accelerate'], ['A / D', 'Steer'], ['SPACE', 'Hold to drift'],
+      ['↑ / W', 'Accelerate'], ['↓ / S', 'Brake'], ['← → / A D', 'Steer'], ['SPACE', 'Hold to drift'],
       ['SHIFT', 'Spend boost'], ['1-4', 'Skills'], ['R', 'Restart (post-race)'],
     ])
     this.ui.registerChrome(this.hintBox)
@@ -101,7 +101,7 @@ export default class KartScene {
       if (code === 'KeyR' && (this.over || this.state !== 'race')) { audio.play('click'); this.ctx.goTo('kart'); return }
       const i = wasdKeyIndex(code)
       if (i >= 0) this._castSkill(i)
-      else if (code === 'KeyH') this.hintBox.style.display = this.hintBox.style.display === 'none' ? '' : 'none'
+      else if (code === 'KeyH') this.hud.toggleHints()
     })
 
     audio.music('race')
@@ -1181,14 +1181,14 @@ export default class KartScene {
   }
 
   _timeout(fn, ms) {
-    const id = setTimeout(() => { if (!this.disposed) fn() }, ms)
+    const id = this.ctx.setTimeout(() => { if (!this.disposed) fn() }, ms)
     this._timeouts.push(id)
     return id
   }
 
   dispose() {
     this.disposed = true
-    for (const id of this._timeouts) clearTimeout(id)
+    for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this.ctx.audio.stopEngine()
     this.intro?.end()
     this._stopFlames()

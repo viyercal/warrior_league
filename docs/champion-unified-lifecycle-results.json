@@ -1,0 +1,114 @@
+{
+  "base": "http://127.0.0.1:5303",
+  "results": [
+    {
+      "name": "Champion loading keeps entry disabled",
+      "ok": true
+    },
+    {
+      "name": "Champion loading has a visible status",
+      "ok": true
+    },
+    {
+      "name": "Entry resumes after textures finish",
+      "ok": true
+    },
+    {
+      "name": "Texture failure exposes an enabled retry",
+      "ok": true
+    },
+    {
+      "name": "Texture failure explains recovery",
+      "ok": true
+    },
+    {
+      "name": "Retry reloads the real model successfully",
+      "ok": true
+    },
+    {
+      "name": "Wraith Walk applies to every unique body material",
+      "ok": true
+    },
+    {
+      "name": "Wraith Walk restores every original material",
+      "ok": true
+    },
+    {
+      "name": "moba clone preserves the textured skinned model and independent materials",
+      "ok": true,
+      "detail": {
+        "valid": true,
+        "modelVersion": 4,
+        "total": 43,
+        "skinned": true,
+        "pose": "held"
+      }
+    },
+    {
+      "name": "moba expired clone releases all captured geometry and textures",
+      "ok": true,
+      "detail": {
+        "total": 43,
+        "count": 43,
+        "originalDisposed": false,
+        "faceLoaded": true
+      }
+    },
+    {
+      "name": "moba clone cleanup preserves the player texture",
+      "ok": true,
+      "detail": {
+        "total": 43,
+        "count": 43,
+        "originalDisposed": false,
+        "faceLoaded": true
+      }
+    },
+    {
+      "name": "hoops clone preserves the textured skinned model and independent materials",
+      "ok": true,
+      "detail": {
+        "valid": true,
+        "modelVersion": 4,
+        "total": 44,
+        "skinned": true,
+        "pose": "stowed"
+      }
+    },
+    {
+      "name": "Court clone stows its equipment",
+      "ok": true,
+      "detail": "stowed"
+    },
+    {
+      "name": "hoops expired clone releases all captured geometry and textures",
+      "ok": true,
+      "detail": {
+        "total": 44,
+        "count": 44,
+        "originalDisposed": false,
+        "faceLoaded": true
+      }
+    },
+    {
+      "name": "hoops clone cleanup preserves the player texture",
+      "ok": true,
+      "detail": {
+        "total": 44,
+        "count": 44,
+        "originalDisposed": false,
+        "faceLoaded": true
+      }
+    },
+    {
+      "name": "No unexpected browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": [],
+  "expectedErrors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "[IWL] startup failed: Event"
+  ]
+}

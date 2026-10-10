@@ -86,7 +86,7 @@ export class SiegeHud {
     this._prep = null
 
     this.hintBox = hud.hints([
-      ['WASD', 'Move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Attack'],
+      ['↑ ↓ ← → / WASD', 'Move'], ['RMB', 'Click to move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Attack'],
       ['1-4', 'Skills'], ['F', 'Build / upgrade'], ['H', 'Toggle help'],
     ])
   }
@@ -104,7 +104,7 @@ export class SiegeHud {
     const t = this.hud.el('div', 'siege-title')
     this.hud.el('div', 'siege-title-main', 'LAST BASTION', t)
     this.hud.el('div', 'siege-title-sub', 'HOLD THE GATE — 10 WAVES', t)
-    return () => { t.classList.add('out'); setTimeout(() => t.remove(), 500) }
+    return () => { t.classList.add('out'); this.hud.later(() => t.remove(), 500) }
   }
 
   /** Boss entrance name slam. Returns a remover. */
@@ -112,7 +112,7 @@ export class SiegeHud {
     const t = this.hud.el('div', 'siege-title siege-bosscard')
     this.hud.el('div', 'siege-title-main', 'SIEGE COLOSSUS', t)
     this.hud.el('div', 'siege-title-sub', 'GATE-BREAKER OF THE BURNING CAMPS', t)
-    return () => { t.classList.add('out'); setTimeout(() => t.remove(), 500) }
+    return () => { t.classList.add('out'); this.hud.later(() => t.remove(), 500) }
   }
 
   // ---------- wave ritual ----------
@@ -181,8 +181,8 @@ export class SiegeHud {
 
   annihilate() {
     const el = this.hud.el('div', 'siege-annihilate', 'ANNIHILATION')
-    setTimeout(() => el.classList.add('out'), 950)
-    setTimeout(() => el.remove(), 1400)
+    this.hud.later(() => el.classList.add('out'), 950)
+    this.hud.later(() => el.remove(), 1400)
   }
 
   // ---------- end-of-run stats tablet ----------
@@ -287,7 +287,7 @@ export class SiegeHud {
   }
 
   toggleHints() {
-    this.hintBox.style.display = this.hintBox.style.display === 'none' ? '' : 'none'
+    this.hud.toggleHints()
   }
 
   waveLabel(wave, state, incoming) {

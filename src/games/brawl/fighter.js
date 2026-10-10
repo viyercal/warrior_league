@@ -40,7 +40,7 @@ export class Fighter {
     this.isPlayer = isPlayer
     this.isClone = isClone
 
-    this.hero = createHero(appearance)
+    this.hero = createHero(appearance, { equipmentPose: 'stowed' })
     this.root = new THREE.Group()
     this.root.add(this.hero.group)
     scene.add(this.root)
@@ -449,7 +449,7 @@ export class Fighter {
       this.chargeS.scale.setScalar(0.001)
     }
     arm.pivot.rotation.x = lerp(arm.pivot.rotation.x, pose, w)
-    arm.pivot.rotation.z = lerp(arm.pivot.rotation.z, (def.arm === 'R' ? 1 : -1) * 0.08, w)
+    arm.pivot.rotation.z = lerp(arm.pivot.rotation.z, (def.arm === 'R' ? 1 : -1) * 0.08 + (this.hero.armRestOffset?.[def.arm] || 0), w)
     arm.elbow.rotation.x = lerp(arm.elbow.rotation.x, elbow, w)
   }
 

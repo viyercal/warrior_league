@@ -1,8 +1,18 @@
-# Warrior League — Immortal Warlords League
+# Warrior League
 
-A browser meta-game with a dark-fantasy warrior soul: forge **one warlord** — war paint, armor, and four battle arts — then march them into full game clones through a torchlit arena hub. Your warrior, your arts, every battleground.
+Forge one warlord and carry the same appearance and four battle arts into seven playable dark-fantasy battlegrounds. The cinematic Convergence hub frames your warrior against an eclipsed sun, weathered ruins, and a distant mountain citadel.
 
-A themed fork of [arcade_games](https://github.com/viyercal/arcade_games): same engine and mechanics, completely re-imagined art direction — torchlight, stone, bronze, iron, embers, and war banners in place of neon. Built with Three.js; **every asset is procedural** — no models, textures, fonts, or audio files. Toon + rim-light shaders, HDR bloom that reads as firelight, dynamic shadows, procedural VFX, and a war-drum synth soundtrack, all generated at runtime.
+The Astra immersion branch adds direct battle entry with your saved loadout, an accessible realm selector and forge, arrow movement in every battleground, a consistent field HUD, cached scene loading with recovery, and shared pause/settings. Pausing freezes gameplay, countdowns, delayed events, and visual effects together. Switching away from a match pauses it until you return.
+
+Mortal Arena and The Crucible's **Single Duel** offer saved **CPU levels 1 through 10**, starting at level 6. Set a level in the hub or pause menu; changes during a match apply on restart or the next match. Higher levels improve reactions, defense, attack choices and recovery while keeping fighter stats unchanged. The Crucible's original **Tower** retains its four-opponent difficulty progression. [CPU tuning and verification](docs/cpu-difficulty.md) explains the scale.
+
+The game combines textured character meshes with procedural environments, effects and audio. All assets used during play are local. Rendering uses physically based materials, dynamic shadows, restrained bloom, subtle grain and adaptive resolution. The compact realm thumbnails are captures of the actual games.
+
+The forge includes **Caelan, Nyra, Orren and Serai**, with three selectable skins each and signature defaults. Caelan and Nyra now have complete textured, animated bodies reconstructed from their production artwork, with distinct proportions, coherent faces, integrated clothing and signature equipment. Their current rendering is the user's [approved standard for character and game art](docs/art-standard.md). Orren and Serai retain their earlier bodies while new mesh generation awaits provider quota. The two upgraded bodies use curated skin colorways and weapon variations. Names, battle effects and battle arts remain customizable. See [current character production and provenance](docs/character-art-rebuild.md) and [character UI](docs/champion-ui.md).
+
+The [character art collection](public/concepts/index.html) preserves all twelve illustrations and four comparison boards. With the development server running, open `http://localhost:5173/concepts/index.html` to browse and zoom into the originals. The artwork guides the playable costumes. [Art direction and prompts](docs/concepts/champions/README.md) are preserved in the repository.
+
+![Cinematic Convergence](docs/screenshots/astra-hub.png)
 
 ## The battlegrounds
 
@@ -18,7 +28,7 @@ A themed fork of [arcade_games](https://github.com/viyercal/arcade_games): same 
 
 The same 12 battle arts (Shadow Step, Flaming Spear, Grave Chill, Earthbreaker, Bloodrush, Iron Bulwark, Warrior's Resolve, Phantom Twin, Chained Harrow, Colossus Form, Wraith Walk, Skyfall Hammer) are reinterpreted per battleground — the War Forge tooltips tell you what each art does in each world before you enter.
 
-## Screenshots
+## Earlier battleground screenshots
 
 | | |
 |---|---|
@@ -40,22 +50,63 @@ Jump straight into a scene: `http://localhost:5173/?scene=duel|moba|hoops|arena|
 
 ## Controls
 
-- **Hub** — hover/click an arena, ←/→ + Enter, C for the War Forge
-- **War Rift** — right-click move/attack, QWER arts, B recall, Y camera lock, wheel zoom
-- **Blood Court** — WASD move, Shift sprint, hold/release Space to shoot (time the meter!), F steal, double-tap A/D crossover, 1-4 arts
-- **The Pit** — WASD move, aim with mouse, hold LMB blaster, 1-4 arts
-- **War Chariots** — W accelerate, A/D steer, hold Space to drift (release for mini-turbo), Shift spend boost, 1-4 arts
-- **Mortal Arena** — A/D move, Space jump/air-jump, S fast-fall, J jab, K smash, double-tap A/D dodge, QWER arts
-- **Last Bastion** — WASD move, hold LMB blaster, F build/upgrade ballistae, 1-4 arts
-- **The Crucible** — A/D walk (double-tap dash), Space jump, S crouch, Shift block, J/K light/heavy (J·J·K chains), F throw, QWER arts cancel any hit
-- **Esc** returns to the hub from anywhere; H toggles help in games
+- **Hub**: click a realm to select it, then Enter Battle. Arrow keys or 1-7 select realms, Enter plays, C opens the forge, and H shows the selected controls.
+- **War Rift**: arrows move, right-click move/attack, QWER arts, B recall, Y camera lock, wheel zoom. Arrow movement replaces mouse orders and cancels recall.
+- **Blood Court**: right-click a destination or use WASD/arrows to move, Shift sprint, hold/release Space to shoot, F steal, double-tap A/D or left/right crossover, 1-4 arts.
+- **The Pit**: right-click a destination or use WASD/arrows to move, aim with mouse, hold LMB blaster, 1-4 arts.
+- **War Chariots**: W/up accelerates, S/down brakes, A/D or left/right steers, hold Space to drift, Shift spends boost, 1-4 arts.
+- **Mortal Arena**: A/D or left/right moves, Space/up jumps, S/down fast-falls, J jab, K smash, double-tap left/right or A/D dodges, QWER arts.
+- **Last Bastion**: right-click a destination or use WASD/arrows to move, aim with mouse, hold LMB blaster, F build/upgrade ballistae, 1-4 arts.
+- **The Crucible**: A/D or left/right walks (double-tap to dash), Space/up jumps, S/down crouches, Shift blocks, J/K light/heavy, F throws, QWER arts.
+- **P / Esc**: pause a game or resume from its menu. Use the menu to restart or return to the hub. Escape leaves the forge. H toggles help in games.
+- **Settings**: mouse sensitivity (0.25× to 2×, with Reset), sound, Auto / High / Performance quality, and reduced motion are saved on this device. Gameplay requires a keyboard and mouse; hub and forge layouts also adapt to narrow screens.
+
+Mouse sensitivity changes mouse-driven camera movement, War Rift edge scrolling, and Forge rotation. Cursor aiming and click destinations stay aligned with the visible pointer. Keyboard movement and pausing cancel new click-to-move orders; Last Bastion routes around the citadel. Blood Court shots retain their existing basket targeting. Fighting and racing retain their directional controls.
+
+## Share a play link
+
+Build and serve only the production assets, then open a temporary Cloudflare tunnel:
+
+```bash
+npm run build
+python3 tools/serve-game.py --port 5189
+# In another terminal, with cloudflared installed:
+cloudflared tunnel --url http://127.0.0.1:5189
+```
+
+Share the printed HTTPS URL. No account or installation is needed on the receiving laptop. Anyone with the link can play their own local single-player session; this does not add multiplayer. Keep the host Mac awake, online, and both processes running. Stop the tunnel to disable sharing. A new tunnel gets a new URL.
 
 ## Architecture
 
 - `src/core/` — engine (renderer, post chain, loop), input hub, scene router, procedural audio
-- `src/art/` — toon/rim/plasma materials, environment kit, warrior character factory, VFX pool
+- `src/art/`: physically based materials, textured champions, environment kit, character factory and VFX pool
 - `src/meta/` — hub, War Forge, the universal 12-art catalog
 - `src/games/` — one folder per battleground, each a self-contained scene module
 - `qa/` — Playwright screenshot + real-input probes used to verify every flow
 
-`CONTRACTS.md` documents the scene-module contract, shared API, and the warrior art direction.
+`CONTRACTS.md` documents the scene-module contract, shared API, and the warrior art direction. The current QA coverage and limitations are recorded in [docs/astra-immersion.md](docs/astra-immersion.md).
+
+## Verify the immersion pass
+
+```bash
+npm run build
+npm run preview -- --host 127.0.0.1 --port 5299 --strictPort
+node qa/probe-immersive.mjs
+node qa/probe-immersive-recovery.mjs
+node qa/probe-immersive-final.mjs
+node qa/probe-field-controls.mjs
+node qa/probe-field-results.mjs
+node qa/probe-field-tooltips.mjs
+node qa/inspect-champions.mjs
+node qa/probe-art-gallery.mjs
+IPL_BASE=http://127.0.0.1:5299 node qa/probe-champion-ui.mjs
+IPL_BASE=http://127.0.0.1:5299 node qa/capture-champion-portraits.mjs
+# Model studio probes import source modules, so use the Vite development server:
+IPL_BASE=http://127.0.0.1:5173 node qa/capture-roster-models.mjs
+IPL_BASE=http://127.0.0.1:5173 node qa/probe-roster-models.mjs
+IPL_BASE=http://127.0.0.1:5173 node qa/probe-anatomy-lifecycle.mjs
+IPL_BASE=http://127.0.0.1:5173 node qa/capture-anatomy-details.mjs
+IPL_BASE=http://127.0.0.1:5173 node qa/capture-roster-lineup.mjs
+```
+
+These probes use isolated headless Chrome profiles and exercise real controls. Artifacts go to `qa/screens/immersive/`, `qa/screens/field/`, `qa/screens/champions/`, `qa/screens/gallery/`, `qa/screens/models/`, `qa/screens/model-qa/`, and `qa/screens/anatomy-lifecycle/`. Set `IPL_BASE` to use another running preview. `qa/capture-realm-previews.mjs` regenerates the local realm artwork from the development server on port 5199.

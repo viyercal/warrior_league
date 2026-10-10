@@ -1,0 +1,27 @@
+{
+  "base": "https://exterior-cheap-group-grew.trycloudflare.com",
+  "checks": [
+    {
+      "name": "public normal boot and entry",
+      "ok": true
+    },
+    {
+      "name": "public settings work",
+      "ok": true
+    },
+    {
+      "name": "public mouse movement works",
+      "ok": true
+    },
+    {
+      "name": "no failed assets",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "failed": []
+}

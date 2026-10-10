@@ -1,0 +1,41 @@
+{
+  "branch": "feat/astra-immersive-realms",
+  "runtimeSourceSha256": "71b9950c8b1a3e279f832ea682296f6f1c899aeb6cca6339ec2d537e5ba9158a",
+  "runtimeFiles": 122,
+  "checks": {
+    "results": {
+      "passed": 232,
+      "failed": 0,
+      "errors": []
+    },
+    "lifecycle-results": {
+      "passed": 16,
+      "failed": 0,
+      "errors": []
+    },
+    "detail-results": {
+      "passed": 8,
+      "failed": 0,
+      "errors": []
+    },
+    "combat-results": {
+      "passed": 9,
+      "failed": 0,
+      "errors": []
+    }
+  },
+  "assets": {
+    "public/models/champions/caelan.glb": {
+      "bytes": 9267368,
+      "sha256": "02afca990a26d8ac57f3c87397b28a28ebb93281af8517d3caf5f1c0930546e2"
+    },
+    "public/models/champions/nyra.glb": {
+      "bytes": 9885780,
+      "sha256": "26e0a9bdb8cc6c3eb6c2ae6af201230f06ea5bea32d762ae5a42babaef3e5b17"
+    }
+  },
+  "independentReview": "Closed after verified control, pose-offset and facial-tint fixes",
+  "build": "passed; existing large-chunk warning",
+  "status": "partial: Caelan/Nyra implemented; Orren/Serai generation quota-blocked; visual target not fully achieved",
+  "supersededAssetPackaging": "champion-packing-validation.json; gameplay source is unchanged and geometry/texture/rig values are verified identical"
+}

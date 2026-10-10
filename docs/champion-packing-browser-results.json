@@ -1,0 +1,492 @@
+{
+  "base": "http://127.0.0.1:5302",
+  "baseline": "/var/folders/pf/_b4xv4q50qv4g3zhg6y23g2w0000gn/T/warrior-lossless-pack-awl4fcgv",
+  "checks": [
+    {
+      "name": "caelan-0-idle: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-0-idle: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "de15827375716c0d29c1f1be2232a482fc7747d6d05a0529f6dd11759730bb17",
+        "packedSha256": "de15827375716c0d29c1f1be2232a482fc7747d6d05a0529f6dd11759730bb17"
+      }
+    },
+    {
+      "name": "caelan-0-run: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-0-run: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "d06979727486b42d2dd6387ef8de0f9a2bbd3a8fa22715ef49043dc09575b682",
+        "packedSha256": "d06979727486b42d2dd6387ef8de0f9a2bbd3a8fa22715ef49043dc09575b682"
+      }
+    },
+    {
+      "name": "caelan-0-cast: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-0-cast: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "05ecf7cee8048c971971a7e0e2235e6449adab53eaefd7b962a289c9c7897c9b",
+        "packedSha256": "05ecf7cee8048c971971a7e0e2235e6449adab53eaefd7b962a289c9c7897c9b"
+      }
+    },
+    {
+      "name": "caelan-0-dance: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-0-dance: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "d606a2e6de07969462f402dc5ae11a8f489947f7d4a5d2a256ac0d933741d583",
+        "packedSha256": "d606a2e6de07969462f402dc5ae11a8f489947f7d4a5d2a256ac0d933741d583"
+      }
+    },
+    {
+      "name": "caelan-0-ko: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-0-ko: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "438f9609b815f9f915d4254b7d58287de272d2d847543fca17c48ffb2f2c6e5d",
+        "packedSha256": "438f9609b815f9f915d4254b7d58287de272d2d847543fca17c48ffb2f2c6e5d"
+      }
+    },
+    {
+      "name": "caelan-1-idle: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-1-idle: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "db07cd9c88a29d5187e632a9249f83a1ad5a3ffcfb2748807ff8a5a57aea8ac6",
+        "packedSha256": "db07cd9c88a29d5187e632a9249f83a1ad5a3ffcfb2748807ff8a5a57aea8ac6"
+      }
+    },
+    {
+      "name": "caelan-1-run: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-1-run: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "f59d931f60d5129083ab7ae2417a4380bf90dd5b67ae2a4db22dc869e395d0bd",
+        "packedSha256": "f59d931f60d5129083ab7ae2417a4380bf90dd5b67ae2a4db22dc869e395d0bd"
+      }
+    },
+    {
+      "name": "caelan-1-cast: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-1-cast: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "c08c25e4df6924cf4a8e112e7a371b7d4a04a2ef457d6c8aca105603b99bd1dd",
+        "packedSha256": "c08c25e4df6924cf4a8e112e7a371b7d4a04a2ef457d6c8aca105603b99bd1dd"
+      }
+    },
+    {
+      "name": "caelan-1-dance: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-1-dance: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "8b4a3dd21f2c652d5d0cc787e8159b88389a80298c5bf6078bc221e977ad3743",
+        "packedSha256": "8b4a3dd21f2c652d5d0cc787e8159b88389a80298c5bf6078bc221e977ad3743"
+      }
+    },
+    {
+      "name": "caelan-1-ko: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-1-ko: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "50ce375eb4c3c94e11df4f9038bd1f67d4b73d4b9f17618d23a5dc0facb92a24",
+        "packedSha256": "50ce375eb4c3c94e11df4f9038bd1f67d4b73d4b9f17618d23a5dc0facb92a24"
+      }
+    },
+    {
+      "name": "caelan-2-idle: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-2-idle: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "5a55bbafed8f092f7f91afc0b320b73308be06fe70f85b820226b0ec153ae49d",
+        "packedSha256": "5a55bbafed8f092f7f91afc0b320b73308be06fe70f85b820226b0ec153ae49d"
+      }
+    },
+    {
+      "name": "caelan-2-run: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-2-run: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "a5a53b937b0e2fcd5e68563558832ddb19cdbfeec23480471b91ae2087df0497",
+        "packedSha256": "a5a53b937b0e2fcd5e68563558832ddb19cdbfeec23480471b91ae2087df0497"
+      }
+    },
+    {
+      "name": "caelan-2-cast: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-2-cast: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "61d04aadfdff3097e06876e661690de28b003120e91958aa75b04869634d75a0",
+        "packedSha256": "61d04aadfdff3097e06876e661690de28b003120e91958aa75b04869634d75a0"
+      }
+    },
+    {
+      "name": "caelan-2-dance: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-2-dance: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "bdd5a1873abd6326f45d92881482a60e3ce5b6892b2842509d66cc5f1bc867e7",
+        "packedSha256": "bdd5a1873abd6326f45d92881482a60e3ce5b6892b2842509d66cc5f1bc867e7"
+      }
+    },
+    {
+      "name": "caelan-2-ko: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "caelan-2-ko: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "ea3e093924c91cc0695a0cdba19cd8ab00de4dd50157582bbdc3cfa7f4b620ae",
+        "packedSha256": "ea3e093924c91cc0695a0cdba19cd8ab00de4dd50157582bbdc3cfa7f4b620ae"
+      }
+    },
+    {
+      "name": "nyra-0-idle: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-0-idle: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "1c04f94bf4c31f484a2523b5c5235d5896a17691622f1667f860c79d1ddeb066",
+        "packedSha256": "1c04f94bf4c31f484a2523b5c5235d5896a17691622f1667f860c79d1ddeb066"
+      }
+    },
+    {
+      "name": "nyra-0-run: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-0-run: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "680d4630d1511111d0baa001db43f3211aee00c5a202c2dd6dc7b46774d9817c",
+        "packedSha256": "680d4630d1511111d0baa001db43f3211aee00c5a202c2dd6dc7b46774d9817c"
+      }
+    },
+    {
+      "name": "nyra-0-cast: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-0-cast: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "e9d79e88e2e67280222b09a562d0d6daa9375a741f32acc8c48f0dea3a68e8b8",
+        "packedSha256": "e9d79e88e2e67280222b09a562d0d6daa9375a741f32acc8c48f0dea3a68e8b8"
+      }
+    },
+    {
+      "name": "nyra-0-dance: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-0-dance: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "e6efdbc92559f0ee596155e5e3d6bd43c3c677b4ff1b974cde15e4f6b7b3a413",
+        "packedSha256": "e6efdbc92559f0ee596155e5e3d6bd43c3c677b4ff1b974cde15e4f6b7b3a413"
+      }
+    },
+    {
+      "name": "nyra-0-ko: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-0-ko: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "855d499d88aa413cbfb95905cb9c4c38fbfe2f078db212142875a787b7a5c2ec",
+        "packedSha256": "855d499d88aa413cbfb95905cb9c4c38fbfe2f078db212142875a787b7a5c2ec"
+      }
+    },
+    {
+      "name": "nyra-1-idle: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-1-idle: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "a8d669157c6876aa8734e97617280073320bf66691a22d644f1f14115d43643e",
+        "packedSha256": "a8d669157c6876aa8734e97617280073320bf66691a22d644f1f14115d43643e"
+      }
+    },
+    {
+      "name": "nyra-1-run: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-1-run: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "bd49e292d6bb7db3b50cd502000df587b9683e87daf2b2e99f1d4006bb5f2326",
+        "packedSha256": "bd49e292d6bb7db3b50cd502000df587b9683e87daf2b2e99f1d4006bb5f2326"
+      }
+    },
+    {
+      "name": "nyra-1-cast: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-1-cast: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "fe60b13d8378b36d2ecf85a9fba017b2f5539d3fbb54112b6a3dc6b6b2f761df",
+        "packedSha256": "fe60b13d8378b36d2ecf85a9fba017b2f5539d3fbb54112b6a3dc6b6b2f761df"
+      }
+    },
+    {
+      "name": "nyra-1-dance: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-1-dance: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "bd95305aa03dec1cf7e23e04ba4261cc17263e03e06b20d228837b014b3f64d4",
+        "packedSha256": "bd95305aa03dec1cf7e23e04ba4261cc17263e03e06b20d228837b014b3f64d4"
+      }
+    },
+    {
+      "name": "nyra-1-ko: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-1-ko: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "1a6f855500783a15fc520f452f49c381e0ad7327a3142a12cb991a73d6b5dfe0",
+        "packedSha256": "1a6f855500783a15fc520f452f49c381e0ad7327a3142a12cb991a73d6b5dfe0"
+      }
+    },
+    {
+      "name": "nyra-2-idle: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-2-idle: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "4233f5833534ea004ae7dfc60ef3d383b603d8c2892208082d728f01cfc61ea2",
+        "packedSha256": "4233f5833534ea004ae7dfc60ef3d383b603d8c2892208082d728f01cfc61ea2"
+      }
+    },
+    {
+      "name": "nyra-2-run: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-2-run: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "a32750d38dd03e75182f9a027a283e681f666443eb62c69ca3a4860a9329d371",
+        "packedSha256": "a32750d38dd03e75182f9a027a283e681f666443eb62c69ca3a4860a9329d371"
+      }
+    },
+    {
+      "name": "nyra-2-cast: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-2-cast: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "bf667b6604e5d4fddbfd9b00169cf06778e650d51070a8731c04f71259f45eda",
+        "packedSha256": "bf667b6604e5d4fddbfd9b00169cf06778e650d51070a8731c04f71259f45eda"
+      }
+    },
+    {
+      "name": "nyra-2-dance: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-2-dance: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "9a5995c9c08f47485ade07bb77ae5ffe74112eb009727c23adf35512ca3f6233",
+        "packedSha256": "9a5995c9c08f47485ade07bb77ae5ffe74112eb009727c23adf35512ca3f6233"
+      }
+    },
+    {
+      "name": "nyra-2-ko: packed rig loads as bytes",
+      "ok": true,
+      "detail": {
+        "modelVersion": 4,
+        "jointIndexType": "Uint8Array"
+      }
+    },
+    {
+      "name": "nyra-2-ko: native render exactly matches baseline",
+      "ok": true,
+      "detail": {
+        "baselineSha256": "34f3025562e3f014e1e404a7b4abe1709e5b2556778e041df824b50d5c1d5fe9",
+        "packedSha256": "34f3025562e3f014e1e404a7b4abe1709e5b2556778e041df824b50d5c1d5fe9"
+      }
+    },
+    {
+      "name": "No browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

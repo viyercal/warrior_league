@@ -1,0 +1,2926 @@
+{
+  "branch": "feat/astra-immersive-realms",
+  "base_revision": "1a81f4c",
+  "environment": "Isolated Chrome, Vite production preview, localhost:5299",
+  "provenance": "Follow-up browser checks cover arrow movement, models, HUD states, responsive results, recovery, navigation, and the complete art gallery. The 445 current assertions pass. Original 68 primary checks are retained as historical evidence; unchanged behavior reuses valid scoped results.",
+  "runs": [
+    {
+      "script": "qa/probe-immersive.mjs",
+      "passed": 68,
+      "total": 68,
+      "results": [
+        {
+          "name": "boot blocks background input",
+          "ok": true
+        },
+        {
+          "name": "boot keeps keyboard focus",
+          "ok": true
+        },
+        {
+          "name": "boot loads actual hub before entry",
+          "ok": true
+        },
+        {
+          "name": "deferred audio starts music and ambience",
+          "ok": true
+        },
+        {
+          "name": "duel selection",
+          "ok": true
+        },
+        {
+          "name": "moba selection",
+          "ok": true
+        },
+        {
+          "name": "arena selection",
+          "ok": true
+        },
+        {
+          "name": "kart selection",
+          "ok": true
+        },
+        {
+          "name": "brawl selection",
+          "ok": true
+        },
+        {
+          "name": "siege selection",
+          "ok": true
+        },
+        {
+          "name": "hoops selection",
+          "ok": true
+        },
+        {
+          "name": "guide expands",
+          "ok": true
+        },
+        {
+          "name": "guide collapses",
+          "ok": true
+        },
+        {
+          "name": "hub settings opens",
+          "ok": true
+        },
+        {
+          "name": "quality performance",
+          "ok": true
+        },
+        {
+          "name": "quality high",
+          "ok": true
+        },
+        {
+          "name": "quality auto",
+          "ok": true
+        },
+        {
+          "name": "sound toggle",
+          "ok": true
+        },
+        {
+          "name": "motion toggle",
+          "ok": true
+        },
+        {
+          "name": "Escape closes settings",
+          "ok": true
+        },
+        {
+          "name": "war name persists",
+          "ok": true
+        },
+        {
+          "name": "all paint / armor swatches update",
+          "ok": true,
+          "detail": 22
+        },
+        {
+          "name": "all appearance options update",
+          "ok": true,
+          "detail": 12
+        },
+        {
+          "name": "all four slots and twelve arts usable",
+          "ok": true
+        },
+        {
+          "name": "dance toggle",
+          "ok": true
+        },
+        {
+          "name": "mobile forge exposes art description",
+          "ok": true
+        },
+        {
+          "name": "duel pause via P",
+          "ok": true
+        },
+        {
+          "name": "duel simulation freezes",
+          "ok": true
+        },
+        {
+          "name": "duel resume updates",
+          "ok": true
+        },
+        {
+          "name": "duel visible pause control",
+          "ok": true
+        },
+        {
+          "name": "restart returns to the same realm",
+          "ok": true
+        },
+        {
+          "name": "duel return to hub",
+          "ok": true
+        },
+        {
+          "name": "moba pause via P",
+          "ok": true
+        },
+        {
+          "name": "moba simulation freezes",
+          "ok": true
+        },
+        {
+          "name": "moba resume updates",
+          "ok": true
+        },
+        {
+          "name": "moba visible pause control",
+          "ok": true
+        },
+        {
+          "name": "moba return to hub",
+          "ok": true
+        },
+        {
+          "name": "arena pause via P",
+          "ok": true
+        },
+        {
+          "name": "arena simulation freezes",
+          "ok": true
+        },
+        {
+          "name": "arena resume updates",
+          "ok": true
+        },
+        {
+          "name": "arena visible pause control",
+          "ok": true
+        },
+        {
+          "name": "arena return to hub",
+          "ok": true
+        },
+        {
+          "name": "kart pause via P",
+          "ok": true
+        },
+        {
+          "name": "kart simulation freezes",
+          "ok": true
+        },
+        {
+          "name": "kart resume updates",
+          "ok": true
+        },
+        {
+          "name": "kart visible pause control",
+          "ok": true
+        },
+        {
+          "name": "kart return to hub",
+          "ok": true
+        },
+        {
+          "name": "brawl pause via P",
+          "ok": true
+        },
+        {
+          "name": "brawl simulation freezes",
+          "ok": true
+        },
+        {
+          "name": "brawl resume updates",
+          "ok": true
+        },
+        {
+          "name": "brawl visible pause control",
+          "ok": true
+        },
+        {
+          "name": "brawl return to hub",
+          "ok": true
+        },
+        {
+          "name": "siege pause via P",
+          "ok": true
+        },
+        {
+          "name": "siege simulation freezes",
+          "ok": true
+        },
+        {
+          "name": "siege resume updates",
+          "ok": true
+        },
+        {
+          "name": "siege visible pause control",
+          "ok": true
+        },
+        {
+          "name": "siege return to hub",
+          "ok": true
+        },
+        {
+          "name": "hoops pause via P",
+          "ok": true
+        },
+        {
+          "name": "hoops simulation freezes",
+          "ok": true
+        },
+        {
+          "name": "hoops resume updates",
+          "ok": true
+        },
+        {
+          "name": "hoops visible pause control",
+          "ok": true
+        },
+        {
+          "name": "hoops return to hub",
+          "ok": true
+        },
+        {
+          "name": "card arrows and Enter start selected realm",
+          "ok": true
+        },
+        {
+          "name": "hub 900px has no horizontal overflow",
+          "ok": true
+        },
+        {
+          "name": "realm selection at 900px",
+          "ok": true
+        },
+        {
+          "name": "hub 390px has no horizontal overflow",
+          "ok": true
+        },
+        {
+          "name": "realm selection at 390px",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "unexpected_errors": []
+    },
+    {
+      "script": "qa/probe-field-controls.mjs",
+      "passed": 177,
+      "total": 177,
+      "results": [
+        {
+          "name": "duel controls start collapsed",
+          "ok": true
+        },
+        {
+          "name": "duel Controls button opens instructions",
+          "ok": true
+        },
+        {
+          "name": "duel instructions include arrows",
+          "ok": true
+        },
+        {
+          "name": "duel H closes instructions",
+          "ok": true
+        },
+        {
+          "name": "duel ArrowRight moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -4.2,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -3.353920620820516,
+              "y": 0,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "duel ArrowLeft moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -3.353920620820516,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -3.672665033872807,
+              "y": 0,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "duel ArrowUp jumps",
+          "ok": true,
+          "detail": {
+            "before": 0,
+            "after": 1.1106648005804538
+          }
+        },
+        {
+          "name": "duel ArrowDown crouches",
+          "ok": true
+        },
+        {
+          "name": "duel releasing D preserves held Right",
+          "ok": true
+        },
+        {
+          "name": "duel releasing both clears movement",
+          "ok": true
+        },
+        {
+          "name": "duel pause releases held arrows",
+          "ok": true
+        },
+        {
+          "name": "duel arrows cannot move a paused match",
+          "ok": true
+        },
+        {
+          "name": "duel art 1 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "duel art 2 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "duel art 3 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "duel art 4 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "duel articulated champion renders in gameplay",
+          "ok": true,
+          "detail": {
+            "kind": "vanguard",
+            "meshes": 65,
+            "valid": true
+          }
+        },
+        {
+          "name": "duel 1440px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "duel 1440px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "duel 900px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "duel 900px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "duel 700px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "duel 700px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "duel 390px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "duel 390px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "brawl controls start collapsed",
+          "ok": true
+        },
+        {
+          "name": "brawl Controls button opens instructions",
+          "ok": true
+        },
+        {
+          "name": "brawl instructions include arrows",
+          "ok": true
+        },
+        {
+          "name": "brawl H closes instructions",
+          "ok": true
+        },
+        {
+          "name": "brawl ArrowRight moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -7,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -5.507024164532871,
+              "y": 0,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "brawl ArrowLeft moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -5.507024164532871,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -6.4364516752977226,
+              "y": 0,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "brawl ArrowUp jumps",
+          "ok": true,
+          "detail": {
+            "before": 0,
+            "after": 1.8561878816155626
+          }
+        },
+        {
+          "name": "brawl ArrowDown fast falls",
+          "ok": true
+        },
+        {
+          "name": "brawl releasing D preserves held Right",
+          "ok": true
+        },
+        {
+          "name": "brawl releasing both clears movement",
+          "ok": true
+        },
+        {
+          "name": "brawl pause releases held arrows",
+          "ok": true
+        },
+        {
+          "name": "brawl arrows cannot move a paused match",
+          "ok": true
+        },
+        {
+          "name": "brawl art 1 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "brawl art 2 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "brawl art 3 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "brawl art 4 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "brawl articulated champion renders in gameplay",
+          "ok": true,
+          "detail": {
+            "kind": "vanguard",
+            "meshes": 65,
+            "valid": true
+          }
+        },
+        {
+          "name": "brawl 1440px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "brawl 1440px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "brawl 900px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "brawl 900px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "brawl 700px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "brawl 700px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "brawl 390px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "brawl 390px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "arena controls start collapsed",
+          "ok": true
+        },
+        {
+          "name": "arena Controls button opens instructions",
+          "ok": true
+        },
+        {
+          "name": "arena instructions include arrows",
+          "ok": true
+        },
+        {
+          "name": "arena H closes instructions",
+          "ok": true
+        },
+        {
+          "name": "arena ArrowRight moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": 2.2472999982833866,
+              "y": 0,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "arena ArrowLeft moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": 2.2472999982833866,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -0.008100003004073819,
+              "y": 0,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "arena ArrowUp moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -0.008100003004073819,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -0.008100003004073819,
+              "y": 0,
+              "z": -2.2526999995708463
+            }
+          }
+        },
+        {
+          "name": "arena ArrowDown moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -0.008100003004073819,
+              "y": 0,
+              "z": -2.2526999995708463
+            },
+            "end": {
+              "x": -0.008100003004073819,
+              "y": 0,
+              "z": -0.0035999987125394095
+            }
+          }
+        },
+        {
+          "name": "arena releasing D preserves held Right",
+          "ok": true
+        },
+        {
+          "name": "arena releasing both clears movement",
+          "ok": true
+        },
+        {
+          "name": "arena pause releases held arrows",
+          "ok": true
+        },
+        {
+          "name": "arena arrows cannot move a paused match",
+          "ok": true
+        },
+        {
+          "name": "arena art 1 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "arena art 2 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "arena art 3 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "arena art 4 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "arena articulated champion renders in gameplay",
+          "ok": true,
+          "detail": {
+            "kind": "vanguard",
+            "meshes": 66,
+            "valid": true
+          }
+        },
+        {
+          "name": "arena 1440px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "arena 1440px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "arena 900px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "arena 900px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "arena 700px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "arena 700px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "arena 390px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "arena 390px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "siege controls start collapsed",
+          "ok": true
+        },
+        {
+          "name": "siege Controls button opens instructions",
+          "ok": true
+        },
+        {
+          "name": "siege instructions include arrows",
+          "ok": true
+        },
+        {
+          "name": "siege H closes instructions",
+          "ok": true
+        },
+        {
+          "name": "siege ArrowRight moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": 0,
+              "y": 0,
+              "z": 7.5
+            },
+            "end": {
+              "x": 2.240100000858307,
+              "y": 0,
+              "z": 7.5
+            }
+          }
+        },
+        {
+          "name": "siege ArrowLeft moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": 2.240100000858307,
+              "y": 0,
+              "z": 7.5
+            },
+            "end": {
+              "x": -0.016199999570846585,
+              "y": 0,
+              "z": 7.5
+            }
+          }
+        },
+        {
+          "name": "siege ArrowUp moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -0.016199999570846585,
+              "y": 0,
+              "z": 7.5
+            },
+            "end": {
+              "x": -0.016199999570846585,
+              "y": 0,
+              "z": 5.256300000429153
+            }
+          }
+        },
+        {
+          "name": "siege ArrowDown moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -0.016199999570846585,
+              "y": 0,
+              "z": 5.256300000429153
+            },
+            "end": {
+              "x": -0.016199999570846585,
+              "y": 0,
+              "z": 7.51440000128746
+            }
+          }
+        },
+        {
+          "name": "siege releasing D preserves held Right",
+          "ok": true
+        },
+        {
+          "name": "siege releasing both clears movement",
+          "ok": true
+        },
+        {
+          "name": "siege pause releases held arrows",
+          "ok": true
+        },
+        {
+          "name": "siege arrows cannot move a paused match",
+          "ok": true
+        },
+        {
+          "name": "siege art 1 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "siege art 2 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "siege art 3 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "siege art 4 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "siege articulated champion renders in gameplay",
+          "ok": true,
+          "detail": {
+            "kind": "vanguard",
+            "meshes": 66,
+            "valid": true
+          }
+        },
+        {
+          "name": "siege 1440px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "siege 1440px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "siege 900px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "siege 900px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "siege 700px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "siege 700px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "siege 390px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "siege 390px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "moba controls start collapsed",
+          "ok": true
+        },
+        {
+          "name": "moba Controls button opens instructions",
+          "ok": true
+        },
+        {
+          "name": "moba instructions include arrows",
+          "ok": true
+        },
+        {
+          "name": "moba H closes instructions",
+          "ok": true
+        },
+        {
+          "name": "moba ArrowRight moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -42.5,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -40.74650000000002,
+              "y": 0,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "moba ArrowLeft moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -40.74650000000002,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -42.490900000333795,
+              "y": 0,
+              "z": 0
+            }
+          }
+        },
+        {
+          "name": "moba ArrowUp moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -42.490900000333795,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -42.490900000333795,
+              "y": 0,
+              "z": -1.7541999993324282
+            }
+          }
+        },
+        {
+          "name": "moba ArrowDown moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -42.490900000333795,
+              "y": 0,
+              "z": -1.7541999993324282
+            },
+            "end": {
+              "x": -42.490900000333795,
+              "y": 0,
+              "z": -0.004899998664856006
+            }
+          }
+        },
+        {
+          "name": "moba arrow movement cancels recall",
+          "ok": true
+        },
+        {
+          "name": "moba arrows replace mouse orders",
+          "ok": true
+        },
+        {
+          "name": "moba pause releases held arrows",
+          "ok": true
+        },
+        {
+          "name": "moba arrows cannot move a paused match",
+          "ok": true
+        },
+        {
+          "name": "moba art 1 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "moba art 2 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "moba art 3 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "moba art 4 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "moba articulated champion renders in gameplay",
+          "ok": true,
+          "detail": {
+            "kind": "vanguard",
+            "meshes": 66,
+            "valid": true
+          }
+        },
+        {
+          "name": "moba 1440px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "moba 1440px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "moba 900px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "moba 900px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "moba 700px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "moba 700px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "moba 390px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "moba 390px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "hoops controls start collapsed",
+          "ok": true
+        },
+        {
+          "name": "hoops Controls button opens instructions",
+          "ok": true
+        },
+        {
+          "name": "hoops instructions include arrows",
+          "ok": true
+        },
+        {
+          "name": "hoops H closes instructions",
+          "ok": true
+        },
+        {
+          "name": "hoops ArrowRight moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": 0,
+              "y": 0,
+              "z": 5.4
+            },
+            "end": {
+              "x": 0.8983384597420604,
+              "y": 0,
+              "z": 5.235541140882956
+            }
+          }
+        },
+        {
+          "name": "hoops ArrowLeft moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": 0.8983384597420604,
+              "y": 0,
+              "z": 5.235541140882956
+            },
+            "end": {
+              "x": 0.365453369043007,
+              "y": 0,
+              "z": 5.2459709948794355
+            }
+          }
+        },
+        {
+          "name": "hoops ArrowUp moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": 0.365453369043007,
+              "y": 0,
+              "z": 5.2459709948794355
+            },
+            "end": {
+              "x": -0.022740897456471072,
+              "y": 0,
+              "z": 4.34903949886345
+            }
+          }
+        },
+        {
+          "name": "hoops ArrowDown moves the character",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -0.022740897456471072,
+              "y": 0,
+              "z": 4.34903949886345
+            },
+            "end": {
+              "x": -0.04248622255284882,
+              "y": 0,
+              "z": 4.869660788729559
+            }
+          }
+        },
+        {
+          "name": "hoops releasing D preserves held Right",
+          "ok": true
+        },
+        {
+          "name": "hoops releasing both clears movement",
+          "ok": true
+        },
+        {
+          "name": "hoops pause releases held arrows",
+          "ok": true
+        },
+        {
+          "name": "hoops arrows cannot move a paused match",
+          "ok": true
+        },
+        {
+          "name": "hoops art 1 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "hoops art 2 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "hoops art 3 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "hoops art 4 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "hoops articulated champion renders in gameplay",
+          "ok": true,
+          "detail": {
+            "kind": "vanguard",
+            "meshes": 65,
+            "valid": true
+          }
+        },
+        {
+          "name": "hoops 1440px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "hoops 1440px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "hoops 900px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "hoops 900px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "hoops 700px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "hoops 700px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "hoops 390px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "hoops 390px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "kart controls start collapsed",
+          "ok": true
+        },
+        {
+          "name": "kart Controls button opens instructions",
+          "ok": true
+        },
+        {
+          "name": "kart instructions include arrows",
+          "ok": true
+        },
+        {
+          "name": "kart H closes instructions",
+          "ok": true
+        },
+        {
+          "name": "kart ArrowUp accelerates and moves",
+          "ok": true,
+          "detail": {
+            "start": {
+              "x": -82.13199127612552,
+              "y": 0,
+              "z": 80.84533960920842,
+              "speed": 0,
+              "steer": 0
+            },
+            "forward": {
+              "x": -79.07106406398763,
+              "y": 0,
+              "z": 83.90090327232012,
+              "speed": 14.193599996566775,
+              "steer": 0
+            }
+          }
+        },
+        {
+          "name": "kart Left/Right steer both directions",
+          "ok": true,
+          "detail": {
+            "right": -0.895262703335763,
+            "left": 0.7843594852551731
+          }
+        },
+        {
+          "name": "kart ArrowDown brakes",
+          "ok": true,
+          "detail": {
+            "before": 10.82741299499266,
+            "after": 0.05961299337141479
+          }
+        },
+        {
+          "name": "kart releasing D preserves held Right",
+          "ok": true
+        },
+        {
+          "name": "kart releasing both clears movement",
+          "ok": true
+        },
+        {
+          "name": "kart pause releases held arrows",
+          "ok": true
+        },
+        {
+          "name": "kart arrows cannot move a paused match",
+          "ok": true
+        },
+        {
+          "name": "kart art 1 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "kart art 2 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "kart art 3 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "kart art 4 shows cooldown",
+          "ok": true
+        },
+        {
+          "name": "kart articulated champion renders in gameplay",
+          "ok": true,
+          "detail": {
+            "kind": "vanguard",
+            "meshes": 65,
+            "valid": true
+          }
+        },
+        {
+          "name": "kart 1440px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "kart 1440px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "kart 900px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "kart 900px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "kart 700px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "kart 700px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "kart 390px HUD fits and controls are clear",
+          "ok": true,
+          "detail": {
+            "outside": [],
+            "overlaps": []
+          }
+        },
+        {
+          "name": "kart 390px help is reachable",
+          "ok": true
+        },
+        {
+          "name": "hub ArrowRight still changes selection",
+          "ok": true
+        },
+        {
+          "name": "forge ArrowLeft edits text without moving a character",
+          "ok": true
+        },
+        {
+          "name": "field integration has no browser errors",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "errors": []
+    },
+    {
+      "script": "qa/probe-field-results.mjs",
+      "passed": 71,
+      "total": 71,
+      "results": [
+        {
+          "name": "duel win 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 500,
+            "y": 503,
+            "right": 940,
+            "bottom": 784,
+            "scrollWidth": 438,
+            "clientWidth": 438
+          }
+        },
+        {
+          "name": "duel win 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 130,
+            "y": 403,
+            "right": 570,
+            "bottom": 684,
+            "scrollWidth": 438,
+            "clientWidth": 438
+          }
+        },
+        {
+          "name": "duel win 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 447,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "duel win combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "duel win result returns to hub",
+          "ok": true
+        },
+        {
+          "name": "duel lose 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 500,
+            "y": 542,
+            "right": 940,
+            "bottom": 784,
+            "scrollWidth": 438,
+            "clientWidth": 438
+          }
+        },
+        {
+          "name": "duel lose 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 130,
+            "y": 442,
+            "right": 570,
+            "bottom": 684,
+            "scrollWidth": 438,
+            "clientWidth": 438
+          }
+        },
+        {
+          "name": "duel lose 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 473,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "duel lose combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "duel lose retry starts a new attempt",
+          "ok": true
+        },
+        {
+          "name": "moba win 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 494,
+            "y": 492.75,
+            "right": 946,
+            "bottom": 784,
+            "scrollWidth": 450,
+            "clientWidth": 450
+          }
+        },
+        {
+          "name": "moba win 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 124,
+            "y": 392.75,
+            "right": 576,
+            "bottom": 684,
+            "scrollWidth": 450,
+            "clientWidth": 450
+          }
+        },
+        {
+          "name": "moba win 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 425.75,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "moba win combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "moba win result returns to hub",
+          "ok": true
+        },
+        {
+          "name": "moba lose 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 494,
+            "y": 492.75,
+            "right": 946,
+            "bottom": 784,
+            "scrollWidth": 450,
+            "clientWidth": 450
+          }
+        },
+        {
+          "name": "moba lose 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 124,
+            "y": 392.75,
+            "right": 576,
+            "bottom": 684,
+            "scrollWidth": 450,
+            "clientWidth": 450
+          }
+        },
+        {
+          "name": "moba lose 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 425.75,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "moba lose combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "moba lose result returns to hub",
+          "ok": true
+        },
+        {
+          "name": "arena win 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 490,
+            "y": 380.5,
+            "right": 950,
+            "bottom": 784,
+            "scrollWidth": 458,
+            "clientWidth": 458
+          }
+        },
+        {
+          "name": "arena win 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 120,
+            "y": 280.5,
+            "right": 580,
+            "bottom": 684,
+            "scrollWidth": 458,
+            "clientWidth": 458
+          }
+        },
+        {
+          "name": "arena win 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 324.5,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "arena win combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "arena win result returns to hub",
+          "ok": true
+        },
+        {
+          "name": "arena lose 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 490,
+            "y": 402.5,
+            "right": 950,
+            "bottom": 784,
+            "scrollWidth": 458,
+            "clientWidth": 458
+          }
+        },
+        {
+          "name": "arena lose 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 120,
+            "y": 302.5,
+            "right": 580,
+            "bottom": 684,
+            "scrollWidth": 458,
+            "clientWidth": 458
+          }
+        },
+        {
+          "name": "arena lose 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 346.5,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "arena lose combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "arena lose retry starts a new attempt",
+          "ok": true
+        },
+        {
+          "name": "kart win 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 159.390625,
+            "y": 195.5,
+            "right": 589.390625,
+            "bottom": 704.5,
+            "scrollWidth": 428,
+            "clientWidth": 428
+          }
+        },
+        {
+          "name": "kart win 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 135,
+            "y": 145.5,
+            "right": 565,
+            "bottom": 654.5,
+            "scrollWidth": 428,
+            "clientWidth": 428
+          }
+        },
+        {
+          "name": "kart win 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 155.5,
+            "right": 374,
+            "bottom": 688.5,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "kart win combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "kart win retry starts a new attempt",
+          "ok": true
+        },
+        {
+          "name": "kart lose 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 159.390625,
+            "y": 195.5,
+            "right": 589.390625,
+            "bottom": 704.5,
+            "scrollWidth": 428,
+            "clientWidth": 428
+          }
+        },
+        {
+          "name": "kart lose 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 135,
+            "y": 145.5,
+            "right": 565,
+            "bottom": 654.5,
+            "scrollWidth": 428,
+            "clientWidth": 428
+          }
+        },
+        {
+          "name": "kart lose 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 155.5,
+            "right": 374,
+            "bottom": 688.5,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "kart lose combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "kart lose retry starts a new attempt",
+          "ok": true
+        },
+        {
+          "name": "brawl win 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 470,
+            "y": 420.5,
+            "right": 970,
+            "bottom": 784,
+            "scrollWidth": 498,
+            "clientWidth": 498
+          }
+        },
+        {
+          "name": "brawl win 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 100,
+            "y": 320.5,
+            "right": 600,
+            "bottom": 684,
+            "scrollWidth": 498,
+            "clientWidth": 498
+          }
+        },
+        {
+          "name": "brawl win 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 363.5,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "brawl win combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "brawl win result returns to hub",
+          "ok": true
+        },
+        {
+          "name": "brawl lose 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 470,
+            "y": 420.5,
+            "right": 970,
+            "bottom": 784,
+            "scrollWidth": 498,
+            "clientWidth": 498
+          }
+        },
+        {
+          "name": "brawl lose 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 100,
+            "y": 320.5,
+            "right": 600,
+            "bottom": 684,
+            "scrollWidth": 498,
+            "clientWidth": 498
+          }
+        },
+        {
+          "name": "brawl lose 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 363.5,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "brawl lose combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "brawl lose result returns to hub",
+          "ok": true
+        },
+        {
+          "name": "siege win 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 477,
+            "y": 432,
+            "right": 963,
+            "bottom": 784,
+            "scrollWidth": 484,
+            "clientWidth": 484
+          }
+        },
+        {
+          "name": "siege win 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 107,
+            "y": 332,
+            "right": 593,
+            "bottom": 684,
+            "scrollWidth": 484,
+            "clientWidth": 484
+          }
+        },
+        {
+          "name": "siege win 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 376,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "siege win combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "siege win result returns to hub",
+          "ok": true
+        },
+        {
+          "name": "siege lose 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 477,
+            "y": 455,
+            "right": 963,
+            "bottom": 784,
+            "scrollWidth": 484,
+            "clientWidth": 484
+          }
+        },
+        {
+          "name": "siege lose 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 107,
+            "y": 355,
+            "right": 593,
+            "bottom": 684,
+            "scrollWidth": 484,
+            "clientWidth": 484
+          }
+        },
+        {
+          "name": "siege lose 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 399,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "siege lose combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "siege lose retry starts a new attempt",
+          "ok": true
+        },
+        {
+          "name": "hoops win 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 497,
+            "y": 464,
+            "right": 943,
+            "bottom": 784,
+            "scrollWidth": 444,
+            "clientWidth": 444
+          }
+        },
+        {
+          "name": "hoops win 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 127,
+            "y": 364,
+            "right": 573,
+            "bottom": 684,
+            "scrollWidth": 444,
+            "clientWidth": 444
+          }
+        },
+        {
+          "name": "hoops win 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 377,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "hoops win combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "hoops win result returns to hub",
+          "ok": true
+        },
+        {
+          "name": "hoops lose 1440px result fits",
+          "ok": true,
+          "detail": {
+            "x": 497,
+            "y": 464,
+            "right": 943,
+            "bottom": 784,
+            "scrollWidth": 444,
+            "clientWidth": 444
+          }
+        },
+        {
+          "name": "hoops lose 700px result fits",
+          "ok": true,
+          "detail": {
+            "x": 127,
+            "y": 364,
+            "right": 573,
+            "bottom": 684,
+            "scrollWidth": 444,
+            "clientWidth": 444
+          }
+        },
+        {
+          "name": "hoops lose 390px result fits",
+          "ok": true,
+          "detail": {
+            "x": 16,
+            "y": 398,
+            "right": 374,
+            "bottom": 728,
+            "scrollWidth": 356,
+            "clientWidth": 356
+          }
+        },
+        {
+          "name": "hoops lose combat controls recede",
+          "ok": true
+        },
+        {
+          "name": "hoops lose result returns to hub",
+          "ok": true
+        },
+        {
+          "name": "responsive result flows have no page errors",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "errors": []
+    },
+    {
+      "script": "qa/probe-field-tooltips.mjs",
+      "passed": 64,
+      "total": 64,
+      "results": [
+        {
+          "name": "duel cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "duel 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "duel 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "brawl 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "brawl 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "moba 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "moba 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "arena 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "arena 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "siege 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "siege 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "hoops 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "hoops 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart cinematic controls are hidden",
+          "ok": true
+        },
+        {
+          "name": "kart 1440px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 1440px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 1440px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 1440px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 390px art 1 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 390px art 2 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 390px art 3 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "kart 390px art 4 tooltip is readable",
+          "ok": true
+        },
+        {
+          "name": "tooltip checks have no page errors",
+          "ok": true
+        }
+      ],
+      "errors": []
+    },
+    {
+      "script": "qa/probe-immersive-recovery.mjs",
+      "passed": 58,
+      "total": 58,
+      "results": [
+        {
+          "name": "unknown realm recovery",
+          "ok": true
+        },
+        {
+          "name": "failed import preserves current scene behind recovery",
+          "ok": true
+        },
+        {
+          "name": "retry loads the failed realm",
+          "ok": true
+        },
+        {
+          "name": "pause focus wraps backwards",
+          "ok": true
+        },
+        {
+          "name": "pause focus wraps forwards",
+          "ok": true
+        },
+        {
+          "name": "lost focus pauses and stays paused",
+          "ok": true
+        },
+        {
+          "name": "pause releases held keys",
+          "ok": true
+        },
+        {
+          "name": "Battlegrounds nav focuses selection",
+          "ok": true
+        },
+        {
+          "name": "forge Seal & return action",
+          "ok": true
+        },
+        {
+          "name": "all four hub art shortcuts open forge",
+          "ok": true
+        },
+        {
+          "name": "movement games show numeric art keys",
+          "ok": true
+        },
+        {
+          "name": "narrow forge fits every slot",
+          "ok": true
+        },
+        {
+          "name": "narrow forge detail is readable",
+          "ok": true
+        },
+        {
+          "name": "forge Enter battle preserves target",
+          "ok": true
+        },
+        {
+          "name": "quality and motion preferences persist",
+          "ok": true
+        },
+        {
+          "name": "duel win result pauses",
+          "ok": true
+        },
+        {
+          "name": "duel win stats",
+          "ok": true
+        },
+        {
+          "name": "duel win returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "duel lose result pauses",
+          "ok": true
+        },
+        {
+          "name": "duel lose stats",
+          "ok": true
+        },
+        {
+          "name": "duel lose returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "moba win result pauses",
+          "ok": true
+        },
+        {
+          "name": "moba win stats",
+          "ok": true
+        },
+        {
+          "name": "moba win returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "moba lose result pauses",
+          "ok": true
+        },
+        {
+          "name": "moba lose stats",
+          "ok": true
+        },
+        {
+          "name": "moba lose returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "arena win result pauses",
+          "ok": true
+        },
+        {
+          "name": "arena win stats",
+          "ok": true
+        },
+        {
+          "name": "arena win returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "arena lose result pauses",
+          "ok": true
+        },
+        {
+          "name": "arena lose stats",
+          "ok": true
+        },
+        {
+          "name": "arena lose returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "kart win result pauses",
+          "ok": true
+        },
+        {
+          "name": "kart win stats",
+          "ok": true
+        },
+        {
+          "name": "kart win returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "kart lose result pauses",
+          "ok": true
+        },
+        {
+          "name": "kart lose stats",
+          "ok": true
+        },
+        {
+          "name": "kart lose returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "brawl win result pauses",
+          "ok": true
+        },
+        {
+          "name": "brawl win stats",
+          "ok": true
+        },
+        {
+          "name": "brawl win returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "brawl lose result pauses",
+          "ok": true
+        },
+        {
+          "name": "brawl lose stats",
+          "ok": true
+        },
+        {
+          "name": "brawl lose returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "siege win result pauses",
+          "ok": true
+        },
+        {
+          "name": "siege win stats",
+          "ok": true
+        },
+        {
+          "name": "siege win returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "siege lose result pauses",
+          "ok": true
+        },
+        {
+          "name": "siege lose stats",
+          "ok": true
+        },
+        {
+          "name": "siege lose returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "hoops win result pauses",
+          "ok": true
+        },
+        {
+          "name": "hoops win stats",
+          "ok": true
+        },
+        {
+          "name": "hoops win returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "hoops lose result pauses",
+          "ok": true
+        },
+        {
+          "name": "hoops lose stats",
+          "ok": true
+        },
+        {
+          "name": "hoops lose returns cleanly",
+          "ok": true
+        },
+        {
+          "name": "recovery and result flows have no unexpected errors",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "errors": [],
+      "expectedErrors": [
+        "[IWL] scene load failed: Error: Unknown realm: missing\n    at C_.preload (http://127.0.0.1:5299/assets/index-B6be6kIY.js:4244:39367)\n    at C_.goTo (http://127.0.0.1:5299/assets/index-B6be6kIY.js:4244:40864)\n    at L_ (http://127.0.0.1:5299/assets/index-B6be6kIY.js:4329:2055)\n    at http://127.0.0.1:5299/assets/index-B6be6kIY.js:4329:2362",
+        "[IWL] scene load failed: Error: QA transient import\n    at Object.eval [as duel] (eval at evaluate (:303:30), <anonymous>:5:58)\n    at http://127.0.0.1:5299/assets/index-B6be6kIY.js:4244:39477\n    at async Promise.all (index 0)\n    at async C_.goTo (http://127.0.0.1:5299/assets/index-B6be6kIY.js:4244:40840)\n    at async eval (eval at evaluate (:303:30), <anonymous>:6:5)\n    at async <anonymous>:329:30"
+      ]
+    },
+    {
+      "script": "qa/probe-immersive-final.mjs",
+      "passed": 16,
+      "total": 16,
+      "results": [
+        {
+          "name": "moba pause clears the lower combat HUD",
+          "ok": true
+        },
+        {
+          "name": "moba relocated pause button opens menu",
+          "ok": true
+        },
+        {
+          "name": "moba resume releases pause",
+          "ok": true
+        },
+        {
+          "name": "duel pause clears the lower combat HUD",
+          "ok": true
+        },
+        {
+          "name": "duel relocated pause button opens menu",
+          "ok": true
+        },
+        {
+          "name": "duel resume releases pause",
+          "ok": true
+        },
+        {
+          "name": "inactive loading overlay is hidden from keyboard and assistive technology",
+          "ok": true
+        },
+        {
+          "name": "all seven numeric hub shortcuts select realms",
+          "ok": true
+        },
+        {
+          "name": "H opens and closes hub instructions",
+          "ok": true
+        },
+        {
+          "name": "C opens the forge",
+          "ok": true
+        },
+        {
+          "name": "forge turntable responds to dragging",
+          "ok": true
+        },
+        {
+          "name": "forge releases drag when focus is lost",
+          "ok": true
+        },
+        {
+          "name": "P toggles the forge dance",
+          "ok": true
+        },
+        {
+          "name": "final combat checks have no page errors",
+          "ok": true
+        },
+        {
+          "name": "unavailable WebGL explains startup failure",
+          "ok": true
+        },
+        {
+          "name": "startup Try again reloads and remains recoverable",
+          "ok": true
+        }
+      ],
+      "errors": []
+    },
+    {
+      "script": "qa/probe-art-gallery.mjs",
+      "passed": 59,
+      "total": 59,
+      "results": [
+        {
+          "name": "twelve illustrations and four costume boards are offered",
+          "ok": true
+        },
+        {
+          "name": "filter caelan",
+          "ok": true
+        },
+        {
+          "name": "filter nyra",
+          "ok": true
+        },
+        {
+          "name": "filter orren",
+          "ok": true
+        },
+        {
+          "name": "filter serai",
+          "ok": true
+        },
+        {
+          "name": "filter all",
+          "ok": true
+        },
+        {
+          "name": "illustration 1 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 1 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 2 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 2 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 3 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 3 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 4 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 4 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 5 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 5 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 6 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 6 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 7 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 7 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 8 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 8 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 9 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 9 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 10 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 10 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 11 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 11 restores focus",
+          "ok": true
+        },
+        {
+          "name": "illustration 12 opens its matching image",
+          "ok": true
+        },
+        {
+          "name": "illustration 12 restores focus",
+          "ok": true
+        },
+        {
+          "name": "costume board 1 loads",
+          "ok": true
+        },
+        {
+          "name": "costume board 2 loads",
+          "ok": true
+        },
+        {
+          "name": "costume board 3 loads",
+          "ok": true
+        },
+        {
+          "name": "costume board 4 loads",
+          "ok": true
+        },
+        {
+          "name": "Next opens Ashen Oath",
+          "ok": true
+        },
+        {
+          "name": "Previous opens Dawnsworn",
+          "ok": true
+        },
+        {
+          "name": "keyboard previous wraps to last board",
+          "ok": true
+        },
+        {
+          "name": "keyboard next wraps to first artwork",
+          "ok": true
+        },
+        {
+          "name": "Zoom in enlarges artwork",
+          "ok": true
+        },
+        {
+          "name": "Zoom out returns to fit and disables lower limit",
+          "ok": true
+        },
+        {
+          "name": "zoom caps at three times fit",
+          "ok": true
+        },
+        {
+          "name": "keyboard arrow pans a zoomed image without changing artwork",
+          "ok": true
+        },
+        {
+          "name": "browser zoom and navigation shortcuts remain available",
+          "ok": true
+        },
+        {
+          "name": "Fit resets image and disables redundant action",
+          "ok": true
+        },
+        {
+          "name": "plus keyboard shortcut zooms",
+          "ok": true
+        },
+        {
+          "name": "minus keyboard shortcut zooms out",
+          "ok": true
+        },
+        {
+          "name": "Open original opens full PNG",
+          "ok": true
+        },
+        {
+          "name": "1440px gallery fits viewport",
+          "ok": true
+        },
+        {
+          "name": "1440px viewer fits the whole artwork",
+          "ok": true
+        },
+        {
+          "name": "700px gallery fits viewport",
+          "ok": true
+        },
+        {
+          "name": "700px viewer fits the whole artwork",
+          "ok": true
+        },
+        {
+          "name": "390px gallery fits viewport",
+          "ok": true
+        },
+        {
+          "name": "390px viewer fits the whole artwork",
+          "ok": true
+        },
+        {
+          "name": "WARRIOR LEAGUE link opens game",
+          "ok": true
+        },
+        {
+          "name": "Return to the game link opens game",
+          "ok": true
+        },
+        {
+          "name": "gallery has no page errors",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "missing illustration has a visible recovery action",
+          "ok": true
+        },
+        {
+          "name": "loading state disables zoom until image arrives",
+          "ok": true
+        },
+        {
+          "name": "Try again recovers the original image",
+          "ok": true
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "character_inspection": {
+    "script": "qa/inspect-champions.mjs",
+    "coverage": {
+      "headHairCombinations": 12,
+      "swatches": 22,
+      "capeStates": 2,
+      "trailStates": 3
+    },
+    "captures": [
+      {
+        "head": "visor",
+        "hair": "spikes",
+        "kind": "vanguard",
+        "meshes": 65,
+        "triangles": 19528,
+        "file": "qa/screens/champions/visor-spikes.png"
+      },
+      {
+        "head": "classic",
+        "hair": "spikes",
+        "kind": "raider",
+        "meshes": 62,
+        "triangles": 19268,
+        "file": "qa/screens/champions/classic-spikes.png"
+      },
+      {
+        "head": "orb",
+        "hair": "swept",
+        "kind": "mystic",
+        "meshes": 64,
+        "triangles": 19524,
+        "file": "qa/screens/champions/orb-swept.png"
+      },
+      {
+        "head": "visor",
+        "hair": "horns",
+        "kind": "juggernaut",
+        "meshes": 66,
+        "triangles": 20284,
+        "file": "qa/screens/champions/visor-horns.png"
+      }
+    ],
+    "errors": []
+  }
+}

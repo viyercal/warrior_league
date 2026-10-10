@@ -65,9 +65,9 @@ export class BrawlHud {
     const e = this.hud.el('div', 'brawl-feed-item', msg, this.feedBox)
     e.style.setProperty('--fc', color)
     while (this.feedBox.children.length > 5) this.feedBox.firstChild.remove()
-    setTimeout(() => {
+    this.hud.later(() => {
       e.classList.add('out')
-      setTimeout(() => e.remove(), 500)
+      this.hud.later(() => e.remove(), 500)
     }, 3800)
   }
 
@@ -92,7 +92,7 @@ export class BrawlHud {
       this.hud.el('div', 'brawl-plate-orn', icon('ornament-divider', { size: 150 }), p)
       this.hud.el('div', 'brawl-plate-title', title, p)
     }
-    return () => { p.classList.add('out'); setTimeout(() => p.remove(), 300) }
+    return () => { p.classList.add('out'); this.hud.later(() => p.remove(), 300) }
   }
 
   /** Podium results ledger: ordered stat rows, laurel + glow for the champion. */

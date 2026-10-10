@@ -132,8 +132,8 @@ export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
       driftEl.textContent = text
       driftEl.className = `kart-drift on ${cls || ''}`
       void driftEl.offsetWidth
-      clearTimeout(driftEl._t)
-      driftEl._t = setTimeout(() => driftEl.classList.remove('on'), 1000)
+      hud.cancelLater(driftEl._t)
+      driftEl._t = hud.later(() => driftEl.classList.remove('on'), 1000)
     },
     popup(text, cls, sigil = null) {
       const el = document.createElement('div')
@@ -141,7 +141,7 @@ export function buildKartHud(hud, { skillDefs, minimapPts, audio = null }) {
       el.textContent = text
       if (sigil) el.insertAdjacentHTML('beforeend', `<i class="kp-sig">${icon(sigil, { size: '0.8em' })}</i>`)
       popupWrap.appendChild(el)
-      setTimeout(() => el.remove(), 1700)
+      hud.later(() => el.remove(), 1700)
     },
     posChanged(p) {
       // hysteresis: a position must hold ~0.3s before it announces (no

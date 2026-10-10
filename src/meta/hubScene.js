@@ -1,310 +1,292 @@
 import * as THREE from 'three'
-import { createHero } from '../art/characterFactory.js'
-import { VFX } from '../art/vfx.js'
-import { HUD } from '../ui/hud.js'
 import { icon } from '../ui/craft.js'
 import { getSkill } from './skills.js'
-import { damp, rand, clamp } from '../core/utils.js'
-import { buildSky, buildLights, buildPlatform, buildIslands, buildAtmosphere } from './hubEnvironment.js'
-import { buildChannelWall } from './hubChannels.js'
+import { REALMS } from './realms.js'
+import { buildRealmWorld } from './realmWorld.js'
+import { damp } from '../core/utils.js'
+import { selectedChampion } from './champions.js'
+import { championPortrait } from '../ui/championPortrait.js'
+import { createCpuPicker } from '../ui/cpuDifficulty.js'
+import { hasCpuLevels, normalizeDuelMode } from '../core/cpuDifficulty.js'
 import '../ui/hub.css'
 
-const CAM_POS = new THREE.Vector3(0, 4.0, 12.6)
-const CAM_LOOK = new THREE.Vector3(0, 2.7, -2.5)
+const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>'
+const crest = '<svg viewBox="0 0 44 48" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M22 2 40 12v20L22 46 4 32V12Z"/><path d="m13 14 18 19M31 14 13 33M11 26l8 7m6 0 8-7M22 6v5M22 38v5"/><path d="m12 12 4 2-2 4m18-6-4 2 2 4"/></svg>'
 
-/**
- * IWL HUB — torchlit mountain-temple courtyard at dusk.
- * Stone hero platform + live-diorama channel wall of carved stone frames.
- */
+function el(tag, cls, parent, text) {
+  const node = document.createElement(tag)
+  node.className = cls
+  if (text != null) node.textContent = text
+  parent?.appendChild(node)
+  return node
+}
+function button(cls, parent, text, action) {
+  const b = el('button', cls, parent, text)
+  b.type = 'button'
+  b.addEventListener('click', action)
+  return b
+}
+
 export default class HubScene {
   constructor(ctx) {
     this.ctx = ctx
-    this.postOpts = { bloom: 0.85, bloomThreshold: 0.82, bloomRadius: 0.5, vignette: 0.52, saturation: 1.12 }
+    this.postOpts = { bloom: 0.34, bloomThreshold: 1.05, bloomRadius: 0.45, vignette: 0.34, grain: 0.006, saturation: 0.93, contrast: 1.04 }
   }
 
   async init() {
     const { engine, audio, profile } = this.ctx
     this.scene = new THREE.Scene()
     this.scene.environment = engine.envMap
-    this.camera = new THREE.PerspectiveCamera(48, innerWidth / innerHeight, 0.1, 600)
-    this.camera.position.copy(CAM_POS)
-    this.camera.lookAt(CAM_LOOK)
-
-    this.ticks = []
-    this.ticks.push(buildSky(this.scene))
-    buildLights(this.scene)
-    this.ticks.push(buildIslands(this.scene))
-    this.ticks.push(buildAtmosphere(this.scene))
-
-    const platform = buildPlatform(this.scene, profile.appearance.glow)
-    platform.group.position.set(0, 0, 2.6)
-    this.ticks.push(platform.tick)
-
-    this.hero = createHero(profile.appearance, { auraRing: true })
-    this.hero.group.position.z = 0.85
-    platform.group.add(this.hero.group)
-    this.heroWorld = new THREE.Vector3()
-
-    // warm torchlight just for the hero pedestal area
-    const heroLight = new THREE.PointLight('#ffd9a8', 9, 9, 2)
-    heroLight.position.set(1.5, 3.0, 4.0)
-    platform.group.add(heroLight)
-
-    const wall = buildChannelWall(this.scene)
-    this.channels = wall.channels
-    this.hitMeshes = wall.hitMeshes
-
-    this.vfx = new VFX(this.scene)
-
-    // interaction state
+    this.camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 600)
+    this.camera.position.set(0, 4.2, 15)
+    this.look = new THREE.Vector3(0, 2.8, 0)
+    this.camera.lookAt(this.look)
+    this.world = buildRealmWorld(this.scene, profile.appearance, engine)
+    this.hero = this.world.hero
     this.focusIdx = -1
-    this.hoverIdx = -1
-    this.lastHoverIdx = -1
-    this._kbOverride = false
-    this._px = { x: 0, y: 0 }
-    this.transition = null
     this.parallax = new THREE.Vector2()
-    this.flairT = rand(5, 8)
-    this.danceT = 0
-    this._v = new THREE.Vector3()
-    this._look = new THREE.Vector3().copy(CAM_LOOK)
-    this._camTarget = new THREE.Vector3()
-
+    this.motionPreference = matchMedia('(prefers-reduced-motion: reduce)')
+    this.transition = false
     this._buildUI()
+    const last = REALMS.findIndex(r => r.game === profile.lastRealm)
+    this.select(last < 0 ? 0 : last)
     this._bindInput()
     audio.music('hub')
     audio.ambience('hub')
-
-    // QA hooks
     this.debug = {
-      focus: i => this._setFocus(i, true),
-      activate: i => { this._setFocus(i, true); this._activate(i) },
-      screenPos: i => {
-        const p = this.channels[i].center.clone().project(this.camera)
-        return { x: (p.x * 0.5 + 0.5) * innerWidth, y: (-p.y * 0.5 + 0.5) * innerHeight }
-      },
+      focus: i => this.select(i),
+      activate: i => { this.select(i); this.play() },
+      screenPos: i => { const r = this.cards[i].getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } },
     }
   }
-
-  // ---------- DOM UI ----------
 
   _buildUI() {
-    const { profile } = this.ctx
-    const hud = this.hud = new HUD()
+    const { profile, audio } = this.ctx
+    this.root = el('main', 'realm-hub', document.getElementById('ui'))
+    this.root.setAttribute('aria-label', 'Warrior League battlegrounds')
+    el('div', 'realm-scrim', this.root).setAttribute('aria-hidden', 'true')
+    const header = el('header', 'realm-header', this.root)
+    const brand = el('div', 'realm-brand', header)
+    brand.innerHTML = `${crest}<span>WARRIOR<span>LEAGUE</span></span>`
+    const nav = el('nav', 'realm-nav', header)
+    nav.setAttribute('aria-label', 'Main navigation')
+    const realms = button('realm-nav-link selected', nav, 'Battlegrounds', () => this.cards[this.focusIdx].focus())
+    realms.setAttribute('aria-current', 'page')
+    button('realm-nav-link', nav, 'War forge', () => this.forge(false))
+    const { champion, skin } = selectedChampion(profile)
+    const player = button('realm-player', header, '', () => this.forge(false))
+    player.setAttribute('aria-label', `Change champion: ${champion.name}, ${skin.name}`)
+    championPortrait(el('span', 'realm-player-portrait', player), champion, skin)
+    const identity = el('div', '', player)
+    el('span', 'realm-player-name', identity, String(profile.name || 'Warlord'))
+    el('span', 'realm-player-caption', identity, `${champion.name} · ${skin.name}`)
+    const settings = button('realm-settings', header, '', () => dispatchEvent(new CustomEvent('iwl:settings')))
+    settings.setAttribute('aria-label', 'Settings')
+    settings.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 2-1 3 2 3-2 2 1 3-3-1-2 2-3-2-3-3-1-1-3Z"/><circle cx="11.5" cy="11.5" r="3"/></svg>'
 
-    hud.el('div', 'hub-logo',
-      '<div class="hub-logo-main">IWL</div><div class="hub-logo-sub">IMMORTAL WARLORDS LEAGUE</div>' +
-      `<div class="hub-logo-rule" aria-hidden="true">${icon('ornament-divider', { size: 185 })}</div>`)
-
-    const skillChips = profile.loadout.map(id => {
-      const s = getSkill(id)
-      return s ? `<div class="hub-skill-ico" style="--sc:${s.color}" title="${s.name}">${s.icon}</div>` : ''
-    }).join('')
-    hud.el('div', 'hub-player',
-      `<div class="hub-player-name"><span class="hub-player-dot" style="--dot:${profile.appearance.glow}"></span>${profile.name}</div>
-       <div class="hub-skills">${skillChips}</div>`)
-
-    const btn = hud.el('button', 'ghost hub-customize', 'FORGE YOUR WARLORD')
-    btn.addEventListener('click', () => {
-      this.ctx.audio.play('click')
-      this.ctx.goTo('loadout', { game: null })
+    const body = el('section', 'realm-feature', this.root)
+    this.eyebrow = el('div', 'realm-eyebrow', body)
+    this.title = el('h1', 'realm-title', body)
+    this.desc = el('p', 'realm-description', body)
+    this.tags = el('div', 'realm-tags', body)
+    this.matchOptions = el('div', 'cpu-match-options ui-interactive', body)
+    this.modeField = el('fieldset', 'cpu-mode', this.matchOptions)
+    el('legend', '', this.modeField, 'Crucible mode')
+    this.modeButtons = ['single', 'tower'].map(mode => {
+      const b = button('', this.modeField, mode === 'single' ? 'Single Duel' : 'Tower', () => {
+        profile.duelMode = mode
+        this.ctx.saveProfile()
+        dispatchEvent(new CustomEvent('iwl:cpu-settings'))
+      })
+      b.dataset.mode = mode
+      return b
     })
+    this.cpuPicker = createCpuPicker({ profile, onChange: () => this.ctx.saveProfile() })
+    this.matchOptions.append(this.cpuPicker.root)
+    this.towerNote = el('p', 'cpu-tower-note', this.matchOptions, 'Four opponents with their own rising difficulty. Choose Single Duel to set a CPU level.')
+    this._cpuSettingsChanged = () => this._refreshMatchOptions()
+    addEventListener('iwl:cpu-settings', this._cpuSettingsChanged)
+    const actions = el('div', 'realm-actions', body)
+    this.playButton = button('realm-play', actions, '', () => this.play())
+    this.playButton.innerHTML = `<span>ENTER BATTLE</span>${arrow}`
+    button('realm-prepare', actions, 'Prepare loadout', () => this.forge(true))
+    this.guideButton = button('realm-guide-toggle', body, 'How to play', () => this.toggleGuide())
+    this.guideButton.setAttribute('aria-expanded', 'false')
+    this.guideButton.setAttribute('aria-controls', 'realm-guide')
+    this.guide = el('div', 'realm-guide', body)
+    this.guide.id = 'realm-guide'
+    this.guide.hidden = true
+    this.objective = el('p', '', this.guide)
+    this.controls = el('div', 'realm-controls', this.guide)
+    this.live = el('div', 'realm-sr-only', this.root)
+    this.live.setAttribute('role', 'status')
 
-    hud.hints([
-      ['MOUSE', 'Hover / click an arena'],
-      ['← → 1-7', 'Cycle arenas'],
-      ['ENTER', 'March to battle'],
-      ['C', 'Visit the war forge'],
-    ])
-
-    this.plates = this.channels.map(ch => {
-      const plate = hud.el('div', `hub-plate${ch.def.flagship ? ' hub-plate-flag' : ''}`)
-      plate.style.setProperty('--acc', ch.def.accent)
-      const finial = side => ch.def.flagship
-        ? `<span class="hub-plate-finial hub-plate-finial-${side}" aria-hidden="true">${icon('ornament-divider', { size: 58 })}</span>`
-        : ''
-      plate.innerHTML = `<div class="hub-plate-row">${finial('l')}<div class="hub-plate-title">${ch.def.title}</div>${finial('r')}</div>
-        <div class="hub-plate-sub">${ch.def.sub}</div>`
-      return plate
+    const loadout = el('aside', 'realm-loadout', this.root)
+    el('span', 'realm-small-label', loadout, `${champion.name.toUpperCase()} / ${skin.name.toUpperCase()}`)
+    const arts = el('div', 'realm-arts', loadout)
+    profile.loadout.forEach((id, i) => {
+      const skill = getSkill(id)
+      if (!skill) return
+      const b = button('realm-art', arts, '', () => this.forge(true))
+      b.innerHTML = `${skill.icon}<span>${i + 1}</span>`
+      b.title = skill.name
+      b.setAttribute('aria-label', `Edit battle art ${i + 1}: ${skill.name}`)
     })
+    this.record = el('span', 'realm-record', loadout)
+
+    const collection = el('section', 'realm-collection', this.root)
+    collection.setAttribute('aria-label', 'Choose your battleground')
+    const collectionHead = el('div', 'realm-collection-head', collection)
+    const collectionLabel = el('div', '', collectionHead)
+    el('span', 'realm-small-label', collectionLabel, 'CHOOSE YOUR BATTLEGROUND')
+    this.counter = el('span', 'realm-counter', collectionLabel)
+    el('span', 'realm-keyboard-hint', collectionHead, '← →  SELECT    /    ENTER  PLAY')
+    const cards = el('div', 'realm-cards', collection)
+    this.cards = REALMS.map((realm, i) => {
+      const card = button('realm-card', cards, '', () => this.select(i, true))
+      card.dataset.realm = realm.game
+      card.setAttribute('aria-label', `Select ${realm.title}`)
+      card.style.setProperty('--card-color', realm.color)
+      const art = el('img', 'realm-card-art', card)
+      art.src = realm.image
+      art.alt = ''
+      art.draggable = false
+      el('span', 'realm-card-no', card, String(i + 1).padStart(2, '0'))
+      el('span', 'realm-card-icon', card).innerHTML = icon(realm.icon, { size: 22 })
+      const caption = el('span', 'realm-card-caption', card)
+      el('span', 'realm-card-title', caption, realm.title)
+      el('span', 'realm-card-genre', caption, realm.genre)
+      card.addEventListener('pointerenter', () => this.preload(realm.game))
+      card.addEventListener('focus', () => this.preload(realm.game))
+      card.addEventListener('keydown', e => {
+        if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+          e.preventDefault(); e.stopPropagation(); this.select(i); this.play()
+        } else if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') {
+          e.preventDefault(); e.stopPropagation()
+          const next = (i + (e.code === 'ArrowRight' ? 1 : -1) + REALMS.length) % REALMS.length
+          this.select(next, true)
+          this.cards[next].focus()
+        }
+      })
+      return card
+    })
+    const footer = el('footer', 'realm-footer', this.root)
+    el('span', '', footer, 'SEVEN REALMS. ONE LEGEND.')
+    el('span', '', footer, 'Keyboard + mouse · Solo vs AI')
+    audio.play('hover', { vol: 0.1 })
   }
 
-  // ---------- input ----------
+  select(index, sound = false) {
+    if (this.transition || index === this.focusIdx || !REALMS[index]) return
+    this.focusIdx = index
+    const r = REALMS[index]
+    this.root.style.setProperty('--realm-color', r.color)
+    this.eyebrow.textContent = r.category
+    this.title.replaceChildren(...r.lines.map(line => el('span', '', null, line)))
+    this.desc.textContent = r.desc
+    this.tags.replaceChildren(...r.tags.map(tag => el('span', '', null, tag)))
+    this.objective.textContent = r.objective
+    this.controls.replaceChildren(...r.controls.map(([key, action]) => {
+      const row = el('div', 'realm-control')
+      el('kbd', '', row, key); el('span', '', row, action)
+      return row
+    }))
+    this.cards.forEach((card, i) => {
+      card.classList.toggle('selected', i === index)
+      card.setAttribute('aria-pressed', String(i === index))
+    })
+    this.counter.textContent = `${String(index + 1).padStart(2, '0')} / 07`
+    this._refreshMatchOptions()
+    this.world.setRealm(r.game)
+    this.preload(r.game)
+    this.live.textContent = `${r.title} selected. ${r.genre}.`
+    if (sound) this.ctx.audio.play('hover', { vol: 0.35 })
+  }
+
+  preload(game) {
+    // Speculative loading must never interrupt selection on a failed connection.
+    this.ctx.preload?.(game)?.catch(() => {})
+  }
+
+  _refreshMatchOptions() {
+    const r = REALMS[this.focusIdx]
+    if (!r) return
+    const { profile } = this.ctx
+    const mode = normalizeDuelMode(profile.duelMode)
+    const isDuel = r.game === 'duel'
+    const enabled = hasCpuLevels(r.game, mode)
+    this.matchOptions.hidden = !isDuel && !enabled
+    this.root.classList.toggle('has-match-options', !this.matchOptions.hidden)
+    this.modeField.hidden = !isDuel
+    this.modeButtons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)))
+    this.cpuPicker.root.hidden = !enabled
+    this.cpuPicker.refresh({ game: r.game, activeLevel: null })
+    this.towerNote.hidden = !isDuel || mode !== 'tower'
+    const single = isDuel && mode === 'single'
+    this.tags.replaceChildren(...(single ? ['1v1 combat', 'Best of three', 'Single duel'] : r.tags).map(tag => el('span', '', null, tag)))
+    this.desc.textContent = single ? 'Face Ashborn in a single best-of-three duel. Set the challenge, learn his openings, and earn the rematch.' : r.desc
+    const wins = Number(profile.stats?.wins?.[single ? 'duelSingle' : r.game]) || 0
+    this.record.textContent = `${wins} ${wins === 1 ? 'victory' : 'victories'} in ${single ? 'Single Duel' : r.title}`
+  }
+
+  toggleGuide() {
+    this.guide.hidden = !this.guide.hidden
+    this.guideButton.setAttribute('aria-expanded', String(!this.guide.hidden))
+    this.guideButton.textContent = this.guide.hidden ? 'How to play' : 'Hide controls'
+    this.root.classList.toggle('guide-open', !this.guide.hidden)
+  }
 
   _bindInput() {
-    const { input, audio } = this.ctx
-    const n = this.channels.length
-    input.onKey((code, down) => {
-      if (!down || this.transition) return
-      if (code === 'ArrowRight') this._setKbFocus((this.focusIdx + 1 + n) % n)
-      else if (code === 'ArrowLeft') this._setKbFocus(this.focusIdx <= 0 ? n - 1 : this.focusIdx - 1)
-      else if (/^Digit[1-9]$/.test(code) && Number(code[5]) <= n) this._setKbFocus(Number(code[5]) - 1)
-      else if (code === 'Enter' || code === 'NumpadEnter' || code === 'Space') {
-        if (this.focusIdx >= 0) this._activate(this.focusIdx)
-      } else if (code === 'KeyC') {
-        audio.play('click')
-        this.ctx.goTo('loadout', { game: null })
-      }
-    })
-    input.onMouse((button, down) => {
-      if (button !== 0 || !down || this.transition) return
-      if (this.hoverIdx >= 0) this._activate(this.hoverIdx)
+    this.ctx.input.onKey((code, down, e) => {
+      if (!down || this.transition || e.target?.closest('button, input, select, textarea, [role="dialog"]')) return
+      if (code === 'ArrowRight') { e.preventDefault(); this.select((this.focusIdx + 1) % REALMS.length, true) }
+      else if (code === 'ArrowLeft') { e.preventDefault(); this.select((this.focusIdx + REALMS.length - 1) % REALMS.length, true) }
+      else if (/^Digit[1-7]$/.test(code)) this.select(Number(code.slice(-1)) - 1, true)
+      else if (code === 'Enter' || code === 'NumpadEnter') this.play()
+      else if (code === 'KeyC') this.forge(false)
+      else if (code === 'KeyH') this.toggleGuide()
     })
   }
 
-  _setFocus(idx, sound = false) {
-    if (idx === this.focusIdx) return
-    this.focusIdx = idx
-    // each channel hums at its own pitch — the wall feels tuned, not tiled
-    if (idx >= 0 && sound) this.ctx.audio.play('hover', { vol: 0.6, rate: 0.92 + idx * 0.055 })
+  async play() {
+    if (this.transition) return
+    this.transition = true
+    this.playButton.disabled = true
+    this.playButton.querySelector('span').textContent = 'ENTERING REALM'
+    const realm = REALMS[this.focusIdx]
+    this.ctx.profile.lastRealm = realm.game
+    this.ctx.saveProfile()
+    this.ctx.audio.unlock()
+    this.ctx.audio.play('whoosh', { vol: 0.7 })
+    await this.ctx.goTo(realm.game)
+    if (this.root.isConnected) {
+      this.transition = false
+      this.playButton.disabled = false
+      this.playButton.querySelector('span').textContent = 'ENTER BATTLE'
+    }
   }
 
-  /** Keyboard selection wins over a resting cursor until the mouse moves again. */
-  _setKbFocus(idx) {
-    this._kbOverride = true
-    this._setFocus(idx, true)
+  forge(selected) {
+    if (this.transition) return
+    this.ctx.audio.play('click')
+    this.ctx.goTo('loadout', { game: selected ? REALMS[this.focusIdx].game : null })
   }
-
-  _activate(idx) {
-    const ch = this.channels[idx]
-    const { audio } = this.ctx
-    audio.play('click')
-    audio.play('cast', { delay: 0.05 })
-    audio.play('whoosh', { delay: 0.18, vol: 0.9 })
-    audio.duck(0.5)
-    this.hero.cast()
-    this.hero.castPoint(this._v)
-    this.vfx.flash(this._v, { color: ch.def.accent, size: 2.4 })
-    this.vfx.burst(this._v, { color: ch.def.accent, count: 20, speed: 5, size: 0.24, gravity: -4 })
-    this.transition = { ch, t: 0, fired: false, fromPos: this.camera.position.clone(), fromLook: this._look.clone() }
-    for (const p of this.plates) p.classList.add('gone')
-  }
-
-  // ---------- frame loop ----------
 
   update(dt, t) {
-    for (const tick of this.ticks) tick(dt, t)
-    for (const ch of this.channels) ch.update(dt)
-    this.vfx.update(dt)
-
-    this._updateHero(dt, t)
-    this._updateHover()
-    this._updateCamera(dt, t)
-    this._updatePlates()
-  }
-
-  _updateHero(dt, t) {
-    this.hero.update(dt)
-    if (this.danceT > 0) {
-      this.danceT -= dt
-      if (this.danceT <= 0) this.hero.setState('normal')
-    }
-    this.flairT -= dt
-    if (this.flairT <= 0 && !this.transition) {
-      this.flairT = rand(7, 10.5)
-      if (Math.random() < 0.5) {
-        this.hero.setState('dance')
-        this.danceT = 2.4
-      } else {
-        this.hero.cast()
-        this.hero.castPoint(this._v)
-        this.vfx.flash(this._v, { color: this.ctx.profile.appearance.glow, size: 1.7 })
-        this.ctx.audio.play('cast', { vol: 0.3 })
-      }
-    }
-    // face the focused channel, else face the camera
-    const target = this.focusIdx >= 0 ? this.channels[this.focusIdx].center : this.camera.position
-    this.hero.faceTowards(target, dt, 5)
-  }
-
-  _updateHover() {
-    if (this.transition) { this.hoverIdx = -1; return }
-    // input.mouse defaults to screen center before any mousemove — don't
-    // phantom-hover the middle channel until the cursor actually exists
-    const px = this.ctx.input.mousePx
-    const moved = px.x !== this._px.x || px.y !== this._px.y
-    this._px.x = px.x
-    this._px.y = px.y
-    if (moved) this._kbOverride = false
-    if ((!px.x && !px.y) || this._kbOverride) { this.hoverIdx = -1; this._applyFocus(); return }
-    const hits = this.ctx.input.pick(this.camera, this.hitMeshes, false)
-    let idx = -1
-    if (hits.length) {
-      idx = hits[0].object.userData.idx
-      const uv = hits[0].uv
-      const ch = this.channels[idx]
-      if (uv) {
-        ch.tiltTarget.x = (uv.y - 0.5) * 0.22
-        ch.tiltTarget.y = -(uv.x - 0.5) * 0.3
-      }
-      this._setFocus(idx, idx !== this.lastHoverIdx)
-    }
-    this.hoverIdx = idx
-    this.lastHoverIdx = idx
-    this._applyFocus()
-  }
-
-  _applyFocus() {
-    for (let i = 0; i < this.channels.length; i++) {
-      const ch = this.channels[i]
-      ch.focus = i === this.focusIdx
-      if (i === this.focusIdx && i !== this.hoverIdx) {
-        ch.tiltTarget.x = 0
-        ch.tiltTarget.y = 0
-      }
-    }
-  }
-
-  _updateCamera(dt, t) {
-    const { input } = this.ctx
-    if (this.transition) {
-      const tr = this.transition
-      tr.t += dt
-      const k = clamp(tr.t / 0.7, 0, 1)
-      const e = k * k * (3 - 2 * k)
-      this._camTarget.copy(tr.ch.center).addScaledVector(tr.ch.normal, tr.ch.dolly)
-      this._camTarget.y += 0.15
-      this.camera.position.lerpVectors(tr.fromPos, this._camTarget, e)
-      this._look.lerpVectors(tr.fromLook, tr.ch.center, e)
-      this.camera.lookAt(this._look)
-      if (k >= 0.65 && !tr.fired) {
-        tr.fired = true
-        this.ctx.goTo('loadout', { game: tr.ch.def.game })
-      }
-      return
-    }
-    this.parallax.x = damp(this.parallax.x, input.mouse.x, 3, dt)
-    this.parallax.y = damp(this.parallax.y, input.mouse.y, 3, dt)
-    const breathe = Math.sin(t * 0.45) * 0.12
-    this.camera.position.set(
-      CAM_POS.x + this.parallax.x * 0.6,
-      CAM_POS.y + this.parallax.y * 0.32 + breathe,
-      CAM_POS.z + Math.sin(t * 0.3) * 0.15,
-    )
-    this._look.set(
-      CAM_LOOK.x + this.parallax.x * 0.9,
-      CAM_LOOK.y + this.parallax.y * 0.5 + breathe * 0.4,
-      CAM_LOOK.z,
-    )
-    this.camera.lookAt(this._look)
-  }
-
-  _updatePlates() {
-    for (let i = 0; i < this.channels.length; i++) {
-      const ch = this.channels[i]
-      const p = this._v.copy(ch.plateAnchor)
-      p.y += Math.sin(ch.t * 0.6) * 0.05 // ride the frame bob
-      p.project(this.camera)
-      const plate = this.plates[i]
-      if (p.z > 1) { plate.style.display = 'none'; continue }
-      plate.style.display = ''
-      plate.style.left = `${(p.x * 0.5 + 0.5) * innerWidth}px`
-      plate.style.top = `${(-p.y * 0.5 + 0.5) * innerHeight}px`
-      plate.classList.toggle('hot', i === this.focusIdx)
-    }
+    this.world.update(dt, t)
+    const reduced = this.ctx.engine.reducedMotion || this.motionPreference.matches
+    const mouse = this.ctx.input.cameraMouse
+    this.parallax.x = damp(this.parallax.x, reduced ? 0 : mouse.x, 2.2, dt)
+    this.parallax.y = damp(this.parallax.y, reduced ? 0 : mouse.y, 2.2, dt)
+    const narrow = innerWidth < 700
+    this.camera.position.set((narrow ? 1.6 : 0) + this.parallax.x * 0.24, 4.2 + this.parallax.y * 0.1, narrow ? 18 : 15)
+    this.look.set(narrow ? 1.6 : 0, 2.8, 0)
+    this.camera.lookAt(this.look)
   }
 
   dispose() {
-    this.vfx.dispose()
+    this.cpuPicker?.dispose()
+    removeEventListener('iwl:cpu-settings', this._cpuSettingsChanged)
+    this.world.dispose?.()
   }
 }

@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { getSkill, wasdKeyIndex } from '../../meta/skills.js'
 import { createHero } from '../../art/characterFactory.js'
-import { clamp, distXZ, v3 } from '../../core/utils.js'
+import { clamp, distXZ, v3, disposeObject3D } from '../../core/utils.js'
 import { COURT, isThree } from './constants.js'
 
 const _tmp = new THREE.Vector3()
@@ -162,7 +162,7 @@ export class Abilities {
     _tmp.copy(aiP).sub(P).setY(0)
     if (_tmp.lengthSq() < 0.1) _tmp.set(0, 0, -1)
     _tmp.normalize()
-    const hero = createHero({ ...this.env.appearance, cape: false }, { auraRing: true })
+    const hero = createHero({ ...this.env.appearance, cape: false }, { auraRing: true, equipmentPose: 'stowed' })
     hero.group.position.copy(P).addScaledVector(_tmp, 1.7)
     hero.group.position.y = 0
     hero.faceTowards(aiP, 1, 100)
@@ -298,6 +298,7 @@ export class Abilities {
     const eff = this.env.game.eff
     if (!eff.decoy) return
     this.env.scene.remove(eff.decoy.hero.group)
+    disposeObject3D(eff.decoy.hero.group)
     eff.decoy = null
   }
 

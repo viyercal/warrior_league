@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { ClickMove } from '../../core/clickMove.js'
 import { getSkill, WASD_KEY_LABELS, wasdKeyIndex } from '../../meta/skills.js'
 import { HUD } from '../../ui/hud.js'
 import { VFX } from '../../art/vfx.js'
@@ -32,7 +33,7 @@ export default class ArenaScene {
   constructor(ctx) {
     this.ctx = ctx
     // realism grade: bloom reserved for true fire (high threshold), neutral saturation
-    this.postOpts = { bloom: 0.5, bloomThreshold: 0.9, bloomRadius: 0.45, vignette: 0.62, saturation: 1.0, grain: 0.04, exposure: 1.02 }
+    this.postOpts = { bloom: 0.5, bloomThreshold: 0.9, bloomRadius: 0.45, vignette: 0.62, saturation: 1.0, grain: 0.006, exposure: 1.02 }
   }
 
   async init() {
@@ -164,7 +165,7 @@ export default class ArenaScene {
     this.lastEl = hud.el('div', 'arena-laststand')
     this.heatUi = buildHeatMeter(hud)
     this.hintBox = hud.hints([
-      ['WASD', 'Move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Hurl fire'], ['1-4', 'Skills'], ['H', 'Toggle help'],
+      ['↑ ↓ ← → / WASD', 'Move'], ['RMB', 'Click to move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Hurl fire'], ['1-4', 'Skills'], ['H', 'Toggle help'],
     ])
 
     input.onKey((code, down) => {
@@ -172,7 +173,12 @@ export default class ArenaScene {
       if (this.cine.active) { this.cine.skip(); return } // ANY key skips cinematics
       const i = wasdKeyIndex(code)
       if (i >= 0) this._castSkill(i)
-      else if (code === 'KeyH') this.hintBox.style.display = this.hintBox.style.display === 'none' ? '' : 'none'
+      else if (code === 'KeyH') this.hud.toggleHints()
+    })
+    this.clickMove = new ClickMove({
+      input, camera: this.camera, scene: this.scene, vfx: this.vfx,
+      position: () => this.hero.group.position, active: () => !this.cine?.active && !this.over,
+      clamp: p => { const r = Math.hypot(p.x, p.z); if (r > ARENA_R - 1.4) p.multiplyScalar((ARENA_R - 1.4) / r); return p },
     })
     input.onMouse((btn, down) => {
       if (down && this.cine.active) this.cine.skip()
@@ -204,6 +210,7 @@ export default class ArenaScene {
   // ============================== main loop ==============================
 
   update(dt, t) {
+    if (!this.clickMove.active()) this.clickMove.cancel()
     // slow-mo (boss death / ANNIHILATION)
     if (this.slowmoT > 0) {
       this.slowmoT -= dt
@@ -314,12 +321,20 @@ export default class ArenaScene {
     const mx = (input.isDown('KeyD') ? 1 : 0) - (input.isDown('KeyA') ? 1 : 0)
     const mz = (input.isDown('KeyS') ? 1 : 0) - (input.isDown('KeyW') ? 1 : 0)
     const speed = HERO_SPEED * (this.buffT > 0 ? 1.6 : 1)
+    let moving = false
     if (mx || mz) {
+      this.clickMove.cancel()
+      moving = true
       const il = 1 / Math.hypot(mx, mz)
       pos.x += mx * il * speed * gdt
       pos.z += mz * il * speed * gdt
       this.hero.setMoveSpeed(speed)
-    } else this.hero.setMoveSpeed(0)
+    } else {
+      const distance = this.clickMove.direction(_v2)
+      moving = distance > 0
+      pos.addScaledVector(_v2, Math.min(distance, speed * gdt))
+      this.hero.setMoveSpeed(moving ? speed : 0)
+    }
 
     pos.x += this.heroK.x * gdt
     pos.z += this.heroK.z * gdt
@@ -345,7 +360,7 @@ export default class ArenaScene {
     // colossus form scale + stomps
     this.heroScale = damp(this.heroScale, this.giantT > 0 ? 1.75 : 1, 9, dt)
     this.hero.group.scale.setScalar(this.heroScale)
-    if (this.giantT > 0 && (mx || mz)) {
+    if (this.giantT > 0 && moving) {
       this.stompT -= gdt
       if (this.stompT <= 0) {
         this.stompT = 0.42
@@ -1234,6 +1249,7 @@ export default class ArenaScene {
     this._clearBanners()
     this.ctx.audio.play('victory')
     this.hero.setState('dance')
+    this.clickMove?.cancel()
     this.hero.setMoveSpeed(0)
     const profile = this.ctx.profile
     profile.stats.wins.arena = (profile.stats.wins.arena || 0) + 1
@@ -1264,6 +1280,7 @@ export default class ArenaScene {
     this._clearBanners()
     this.hp = 0
     this.hero.setState('ko')
+    this.clickMove?.cancel()
     this.hero.setMoveSpeed(0)
     this.ctx.audio.play('defeat')
     this.hud.banner('DEFEATED', {
@@ -1313,7 +1330,7 @@ export default class ArenaScene {
 
   _updateCamera(dt) {
     const hp = this.hero.group.position
-    const m = this.ctx.input.mouse
+    const m = this.ctx.input.cameraMouse
     this.punch = damp(this.punch, 0, 3.4, dt)
     const z = 1 - 0.26 * this.punch // ANNIHILATION punch-in
     _v1.set(hp.x + (this.camOffset.x + m.x * 2.6) * z, this.camOffset.y * z, hp.z + (this.camOffset.z - m.y * 2) * z)
@@ -1325,14 +1342,14 @@ export default class ArenaScene {
   }
 
   _timeout(fn, ms) {
-    const id = setTimeout(() => { if (!this.disposed) fn() }, ms)
+    const id = this.ctx.setTimeout(() => { if (!this.disposed) fn() }, ms)
     this._timeouts.push(id)
     return id
   }
 
   dispose() {
     this.disposed = true
-    for (const id of this._timeouts) clearTimeout(id)
+    for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this.cine.dispose()
     this.ctx.engine.setExposure(1.12)
     this.buffTrail?.stop()

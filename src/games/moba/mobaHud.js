@@ -11,7 +11,7 @@ export function buildMobaHud(g) {
 
   // ---- bottom-left: level chip + HP / energy ----
   const lvChip = hud.el('div', 'moba-level', '1')
-  const hpBar = hud.bar({ label: 'HP', color: '#8fae4a' }) // kit moss green — quenched blade
+  const hpBar = hud.bar({ label: 'HP', cls: 'moba-health', color: '#8fae4a' })
   Object.assign(hpBar.root.style, { left: '84px', bottom: '64px', width: '300px' })
   const enBar = hud.bar({ label: 'ENERGY', color: '#ff8c3b' })
   Object.assign(enBar.root.style, { left: '84px', bottom: '18px', width: '300px' })
@@ -64,7 +64,7 @@ export function buildMobaHud(g) {
   const mctx = canvas.getContext('2d')
 
   const hintBox = hud.hints([
-    ['R-CLICK', 'Move / attack'], ['Q W E R', 'Skills'], ['B', 'Recall'],
+    ['↑ ↓ ← →', 'Move'], ['R-CLICK', 'Move / attack'], ['Q W E R', 'Skills'], ['B', 'Recall'],
     ['Y', 'Camera lock'], ['WHEEL', 'Zoom'], ['H', 'Toggle help'],
   ])
   hintBox.style.bottom = '156px'
@@ -188,7 +188,7 @@ export function buildMobaHud(g) {
     showTitle: () => {
       const el = hud.el('div', 'moba-title',
         '<div class="moba-title-main">WAR RIFT</div><div class="moba-title-sub">1V1 LANE WARFARE</div>')
-      return { out: () => { el.classList.add('out'); setTimeout(() => el.remove(), 450) } }
+      return { out: () => { el.classList.add('out'); hud.later(() => el.remove(), 450) } }
     },
 
     /** "RAVAGER vs THE WARLORD" plates. Returns { out }. */
@@ -203,15 +203,15 @@ export function buildMobaHud(g) {
       plate('moba-vsl', pName, 'CHAMPION OF THE WEST GATE', '#ffb84d')
       hud.el('div', 'moba-vs-mid', 'VS', v)
       plate('moba-vsr', 'THE WARLORD', 'TYRANT OF THE EAST', '#ff5a26')
-      return { out: () => { v.classList.add('out'); setTimeout(() => v.remove(), 450) } }
+      return { out: () => { v.classList.add('out'); hud.later(() => v.remove(), 450) } }
     },
 
     /** Short warlord taunt plate beside his portrait. */
     taunt: text => {
       tauntEl?.remove()
       const el = tauntEl = hud.el('div', 'moba-taunt', `“${text}”`)
-      setTimeout(() => el.classList.add('out'), 2400)
-      setTimeout(() => { el.remove(); if (tauntEl === el) tauntEl = null }, 2850)
+      hud.later(() => el.classList.add('out'), 2400)
+      hud.later(() => { el.remove(); if (tauntEl === el) tauntEl = null }, 2850)
     },
   }
 }

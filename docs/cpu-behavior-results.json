@@ -1,0 +1,795 @@
+{
+  "time": "2026-09-20T00:08:39.074Z",
+  "checks": [
+    {
+      "name": "duel L1 30fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 30,
+        "level": 1,
+        "timelyBlocks": 0,
+        "blocks": 60,
+        "minDelay": 0.6,
+        "chains": 130,
+        "maxChainInputs": 1,
+        "attackIntents": 10
+      }
+    },
+    {
+      "name": "duel L1 30fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L5 30fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 30,
+        "level": 5,
+        "timelyBlocks": 315,
+        "blocks": 514,
+        "minDelay": 0.26666666666666666,
+        "chains": 775,
+        "maxChainInputs": 1,
+        "attackIntents": 50
+      }
+    },
+    {
+      "name": "duel L5 30fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L6 30fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 30,
+        "level": 6,
+        "timelyBlocks": 587,
+        "blocks": 587,
+        "minDelay": 0.23333333333333334,
+        "chains": 835,
+        "maxChainInputs": 1,
+        "attackIntents": 58
+      }
+    },
+    {
+      "name": "duel L6 30fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L10 30fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 30,
+        "level": 10,
+        "timelyBlocks": 1067,
+        "blocks": 1067,
+        "minDelay": 0.1,
+        "chains": 1125,
+        "maxChainInputs": 1,
+        "attackIntents": 154
+      }
+    },
+    {
+      "name": "duel L10 30fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L1 60fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 60,
+        "level": 1,
+        "timelyBlocks": 0,
+        "blocks": 65,
+        "minDelay": 0.5833333333333334,
+        "chains": 130,
+        "maxChainInputs": 1,
+        "attackIntents": 10
+      }
+    },
+    {
+      "name": "duel L1 60fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L5 60fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 60,
+        "level": 5,
+        "timelyBlocks": 397,
+        "blocks": 489,
+        "minDelay": 0.25,
+        "chains": 775,
+        "maxChainInputs": 1,
+        "attackIntents": 52
+      }
+    },
+    {
+      "name": "duel L5 60fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L6 60fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 60,
+        "level": 6,
+        "timelyBlocks": 621,
+        "blocks": 621,
+        "minDelay": 0.21666666666666667,
+        "chains": 835,
+        "maxChainInputs": 1,
+        "attackIntents": 60
+      }
+    },
+    {
+      "name": "duel L6 60fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L10 60fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 60,
+        "level": 10,
+        "timelyBlocks": 1066,
+        "blocks": 1066,
+        "minDelay": 0.1,
+        "chains": 1125,
+        "maxChainInputs": 1,
+        "attackIntents": 166
+      }
+    },
+    {
+      "name": "duel L10 60fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L1 120fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 120,
+        "level": 1,
+        "timelyBlocks": 0,
+        "blocks": 57,
+        "minDelay": 0.5916666666666667,
+        "chains": 130,
+        "maxChainInputs": 1,
+        "attackIntents": 10
+      }
+    },
+    {
+      "name": "duel L1 120fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L5 120fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 120,
+        "level": 5,
+        "timelyBlocks": 389,
+        "blocks": 490,
+        "minDelay": 0.25,
+        "chains": 775,
+        "maxChainInputs": 1,
+        "attackIntents": 53
+      }
+    },
+    {
+      "name": "duel L5 120fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L6 120fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 120,
+        "level": 6,
+        "timelyBlocks": 609,
+        "blocks": 609,
+        "minDelay": 0.21666666666666667,
+        "chains": 835,
+        "maxChainInputs": 1,
+        "attackIntents": 61
+      }
+    },
+    {
+      "name": "duel L6 120fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel L10 120fps delayed reaction",
+      "ok": true,
+      "details": {
+        "fps": 120,
+        "level": 10,
+        "timelyBlocks": 1082,
+        "blocks": 1082,
+        "minDelay": 0.1,
+        "chains": 1125,
+        "maxChainInputs": 1,
+        "attackIntents": 172
+      }
+    },
+    {
+      "name": "duel L10 120fps one combo roll per opening",
+      "ok": true
+    },
+    {
+      "name": "duel pressure rises across levels at 30fps",
+      "ok": true,
+      "details": [
+        [
+          1,
+          10
+        ],
+        [
+          5,
+          50
+        ],
+        [
+          6,
+          58
+        ],
+        [
+          10,
+          154
+        ]
+      ]
+    },
+    {
+      "name": "duel L10 blocks telegraphed heavy while L1 misses startup at 30fps",
+      "ok": true
+    },
+    {
+      "name": "duel pressure rises across levels at 60fps",
+      "ok": true,
+      "details": [
+        [
+          1,
+          10
+        ],
+        [
+          5,
+          52
+        ],
+        [
+          6,
+          60
+        ],
+        [
+          10,
+          166
+        ]
+      ]
+    },
+    {
+      "name": "duel L10 blocks telegraphed heavy while L1 misses startup at 60fps",
+      "ok": true
+    },
+    {
+      "name": "duel pressure rises across levels at 120fps",
+      "ok": true,
+      "details": [
+        [
+          1,
+          10
+        ],
+        [
+          5,
+          53
+        ],
+        [
+          6,
+          61
+        ],
+        [
+          10,
+          172
+        ]
+      ]
+    },
+    {
+      "name": "duel L10 blocks telegraphed heavy while L1 misses startup at 120fps",
+      "ok": true
+    },
+    {
+      "name": "duel L1 combo probability stable across frame rates",
+      "ok": true
+    },
+    {
+      "name": "duel L5 combo probability stable across frame rates",
+      "ok": true
+    },
+    {
+      "name": "duel L6 combo probability stable across frame rates",
+      "ok": true
+    },
+    {
+      "name": "duel L10 combo probability stable across frame rates",
+      "ok": true
+    },
+    {
+      "name": "duel L1 honors art cooldown",
+      "ok": true,
+      "details": {
+        "level": 1,
+        "casts": [
+          1.9833333333333334,
+          8.8,
+          13.316666666666666,
+          26.866666666666667,
+          35.2,
+          39.28333333333333,
+          46.31666666666667,
+          52.36666666666667
+        ],
+        "minimumCd": 4.0249999999999995
+      }
+    },
+    {
+      "name": "duel L10 honors art cooldown",
+      "ok": true,
+      "details": {
+        "level": 10,
+        "casts": [
+          0.08333333333333333,
+          4.2,
+          8.266666666666667,
+          12.35,
+          16.45,
+          20.5,
+          24.583333333333332,
+          28.716666666666665,
+          32.86666666666667,
+          37.016666666666666,
+          41.11666666666667,
+          45.21666666666667,
+          49.3,
+          53.43333333333333,
+          57.483333333333334
+        ],
+        "minimumCd": 4.0249999999999995
+      }
+    },
+    {
+      "name": "brawl pressure and finishing attacks rise across levels",
+      "ok": true,
+      "details": [
+        {
+          "level": 1,
+          "attackIntents": 29,
+          "smashes": 11,
+          "dodges": 42,
+          "recoveryY": -2.5
+        },
+        {
+          "level": 5,
+          "attackIntents": 197,
+          "smashes": 123,
+          "dodges": 381,
+          "recoveryY": 0.8
+        },
+        {
+          "level": 6,
+          "attackIntents": 223,
+          "smashes": 160,
+          "dodges": 507,
+          "recoveryY": 0.9
+        },
+        {
+          "level": 10,
+          "attackIntents": 546,
+          "smashes": 479,
+          "dodges": 967,
+          "recoveryY": 1.7
+        }
+      ]
+    },
+    {
+      "name": "brawl defense improves and does not reroll each attack",
+      "ok": true
+    },
+    {
+      "name": "brawl higher levels recover earlier",
+      "ok": true
+    },
+    {
+      "name": "profile migration normalizes CPU level and preserves roster/results",
+      "ok": true,
+      "details": [
+        {
+          "value": "undefined",
+          "expected": 6,
+          "actual": 6,
+          "mode": "tower",
+          "preserved": true
+        },
+        {
+          "value": "null",
+          "expected": 6,
+          "actual": 6,
+          "mode": "tower",
+          "preserved": true
+        },
+        {
+          "value": "true",
+          "expected": 6,
+          "actual": 6,
+          "mode": "tower",
+          "preserved": true
+        },
+        {
+          "value": "[object Object]",
+          "expected": 6,
+          "actual": 6,
+          "mode": "tower",
+          "preserved": true
+        },
+        {
+          "value": "",
+          "expected": 6,
+          "actual": 6,
+          "mode": "tower",
+          "preserved": true
+        },
+        {
+          "value": "bad",
+          "expected": 6,
+          "actual": 6,
+          "mode": "tower",
+          "preserved": true
+        },
+        {
+          "value": "8",
+          "expected": 8,
+          "actual": 8,
+          "mode": "tower",
+          "preserved": true
+        },
+        {
+          "value": "-4",
+          "expected": 1,
+          "actual": 1,
+          "mode": "tower",
+          "preserved": true
+        },
+        {
+          "value": "100",
+          "expected": 10,
+          "actual": 10,
+          "mode": "tower",
+          "preserved": true
+        },
+        {
+          "value": "4.5",
+          "expected": 5,
+          "actual": 5,
+          "mode": "tower",
+          "preserved": true
+        }
+      ]
+    },
+    {
+      "name": "immutable match snapshots and no stat bonuses",
+      "ok": true
+    },
+    {
+      "name": "original four Tower tunings retained",
+      "ok": true,
+      "details": [
+        {
+          "name": "ASHBORN",
+          "reaction": 0.42,
+          "blockProb": 0.25
+        },
+        {
+          "name": "SERA THE COLD",
+          "reaction": 0.3,
+          "blockProb": 0.4
+        },
+        {
+          "name": "GOREHOWL",
+          "reaction": 0.26,
+          "blockProb": 0.55
+        },
+        {
+          "name": "THE ETERNAL",
+          "reaction": 0.2,
+          "blockProb": 0.7
+        }
+      ]
+    }
+  ],
+  "result": {
+    "duel": [
+      {
+        "fps": 30,
+        "level": 1,
+        "timelyBlocks": 0,
+        "blocks": 60,
+        "minDelay": 0.6,
+        "chains": 130,
+        "maxChainInputs": 1,
+        "attackIntents": 10
+      },
+      {
+        "fps": 30,
+        "level": 5,
+        "timelyBlocks": 315,
+        "blocks": 514,
+        "minDelay": 0.26666666666666666,
+        "chains": 775,
+        "maxChainInputs": 1,
+        "attackIntents": 50
+      },
+      {
+        "fps": 30,
+        "level": 6,
+        "timelyBlocks": 587,
+        "blocks": 587,
+        "minDelay": 0.23333333333333334,
+        "chains": 835,
+        "maxChainInputs": 1,
+        "attackIntents": 58
+      },
+      {
+        "fps": 30,
+        "level": 10,
+        "timelyBlocks": 1067,
+        "blocks": 1067,
+        "minDelay": 0.1,
+        "chains": 1125,
+        "maxChainInputs": 1,
+        "attackIntents": 154
+      },
+      {
+        "fps": 60,
+        "level": 1,
+        "timelyBlocks": 0,
+        "blocks": 65,
+        "minDelay": 0.5833333333333334,
+        "chains": 130,
+        "maxChainInputs": 1,
+        "attackIntents": 10
+      },
+      {
+        "fps": 60,
+        "level": 5,
+        "timelyBlocks": 397,
+        "blocks": 489,
+        "minDelay": 0.25,
+        "chains": 775,
+        "maxChainInputs": 1,
+        "attackIntents": 52
+      },
+      {
+        "fps": 60,
+        "level": 6,
+        "timelyBlocks": 621,
+        "blocks": 621,
+        "minDelay": 0.21666666666666667,
+        "chains": 835,
+        "maxChainInputs": 1,
+        "attackIntents": 60
+      },
+      {
+        "fps": 60,
+        "level": 10,
+        "timelyBlocks": 1066,
+        "blocks": 1066,
+        "minDelay": 0.1,
+        "chains": 1125,
+        "maxChainInputs": 1,
+        "attackIntents": 166
+      },
+      {
+        "fps": 120,
+        "level": 1,
+        "timelyBlocks": 0,
+        "blocks": 57,
+        "minDelay": 0.5916666666666667,
+        "chains": 130,
+        "maxChainInputs": 1,
+        "attackIntents": 10
+      },
+      {
+        "fps": 120,
+        "level": 5,
+        "timelyBlocks": 389,
+        "blocks": 490,
+        "minDelay": 0.25,
+        "chains": 775,
+        "maxChainInputs": 1,
+        "attackIntents": 53
+      },
+      {
+        "fps": 120,
+        "level": 6,
+        "timelyBlocks": 609,
+        "blocks": 609,
+        "minDelay": 0.21666666666666667,
+        "chains": 835,
+        "maxChainInputs": 1,
+        "attackIntents": 61
+      },
+      {
+        "fps": 120,
+        "level": 10,
+        "timelyBlocks": 1082,
+        "blocks": 1082,
+        "minDelay": 0.1,
+        "chains": 1125,
+        "maxChainInputs": 1,
+        "attackIntents": 172
+      }
+    ],
+    "brawl": [
+      {
+        "level": 1,
+        "attackIntents": 29,
+        "smashes": 11,
+        "dodges": 42,
+        "recoveryY": -2.5
+      },
+      {
+        "level": 5,
+        "attackIntents": 197,
+        "smashes": 123,
+        "dodges": 381,
+        "recoveryY": 0.8
+      },
+      {
+        "level": 6,
+        "attackIntents": 223,
+        "smashes": 160,
+        "dodges": 507,
+        "recoveryY": 0.9
+      },
+      {
+        "level": 10,
+        "attackIntents": 546,
+        "smashes": 479,
+        "dodges": 967,
+        "recoveryY": 1.7
+      }
+    ],
+    "profiles": [
+      {
+        "value": "undefined",
+        "expected": 6,
+        "actual": 6,
+        "mode": "tower",
+        "preserved": true
+      },
+      {
+        "value": "null",
+        "expected": 6,
+        "actual": 6,
+        "mode": "tower",
+        "preserved": true
+      },
+      {
+        "value": "true",
+        "expected": 6,
+        "actual": 6,
+        "mode": "tower",
+        "preserved": true
+      },
+      {
+        "value": "[object Object]",
+        "expected": 6,
+        "actual": 6,
+        "mode": "tower",
+        "preserved": true
+      },
+      {
+        "value": "",
+        "expected": 6,
+        "actual": 6,
+        "mode": "tower",
+        "preserved": true
+      },
+      {
+        "value": "bad",
+        "expected": 6,
+        "actual": 6,
+        "mode": "tower",
+        "preserved": true
+      },
+      {
+        "value": "8",
+        "expected": 8,
+        "actual": 8,
+        "mode": "tower",
+        "preserved": true
+      },
+      {
+        "value": "-4",
+        "expected": 1,
+        "actual": 1,
+        "mode": "tower",
+        "preserved": true
+      },
+      {
+        "value": "100",
+        "expected": 10,
+        "actual": 10,
+        "mode": "tower",
+        "preserved": true
+      },
+      {
+        "value": "4.5",
+        "expected": 5,
+        "actual": 5,
+        "mode": "tower",
+        "preserved": true
+      }
+    ],
+    "invariant": true,
+    "specials": [
+      {
+        "level": 1,
+        "casts": [
+          1.9833333333333334,
+          8.8,
+          13.316666666666666,
+          26.866666666666667,
+          35.2,
+          39.28333333333333,
+          46.31666666666667,
+          52.36666666666667
+        ],
+        "minimumCd": 4.0249999999999995
+      },
+      {
+        "level": 10,
+        "casts": [
+          0.08333333333333333,
+          4.2,
+          8.266666666666667,
+          12.35,
+          16.45,
+          20.5,
+          24.583333333333332,
+          28.716666666666665,
+          32.86666666666667,
+          37.016666666666666,
+          41.11666666666667,
+          45.21666666666667,
+          49.3,
+          53.43333333333333,
+          57.483333333333334
+        ],
+        "minimumCd": 4.0249999999999995
+      }
+    ],
+    "freeze": true,
+    "tower": [
+      {
+        "name": "ASHBORN",
+        "reaction": 0.42,
+        "blockProb": 0.25
+      },
+      {
+        "name": "SERA THE COLD",
+        "reaction": 0.3,
+        "blockProb": 0.4
+      },
+      {
+        "name": "GOREHOWL",
+        "reaction": 0.26,
+        "blockProb": 0.55
+      },
+      {
+        "name": "THE ETERNAL",
+        "reaction": 0.2,
+        "blockProb": 0.7
+      }
+    ],
+    "noStatScaling": true
+  },
+  "errors": []
+}

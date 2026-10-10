@@ -4,7 +4,7 @@ import { sky } from '../art/sky.js'
 import { horizonLayers } from '../art/backdrop.js'
 import { wyvernFlock } from '../art/otherworld.js'
 import { groundTexture, glowTexture } from '../core/assets.js'
-import { toonMaterial, glowMaterial } from '../art/materials.js'
+import { glowMaterial, stoneMaterial, ironMaterial, bronzeMaterial, woodMaterial, leatherMaterial, clothMaterial } from '../art/materials.js'
 import { rand, TAU } from '../core/utils.js'
 
 const DAIS_TOP = 0.64
@@ -12,14 +12,14 @@ const DAIS_TOP = 0.64
 /** One shared armory material set per stage build (disposed with the scene). */
 function makeMats() {
   return {
-    stone: toonMaterial({ color: '#3a332a', rim: '#c9a06a', rimStrength: 0.32 }),
-    stoneDark: toonMaterial({ color: '#332c25', rim: '#8a6a48', rimStrength: 0.28 }),
-    iron: toonMaterial({ color: '#565a63', rim: '#b8c0cc', rimStrength: 0.4 }),
-    steel: toonMaterial({ color: '#9aa3ae', rim: '#e8f0f8', rimStrength: 0.55 }),
-    bronze: toonMaterial({ color: '#8a5a26', rim: '#ffd9a0', rimStrength: 0.5 }),
-    wood: toonMaterial({ color: '#4a352a', rim: '#b0793a', rimStrength: 0.3 }),
-    leather: toonMaterial({ color: '#5c3d28', rim: '#c9885a', rimStrength: 0.3 }),
-    crimson: toonMaterial({ color: '#8a2a24', rim: '#e07a5a', rimStrength: 0.4 }),
+    stone: stoneMaterial('#817d72'),
+    stoneDark: stoneMaterial('#605e57'),
+    iron: ironMaterial('#565a63'),
+    steel: ironMaterial('#9aa3ae'),
+    bronze: bronzeMaterial('#8a5a26'),
+    wood: woodMaterial('#8b7760'),
+    leather: leatherMaterial('#5c3d28'),
+    crimson: clothMaterial('#702c29'),
   }
 }
 
@@ -119,7 +119,7 @@ function buildDais(m) {
   }
   // bronze inlay rings, glowing like banked forge-light
   for (const [r, tube, col, y] of [[1.62, 0.026, '#ffb84d', 0.2], [1.13, 0.02, '#ff8c3b', DAIS_TOP]]) {
-    const trim = new THREE.Mesh(new THREE.TorusGeometry(r, tube, 10, 64), glowMaterial(col, 1.15))
+    const trim = new THREE.Mesh(new THREE.TorusGeometry(r, tube, 10, 64), m.bronze)
     trim.rotation.x = Math.PI / 2
     trim.position.y = y
     g.add(trim)
@@ -438,8 +438,8 @@ export function buildForgeStage(scene) {
 
   // --- firelight three-point rig: warm key, cool moon rim, forge fill ---
   scene.add(new THREE.HemisphereLight('#544c66', '#2a1c12', 0.45))
-  const key = new THREE.DirectionalLight('#ffd9b0', 1.7)
-  key.position.set(3, 10, 5)
+  const key = new THREE.DirectionalLight('#f1dfc7', 2.0)
+  key.position.set(-3, 6, 5)
   key.castShadow = true
   key.shadow.mapSize.set(1024, 1024)
   key.shadow.camera.left = key.shadow.camera.bottom = -9
@@ -454,7 +454,7 @@ export function buildForgeStage(scene) {
   const forgeLight = new THREE.PointLight('#ff6a2e', 30, 18, 2)
   forgeLight.position.set(-5.2, 1.6, -4.8)
   scene.add(forgeLight)
-  const under = new THREE.PointLight('#ff8c3b', 6, 7, 2)
+  const under = new THREE.PointLight('#ff8c3b', .7, 7, 2)
   under.position.set(0, 1, 0.6)
   scene.add(under)
 
@@ -471,7 +471,7 @@ export function buildForgeStage(scene) {
       sh.s.rotation.z = Math.sin(t * 0.23) * 0.04
     }
     flies.tick(dt)
-    under.intensity = 5.5 + Math.sin(t * 2.3) * 1.5
+    under.intensity = .7 + Math.sin(t * 2.3) * .15
     forgeLight.intensity = 27 + Math.sin(t * 6.1) * 4 + Math.sin(t * 13.7) * 2
   }
 

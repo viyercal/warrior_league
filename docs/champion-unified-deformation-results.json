@@ -1,0 +1,75 @@
+{
+  "stats": [
+    {
+      "id": "caelan",
+      "pose": "idle",
+      "version": 4,
+      "p99Stretch": 1.0624549471455536,
+      "maxStretch": 1.477748148086185
+    },
+    {
+      "id": "caelan",
+      "pose": "run",
+      "version": 4,
+      "p99Stretch": 1.3833680434177351,
+      "maxStretch": 6.89662047265401
+    },
+    {
+      "id": "caelan",
+      "pose": "cast",
+      "version": 4,
+      "p99Stretch": 1.2907120966407117,
+      "maxStretch": 5.657232283002166
+    },
+    {
+      "id": "caelan",
+      "pose": "dance",
+      "version": 4,
+      "p99Stretch": 1.8000143387281418,
+      "maxStretch": 6.275859261976561
+    },
+    {
+      "id": "caelan",
+      "pose": "ko",
+      "version": 4,
+      "p99Stretch": 1.0000043499100137,
+      "maxStretch": 1.0000122488177015
+    },
+    {
+      "id": "nyra",
+      "pose": "idle",
+      "version": 4,
+      "p99Stretch": 1.0321433893302359,
+      "maxStretch": 1.3885304886321075
+    },
+    {
+      "id": "nyra",
+      "pose": "run",
+      "version": 4,
+      "p99Stretch": 1.310681529901972,
+      "maxStretch": 2.825483818457296
+    },
+    {
+      "id": "nyra",
+      "pose": "cast",
+      "version": 4,
+      "p99Stretch": 1.077446289600058,
+      "maxStretch": 3.3069132501779333
+    },
+    {
+      "id": "nyra",
+      "pose": "dance",
+      "version": 4,
+      "p99Stretch": 1.4115147804827832,
+      "maxStretch": 3.799190534661012
+    },
+    {
+      "id": "nyra",
+      "pose": "ko",
+      "version": 4,
+      "p99Stretch": 1.0000036538578632,
+      "maxStretch": 1.0000103680047452
+    }
+  ],
+  "errors": []
+}

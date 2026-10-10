@@ -1,0 +1,30 @@
+{
+  "mode": "built-in image_gen",
+  "purpose": "Textures projected on real anatomical meshes and PBR costume surfaces",
+  "assets": [
+    {
+      "id": "caelan-face",
+      "prompt": "Production game asset, photorealistic-natural. Reference image is Caelan Dawnsworn, preserve this man's facial identity. Generate a square 1024x1024 orthographic, perfectly straight-on face albedo photograph for projection onto an anatomically sculpted 3D head. Adult male about 38, strong angular jaw, Roman nose, warm olive medium skin, short dark stubble and natural dark brows, faint weathering and cheek scar. Ears visible symmetrically, no head tilt, neutral mouth closed and relaxed, eyes open looking straight ahead. Hair swept away from forehead, no locks obscuring face. Tight crop: skull top at 5% of image height, chin at 88%, ears at 17% and 83% of width, pupils at 39% and 61% width and 44% height, mouth at 73% height. Even flat diffuse light from every direction, no cast shadows, no cinematic color grade, realistic pores and subtle color variation. Matte warm tan background matching skin midtone. Face only, neck at bottom, no clothing, no labels, no decorations. Not cartoon, not illustration, not stylized or oversized eyes.",
+      "reference": "public/concepts/images/caelan-dawnsworn.png"
+    },
+    {
+      "id": "nyra-face",
+      "prompt": "Production game texture asset, photorealistic-natural. The attached artwork is the character identity reference. Square orthographic straight-on face albedo photograph for projection onto a realistic 3D head. Exact front view, no head tilt, neutral relaxed closed mouth. Natural small eyes open, looking forward. Very tight framing, top of skull at 4% of canvas, chin at 88%, ears at 17% and 83% width, pupils about 38% and 62% width at 42% height, mouth at 70% height. Flat diffuse illumination from all sides, no strong shadows or color grade, detailed natural pores and subtle skin variation. Face and a little neck only, matte background matching skin midtone, no clothing or text. Do not render as cartoon or illustration, no oversized eyes. Nyra, a powerful athletic adult woman about 30 with medium dark brown skin, sharply defined cheekbones, full lips, focused steady gaze, a small healed cheek scar. Tight dark scalp cornrows, hair pulled completely away from the face. Preserve the face in the huntress artwork.",
+      "reference": "public/concepts/images/nyra-veil-huntress.png"
+    },
+    {
+      "id": "serai-face",
+      "prompt": "Production game texture asset, photorealistic-natural. The attached artwork is the character identity reference. Square orthographic straight-on face albedo photograph for projection onto a realistic 3D head. Exact front view, no head tilt, neutral relaxed closed mouth. Natural small eyes open, looking forward. Very tight framing, top of skull at 4% of canvas, chin at 88%, ears at 17% and 83% width, pupils about 38% and 62% width at 42% height, mouth at 70% height. Flat diffuse illumination from all sides, no strong shadows or color grade, detailed natural pores and subtle skin variation. Face and a little neck only, matte background matching skin midtone, no clothing or text. Do not render as cartoon or illustration, no oversized eyes. Serai, a wise commanding adult woman about 48 with warm dark brown skin, elegant long face, strong mature nose, fine natural expression lines, silver threaded dark curly hair pulled completely away from face and silver temples. Preserve the mature mage in the artwork.",
+      "reference": "public/concepts/images/serai-tidecaller.png"
+    },
+    {
+      "id": "engraved-metal",
+      "prompt": "Generate one square seamless physically based game material base-color texture. Pale neutral silver ceremonial fantasy plate armor, dense extremely fine etched flowing acanthus vines and small sunburst scrollwork, alternating etched lines and smooth polished fields, subtle tiny scratches and wear in recesses. Grayscale only so the game can tint this material. Edges tile seamlessly in both axes. Flat orthographic macro surface, no directional lighting, no shadows, no frame or plate outline, no perspective, no words, no isolated objects. High detail, realistic intricate metalwork like a master armorer's work. Midlight silver ground, fine darker engravings, keep contrast restrained."
+    },
+    {
+      "id": "woven-brocade",
+      "prompt": "Generate one square seamless physically based game material base-color texture. Dense fine woven fantasy ceremonial silk brocade, subtle flowing wave and floral arabesque motifs inspired by a tide mage, realistically embroidered threads following the motif, fine fabric grain. Grayscale only so the game can tint it, light gray textile ground with slightly darker embroidery. Pattern tile repeats seamlessly on all four edges. Flat orthographic surface, no folds, no shadows, no gradients, no directional lighting, no words, no framing. Refined elegant craftsmanship, small pattern scale, restrained tonal contrast."
+    }
+  ],
+  "encoding": "Runtime textures encoded as WebP at quality 92 (faces/surfaces) and 95 (hair/eyes); source PNGs retained in tools/character-assets/texture-sources. No image content was repainted or cropped during encoding."
+}

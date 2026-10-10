@@ -1,0 +1,15 @@
+{
+  "provider": "https://huggingface.co/spaces/microsoft/TRELLIS.2",
+  "input": "tools/character-assets/production-references/nyra-veil-huntress.png",
+  "inputSha256": "e7550581042e48ef8310349944b5097242fb0ce4161cc8a7f1818b11f9dd6fa7",
+  "resolution": "1024",
+  "decimationTarget": 100000,
+  "textureSize": 2048,
+  "seed": 41,
+  "status": "complete",
+  "elapsedSeconds": 55.51,
+  "sessionHash": "df37c9b9-d751-4028-8d24-89dd939ac72d",
+  "output": "tools/character-assets/generated/nyra-veil-huntress/character.glb",
+  "outputSha256": "ab2fe852692718eb56cc5c3b3f263b59a15bf7c77fe0aeee51070e76dd25f54d",
+  "bytes": 6441008
+}

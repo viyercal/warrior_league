@@ -1,0 +1,297 @@
+{
+  "base": "http://127.0.0.1:5302",
+  "time": "2026-09-20T00:11:52.104Z",
+  "checks": [
+    {
+      "name": "forge launch preserves Single Duel and selected CPU",
+      "ok": true
+    },
+    {
+      "name": "single-duel play stats separate from Tower",
+      "ok": true
+    },
+    {
+      "name": "single-duel HUD identifies level",
+      "ok": true
+    },
+    {
+      "name": "arrow movement still works",
+      "ok": true
+    },
+    {
+      "name": "pause level 1 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause level 2 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause level 3 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause level 4 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause level 5 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause level 6 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause level 7 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause level 8 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause level 9 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause level 10 selectable",
+      "ok": true
+    },
+    {
+      "name": "pause radio arrows isolated from game",
+      "ok": true
+    },
+    {
+      "name": "pending level copy and match snapshot stay accurate",
+      "ok": true
+    },
+    {
+      "name": "changing CPU level leaves simulation paused",
+      "ok": true
+    },
+    {
+      "name": "pause focus wraps backward",
+      "ok": true
+    },
+    {
+      "name": "pause focus wraps forward",
+      "ok": true
+    },
+    {
+      "name": "graphics performance still usable with CPU controls",
+      "ok": true
+    },
+    {
+      "name": "graphics high still usable with CPU controls",
+      "ok": true
+    },
+    {
+      "name": "graphics auto still usable with CPU controls",
+      "ok": true
+    },
+    {
+      "name": "pause controls fit width at 1440x810",
+      "ok": true
+    },
+    {
+      "name": "pause controls fit width at 900x800",
+      "ok": true
+    },
+    {
+      "name": "pause controls fit width at 390x844",
+      "ok": true
+    },
+    {
+      "name": "Escape resumes the same CPU match",
+      "ok": true
+    },
+    {
+      "name": "Resume button retains active level",
+      "ok": true
+    },
+    {
+      "name": "restart takes pending level and keeps Single Duel",
+      "ok": true
+    },
+    {
+      "name": "restart clears pending notice and updates CPU badge",
+      "ok": true
+    },
+    {
+      "name": "level 10 starts with ordinary fighter stats",
+      "ok": true,
+      "details": {
+        "playerHp": 100,
+        "foeHp": 100,
+        "reach": 1,
+        "walk": 1
+      }
+    },
+    {
+      "name": "best of three continues after first round",
+      "ok": true
+    },
+    {
+      "name": "deciding KO ends Single Duel without advancing Tower",
+      "ok": true
+    },
+    {
+      "name": "result panel and both actions fit at 1440x810",
+      "ok": true,
+      "details": [
+        {
+          "text": "DUEL WONASHBORN · CPU LEVEL 10 · BEST OF THREEREMA",
+          "x": 500,
+          "y": 526,
+          "right": 940,
+          "bottom": 694,
+          "w": 1440,
+          "h": 810
+        },
+        {
+          "text": "REMATCH",
+          "x": 557.71875,
+          "y": 628,
+          "right": 666.109375,
+          "bottom": 667,
+          "w": 1440,
+          "h": 810
+        },
+        {
+          "text": "CHOOSE BATTLEGROUND",
+          "x": 678.109375,
+          "y": 628,
+          "right": 882.265625,
+          "bottom": 667,
+          "w": 1440,
+          "h": 810
+        }
+      ]
+    },
+    {
+      "name": "result panel and both actions fit at 900x800",
+      "ok": true,
+      "details": [
+        {
+          "text": "DUEL WONASHBORN · CPU LEVEL 10 · BEST OF THREEREMA",
+          "x": 230,
+          "y": 516,
+          "right": 670,
+          "bottom": 684,
+          "w": 900,
+          "h": 800
+        },
+        {
+          "text": "REMATCH",
+          "x": 287.71875,
+          "y": 618,
+          "right": 396.109375,
+          "bottom": 657,
+          "w": 900,
+          "h": 800
+        },
+        {
+          "text": "CHOOSE BATTLEGROUND",
+          "x": 408.109375,
+          "y": 618,
+          "right": 612.265625,
+          "bottom": 657,
+          "w": 900,
+          "h": 800
+        }
+      ]
+    },
+    {
+      "name": "result panel and both actions fit at 390x844",
+      "ok": true,
+      "details": [
+        {
+          "text": "DUEL WONASHBORN · CPU LEVEL 10 · BEST OF THREEREMA",
+          "x": 16,
+          "y": 547,
+          "right": 374,
+          "bottom": 728,
+          "w": 390,
+          "h": 844
+        },
+        {
+          "text": "REMATCH",
+          "x": 45,
+          "y": 649,
+          "right": 153.390625,
+          "bottom": 701,
+          "w": 390,
+          "h": 844
+        },
+        {
+          "text": "CHOOSE BATTLEGROUND",
+          "x": 165.390625,
+          "y": 649,
+          "right": 345,
+          "bottom": 701,
+          "w": 390,
+          "h": 844
+        }
+      ]
+    },
+    {
+      "name": "mobile rematch starts Single Duel at current level",
+      "ok": true
+    },
+    {
+      "name": "loss ends best-of-three without a Tower loss or victory",
+      "ok": true
+    },
+    {
+      "name": "single result returns to hub with separate record",
+      "ok": true
+    },
+    {
+      "name": "Tower ignores saved level 10",
+      "ok": true
+    },
+    {
+      "name": "Tower pause has no level picker or badge",
+      "ok": true
+    },
+    {
+      "name": "Brawl all opponents receive level 1",
+      "ok": true
+    },
+    {
+      "name": "Brawl CPUs move and fight",
+      "ok": true
+    },
+    {
+      "name": "Brawl pause keeps level 1 active",
+      "ok": true
+    },
+    {
+      "name": "Brawl restart takes level 10 for both opponents",
+      "ok": true
+    },
+    {
+      "name": "Phantom Twin ally stays fixed at level 5",
+      "ok": true
+    },
+    {
+      "name": "hub settings omit match CPU picker",
+      "ok": true
+    },
+    {
+      "name": "single direct link overrides saved Tower mode",
+      "ok": true
+    },
+    {
+      "name": "invalid direct mode safely resolves to Tower",
+      "ok": true
+    },
+    {
+      "name": "no runtime browser errors",
+      "ok": true,
+      "details": []
+    }
+  ],
+  "errors": []
+}

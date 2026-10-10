@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { ClickMove } from '../../core/clickMove.js'
 import '../../ui/hoops.css'
 import { createHero } from '../../art/characterFactory.js'
 import { VFX } from '../../art/vfx.js'
@@ -39,7 +40,7 @@ export default class HoopsScene {
     // filmic vignette + grain, slight exposure lift so torch pools carry
     this.postOpts = {
       bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.45,
-      vignette: 0.62, saturation: 1.0, grain: 0.032, exposure: 1.04,
+      vignette: 0.62, saturation: 1.0, grain: 0.006, exposure: 1.04,
     }
     this._timers = []
   }
@@ -59,7 +60,7 @@ export default class HoopsScene {
     this.vfx = new VFX(this.scene)
 
     // heroes
-    const playerHero = createHero(profile.appearance)
+    const playerHero = createHero(profile.appearance, { equipmentPose: 'stowed' })
     this.scene.add(playerHero.group)
     const aiHero = createHero({
       primary: '#a1252c', secondary: '#2a2621', glow: '#ff8c3b',
@@ -178,6 +179,20 @@ export default class HoopsScene {
 
   _wireInput() {
     const { input, audio } = this.ctx
+    this.clickMove = new ClickMove({
+      input, camera: this.camera, scene: this.scene, vfx: this.vfx,
+      position: () => this.game.player.hero.group.position,
+      active: () => ['live', 'check', 'made'].includes(this.game.phase),
+      clamp: p => { p.x = clamp(p.x, COURT.BOUND.minX, COURT.BOUND.maxX); p.z = clamp(p.z, COURT.BOUND.minZ, COURT.BOUND.maxZ); return p },
+    })
+    // Losing focus or opening a menu cancels a held shot, without firing it.
+    input.onReset(() => {
+      this._doubleTap.KeyA = this._doubleTap.KeyD = -Infinity
+      if (this.game.player.metering) {
+        this.game.player.metering = false
+        this.hud.meterHide()
+      }
+    })
     input.onKey((code, down) => {
       const g = this.game
       if (g.phase === 'intro') {           // ANY key skips the cinematic
@@ -696,11 +711,12 @@ export default class HoopsScene {
     }
   }
 
-  _later(fn, ms) { this._timers.push(setTimeout(fn, ms)) }
+  _later(fn, ms) { this._timers.push(this.ctx.setTimeout(fn, ms)) }
 
   /* ------------------------------ per-frame ------------------------------ */
 
   update(dt, t) {
+    if (!this.clickMove.active()) this.clickMove.cancel()
     const g = this.game
     g.t += dt
 
@@ -921,7 +937,13 @@ export default class HoopsScene {
       if (input.isDown('KeyS')) p.wish.sub(_fwd)
       if (input.isDown('KeyD')) p.wish.add(_tmp2)
       if (input.isDown('KeyA')) p.wish.sub(_tmp2)
-      if (p.wish.lengthSq() > 0) p.wish.normalize()
+      if (['KeyW', 'KeyS', 'KeyD', 'KeyA'].some(code => input.isDown(code))) {
+        this.clickMove.cancel()
+        if (p.wish.lengthSq() > 0) p.wish.normalize()
+      } else {
+        const distance = this.clickMove.direction(p.wish, 0.25)
+        p.wish.multiplyScalar(Math.min(1, distance / 1.5))
+      }
       const wantsSprint = input.isDown('ShiftLeft') || input.isDown('ShiftRight')
       const frozen = g.eff?.turboT > 0
       p.sprint = wantsSprint && !p.staminaLock && p.wish.lengthSq() > 0
@@ -933,6 +955,7 @@ export default class HoopsScene {
         if (p.staminaLock && p.stamina > 18) p.staminaLock = false
       }
     }
+    if (!['live', 'check', 'made'].includes(g.phase)) this.clickMove.cancel()
     // sprint trail on the ball
     const sprintingWithBall = p.sprint && this.ball.holder === 'player' && p.vel.length() > 5.4
     this.ball.setSprintTrail(sprintingWithBall, this.ctx.profile.appearance.glow)
@@ -1117,7 +1140,7 @@ export default class HoopsScene {
 
   dispose() {
     this._disposed = true
-    for (const id of this._timers) clearTimeout(id)
+    for (const id of this._timers) this.ctx.clearTimeout(id)
     this._timers.length = 0
     this.hud.hud.root.classList.remove('hoops-cine-mode')   // never leak into other scenes
     this.abilities.dispose()

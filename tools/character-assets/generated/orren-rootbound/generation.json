@@ -1,0 +1,13 @@
+{
+  "provider": "https://huggingface.co/spaces/microsoft/TRELLIS.2",
+  "input": "tools/character-assets/production-references/orren-rootbound.png",
+  "inputSha256": "8ab13354acddd41d6c9ca56be39e503764847be443414302ac50a3ce2936c85d",
+  "resolution": "1536",
+  "decimationTarget": 150000,
+  "textureSize": 4096,
+  "seed": 41,
+  "status": "failed",
+  "elapsedSeconds": 6.06,
+  "sessionHash": "17ea976c-dd94-4c8f-aafa-6f9b0e5da2fe",
+  "error": "AppError: You have exceeded your free ZeroGPU quota (120s requested vs. 149s left). Try again in 23:54:58. Subscribe to Hugging Face PRO to get 25 min of ZeroGPU quota a day - https://huggingface.co/subscribe/pro?from=ZeroGPU"
+}

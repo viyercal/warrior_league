@@ -28,7 +28,7 @@ export default class MobaScene {
     // realism grade: bloom reserved for true fire/embers, near-neutral saturation, filmic vignette
     // ssao tested (fps fine) but SAO's normal pass treats the transparent fire
     // cones/cloth as solid and leaves pale box artifacts — painted contact AO instead.
-    this.postOpts = { bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.45, vignette: 0.55, saturation: 1.02, grain: 0.035, exposure: 0.96 }
+    this.postOpts = { bloom: 0.55, bloomThreshold: 0.92, bloomRadius: 0.45, vignette: 0.55, saturation: 1.02, grain: 0.006, exposure: 0.96 }
   }
 
   async init() {
@@ -173,7 +173,7 @@ export default class MobaScene {
         if (this.camLock) this.camFocus.copy(this.hero.group.position)
         this.ui.hud.toast(this.camLock ? 'CAMERA LOCKED' : 'CAMERA UNLOCKED — edge-pan with mouse')
       } else if (code === 'KeyH') {
-        this.ui.hintBox.style.display = this.ui.hintBox.style.display === 'none' ? '' : 'none'
+        this.ui.hud.toggleHints()
       }
     })
     input.onMouse((btn, down) => {
@@ -730,6 +730,14 @@ export default class MobaScene {
       this.aim.z = clamp(this.aim.z, -BOUNDS.z, BOUNDS.z)
     }
 
+    // Arrow movement takes over from mouse orders and cancels a recall.
+    const mx = Number(input.isDown('ArrowRight')) - Number(input.isDown('ArrowLeft'))
+    const mz = Number(input.isDown('ArrowDown')) - Number(input.isDown('ArrowUp'))
+    if (mx || mz) {
+      this.cancelOrders()
+      this._cancelRecall()
+    }
+
     // recall channel
     if (this.recallT >= 0) {
       this.recallT += dt
@@ -759,7 +767,12 @@ export default class MobaScene {
     const spd = this.moveSpeed()
     let moving = 0
     if (this.chaseTgt && !this._entValid(this.chaseTgt)) this.chaseTgt = null
-    if (this.chaseTgt) {
+    if (mx || mz) {
+      _v2.set(mx, 0, mz).normalize()
+      pos.addScaledVector(_v2, spd * dt)
+      this.hero.faceTowards(_v1.copy(pos).add(_v2), dt, 14)
+      moving = spd
+    } else if (this.chaseTgt) {
       this._targetPoint(this.chaseTgt, _v2)
       const range = this.chaseTgt.type === 'structure' ? HERO.range + this.chaseTgt.s.radius - 1 : HERO.range
       const d = distXZ(pos, _v2)
@@ -907,7 +920,7 @@ export default class MobaScene {
       f.z = damp(f.z, hp.z, 9, dt)
     } else {
       const m = this.ctx.input.mousePx
-      const pan = 30 * dt
+      const pan = 30 * dt * this.ctx.input.mouseSensitivity
       if (m.x < 28) f.x -= pan
       else if (m.x > innerWidth - 28) f.x += pan
       if (m.y < 28) f.z -= pan
@@ -1001,14 +1014,14 @@ export default class MobaScene {
   }
 
   _timeout(fn, ms) {
-    const id = setTimeout(() => { if (!this.disposed) fn() }, ms)
+    const id = this.ctx.setTimeout(() => { if (!this.disposed) fn() }, ms)
     this._timeouts.push(id)
     return id
   }
 
   dispose() {
     this.disposed = true
-    for (const id of this._timeouts) clearTimeout(id)
+    for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this.ui?.cineMode(false) // #ui is shared across scenes — never leak the class
     this.buffTrail?.stop()
     this.heroTrail?.stop()

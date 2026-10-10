@@ -1,0 +1,47 @@
+/* The same restrained metalwork as the realm selector, carried into the forge. */
+#ui .loadout-panel { width: min(480px, 47vw); top: 26px; right: 30px; bottom: 26px; padding: 26px; clip-path: none; border: 1px solid #c1af8745; background: #11191beF; filter: none; font-family: var(--font-controls); animation-duration: .3s; }
+#ui .loadout-panel::before { display: none; }
+#ui .loadout-title { background: none; color: #e6e0d2; font: 44px/1.15 Georgia, serif; -webkit-text-stroke: 0; filter: none; letter-spacing: -.035em; margin: 8px 0 15px; }
+#ui .loadout-kicker { font: 9px var(--font-controls); letter-spacing: .2em; color: #c3a67e; text-shadow: none; }
+#ui .loadout-name { clip-path: none; background: #0b1113; color: #d8d7c9; border: 1px solid #b9b09440; box-shadow: none; text-shadow: none; font: 13px var(--font-controls); padding: 9px 11px; }
+#ui .loadout-namelabel, #ui .loadout-label { font: 9px var(--font-controls); letter-spacing: .08em; color: #a6aaa0; text-shadow: none; }
+#ui .loadout-sec-title { color: #c9b998; font: 10px var(--font-controls); letter-spacing: .14em; text-shadow: none; margin-bottom: 16px; }
+#ui .loadout-sec-orn { display: none; }
+#ui .loadout-sec-title::after { background: #c0b4902b; }
+#ui .loadout-row { min-height: 29px; margin-bottom: 10px; }
+#ui .loadout-panel button { clip-path: none; border-radius: 0; filter: none; text-shadow: none; }
+#ui .loadout-panel button::before { display: none; }
+#ui .loadout-swatch { flex: none; min-width: 25px; width: 25px; height: 25px; padding: 0; background: var(--sw); box-shadow: inset 0 0 0 3px #10181c, inset 0 0 0 4px #e0dac644; border: 1px solid transparent; }
+#ui .loadout-swatch.sel { border-color: #dcc195; transform: none; }
+#ui .loadout-swatch:hover { transform: scale(1.12); }
+#ui .loadout-seg-btn { padding: 7px 9px; background: #0d1315; border: 1px solid #b3ad9730; box-shadow: none; font: 9px var(--font-controls); letter-spacing: .05em; color: #9ca69d; }
+#ui .loadout-seg-btn.sel { background: #a38d6029; border-color: #cab18391; color: #e1c8a0; }
+#ui .loadout-hintline { font: 10px/1.6 var(--font-controls); letter-spacing: 0; color: #959e94; margin: -6px 0 14px; }
+#ui .loadout-slot { background: #0c1316; border: 1px solid #8f977942; height: 82px; padding: 0 3px; box-shadow: none; }
+#ui .loadout-slot.active { border-color: #d6b88a; background: #99835b1c; transform: none; }
+#ui .loadout-slot-key { clip-path: none; top: 4px; left: 9px; padding: 0; transform: none; background: none; box-shadow: none; color: #ceba91; text-shadow: none; font: 9px var(--font-controls); }
+#ui .loadout-slot-icon { margin-top: 17px; filter: none; font-size: 26px; }
+#ui .loadout-slot-name { font: 8px/1.2 var(--font-controls); letter-spacing: 0; color: #a0a99e; padding-top: 2px; }
+#ui .loadout-skill { background: #0d1517; border: 1px solid #9eae9530; box-shadow: none; padding: 11px 3px 9px; }
+#ui .loadout-skill.equipped { background: #a38c621c; border-color: #a9956766; }
+#ui .loadout-skill:hover { transform: translateY(-2px); border-color: #d6b88a; }
+#ui .loadout-skill-name { font: 9px/1.25 var(--font-controls); letter-spacing: 0; color: #b9c0b2; }
+#ui .loadout-skill-icon { font-size: 23px; filter: none; }
+#ui .loadout-skill-badge { background: #c4ab7f; color: #19221e; clip-path: none; box-shadow: none; font: 9px var(--font-controls); }
+#ui .loadout-next { background: #b89e6820; color: #cfba95; border: 1px solid #b49d6e44; clip-path: none; font: 9px var(--font-controls); text-shadow: none; padding: 9px; letter-spacing: .04em; }
+#ui .loadout-next::before { display: none; }
+#ui .loadout-go, #ui .loadout-back { min-height: 45px; background: #d5bc93; color: #18201b; box-shadow: none; font: 10px var(--font-controls); letter-spacing: .08em; }
+#ui .loadout-back { border: 1px solid #d5bc9366; background: transparent; color: #c3c9be; padding: 12px 20px; }
+#ui .loadout-stagebar { font-family: var(--font-controls); bottom: 35px; left: 5%; width: 35%; }
+#ui .loadout-dance { clip-path: none; box-shadow: none; filter: none; border: 1px solid #ceb88a44; color: #d5c9b0; background: #0f151adb; text-shadow: none; font: 9px var(--font-controls); }
+#ui .loadout-dance::before { display: none; }
+#ui .loadout-draghint { font: 9px var(--font-controls); color: #b1b6a6; }
+#ui .loadout-tip { max-width: calc(100vw - 32px); }
+@media (max-width: 760px) { #ui .loadout-panel { top: 21%; right: 16px; bottom: 60px; width: calc(100% - 32px); padding: 19px; } #ui .loadout-title { font-size: 34px; margin: 5px 0 12px; } #ui .loadout-stagebar { left: 16px; bottom: 15px; width: calc(100% - 32px); display: flex; justify-content: space-between; align-items: center; } #ui .loadout-stagebar .loadout-draghint { display: none; } #ui .loadout-row { gap: 6px; } #ui .loadout-label { min-width: 53px; } #ui .loadout-swatches { gap: 5px; } #ui .loadout-swatch { min-width: 22px; width: 22px; height: 25px; } #ui .loadout-seg { gap: 4px; } #ui .loadout-seg-btn { padding: 7px 8px; } #ui .loadout-tip { display: none; } }
+#ui .loadout-art-detail { border-top: 1px solid #b5a07830; padding-top: 11px; margin-top: 13px; color: #b6bfae; font: 11px/1.7 var(--font-controls); }
+
+#ui .loadout-dance.on { animation: none; background: #b3934f35; color: #ead1a9; border-color: #c6ab78; }
+#ui .loadout-slots, #ui .loadout-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#ui .loadout-slot, #ui .loadout-skill { min-width: 0; }
+#ui .loadout-slot-name { padding-left: 1px; padding-right: 1px; }
+@media (max-width: 760px) { #ui .loadout-slot-name { white-space: normal; font-size: 7px; line-height: 1.3; } #ui .loadout-skill-name { font-size: 8px; } }

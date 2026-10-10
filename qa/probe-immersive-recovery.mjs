@@ -1,0 +1,115 @@
+import { chromium } from 'playwright-core'
+import { mkdir, writeFile } from 'node:fs/promises'
+const BASE=process.env.IPL_BASE || 'http://127.0.0.1:5299'
+const browser=await chromium.launch({channel:'chrome',headless:true})
+const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1})
+const errors=[], expected=[], results=[]
+page.on('pageerror',e=>errors.push(String(e)))
+page.on('console',m=>{if(m.type()==='error'){ if(m.text().includes('Unknown realm: missing') || m.text().includes('QA transient import')) expected.push(m.text()); else errors.push(m.text()) }})
+const check=(name,ok,detail)=>{results.push({name,ok,detail});console.log(ok?'PASS':'FAIL',name,detail??'');if(!ok)process.exitCode=1}
+const scene=async name=>page.waitForFunction(n=>window.__ipl?.sm.currentName===n&&!window.__ipl.sm._busy,name,{timeout:60000})
+const goHub=async()=>{ await page.keyboard.press('Escape'); await page.locator('[data-action="hub"]').click(); await scene('hub') }
+await mkdir('qa/screens/immersive',{recursive:true})
+try {
+  await page.goto(BASE+'/?scene=missing&mute=1')
+  await page.getByRole('button',{name:'Return to Convergence',exact:true}).click()
+  await scene('hub')
+  check('unknown realm recovery',true)
+  await page.evaluate(async()=>{
+    const sm=window.__ipl.sm, original=sm.loaders.duel
+    let first=true
+    sm._modules.delete('duel')
+    sm.register('duel',()=>{ if(first){first=false;throw Error('QA transient import')} return original() })
+    await sm.goTo('duel')
+  })
+  check('failed import preserves current scene behind recovery',await page.evaluate(()=>window.__ipl.sm.currentName==='hub'&&window.__ipl.engine.paused))
+  await page.getByRole('button',{name:'Try again',exact:true}).click()
+  await scene('duel')
+  check('retry loads the failed realm',true)
+  await page.keyboard.press('p')
+  await page.keyboard.press('Shift+Tab')
+  check('pause focus wraps backwards',await page.locator('[data-action="motion"]').evaluate(el=>el===document.activeElement))
+  await page.keyboard.press('Tab')
+  check('pause focus wraps forwards',await page.locator('[data-action="resume"]').evaluate(el=>el===document.activeElement))
+  await page.keyboard.press('Escape')
+  await page.evaluate(()=>dispatchEvent(new Event('blur')))
+  check('lost focus pauses and stays paused',await page.locator('.session-overlay').isVisible())
+  await page.locator('[data-action="resume"]').click()
+  await page.keyboard.down('KeyD')
+  await page.keyboard.press('p')
+  check('pause releases held keys',await page.evaluate(()=>window.__ipl.input.keys.size===0))
+  await page.keyboard.up('KeyD')
+  await page.locator('[data-action="hub"]').click()
+  await scene('hub')
+  // Navigation and settings controls not covered individually by the first probe.
+  await page.getByRole('button',{name:'Battlegrounds',exact:true}).click()
+  check('Battlegrounds nav focuses selection',await page.evaluate(()=>document.activeElement.classList.contains('realm-card')))
+  await page.getByRole('button',{name:'War forge',exact:true}).click()
+  await scene('loadout')
+  await page.locator('.loadout-go').click()
+  await scene('hub')
+  check('forge Seal & return action',true)
+  for(let i=0;i<4;i++) {
+    await page.locator('.realm-art').nth(i).click()
+    await scene('loadout')
+    await page.keyboard.press('Escape')
+    await scene('hub')
+  }
+  check('all four hub art shortcuts open forge',true)
+  await page.locator('[data-realm="arena"]').click()
+  await page.getByRole('button',{name:'Prepare loadout',exact:true}).click()
+  await scene('loadout')
+  check('movement games show numeric art keys',await page.locator('.loadout-slot-key').allTextContents().then(keys=>keys.join('')==='1234'))
+  await page.setViewportSize({width:390,height:844})
+  await page.locator('.loadout-slot').nth(3).click()
+  check('narrow forge fits every slot',await page.locator('.loadout-slots').evaluate(el=>el.scrollWidth<=el.clientWidth))
+  await page.locator('.loadout-skill').nth(11).click()
+  await page.locator('.loadout-art-detail').scrollIntoViewIfNeeded()
+  await page.screenshot({path:'qa/screens/immersive/forge-mobile-final.png'})
+  check('narrow forge detail is readable',await page.locator('.loadout-art-detail').isVisible())
+  await page.setViewportSize({width:1440,height:900})
+  await page.locator('.loadout-go').click()
+  await scene('arena')
+  check('forge Enter battle preserves target',true)
+  await goHub()
+  await page.getByRole('button',{name:'Settings',exact:true}).click()
+  await page.locator('#session-quality').selectOption('performance')
+  await page.locator('[data-action="motion"]').click()
+  await page.locator('[data-action="resume"]').click()
+  await page.goto(BASE+'/?scene=hub&mute=1')
+  await scene('hub')
+  check('quality and motion preferences persist',await page.evaluate(()=>window.__ipl.engine.quality==='performance'&&window.__ipl.engine.reducedMotion))
+  await page.getByRole('button',{name:'Settings',exact:true}).click()
+  await page.locator('#session-quality').selectOption('auto')
+  await page.locator('[data-action="motion"]').click()
+  await page.locator('[data-action="resume"]').click()
+  // Real scene end-state hooks trigger the production result flow and delayed timers.
+  for(const game of ['duel','moba','arena','kart','brawl','siege','hoops']) {
+    for(const outcome of ['win','lose']) {
+      await page.locator(`[data-realm="${game}"]`).click()
+      await page.getByRole('button',{name:'ENTER BATTLE',exact:true}).click()
+      await scene(game)
+      const wins=await page.evaluate(g=>window.__ipl.sm.profile.stats.wins[g]||0,game)
+      await page.evaluate(o=>window.__scene.debug[o](),outcome)
+      await page.keyboard.press('Escape')
+      const paused=await page.evaluate(()=>window.__ipl.engine.elapsedTime)
+      await page.waitForTimeout(500)
+      check(`${game} ${outcome} result pauses`,await page.evaluate(t=>window.__ipl.engine.elapsedTime===t,paused))
+      await page.locator('[data-action="resume"]').click()
+      await page.waitForTimeout(1700)
+      check(`${game} ${outcome} stats`,await page.evaluate(({g,w,o})=>(window.__ipl.sm.profile.stats.wins[g]||0)===w+(o==='win'?1:0),{g:game,w:wins,o:outcome}))
+      await page.screenshot({path:`qa/screens/immersive/${game}-${outcome}.png`})
+      // All result views retain an immediate path back even while an automatic timer is pending.
+      const back=page.locator('#ui button').filter({hasText:/^(RETURN TO HUB|RETURN TO THE HALLS|HUB|ABANDON TOWER)$/})
+      if(await back.count()===1) await back.click()
+      else { await page.keyboard.press('Escape'); await page.locator('[data-action="hub"]').click() }
+      await scene('hub')
+      check(`${game} ${outcome} returns cleanly`,true)
+    }
+  }
+  await page.locator('[data-realm="duel"]').click()
+  await page.waitForTimeout(800)
+  await page.screenshot({path:'qa/screens/immersive/hub-final.png'})
+  check('recovery and result flows have no unexpected errors',errors.length===0,errors)
+} catch(e) { check('recovery probe completed',false,String(e));console.error(e); await page.screenshot({path:'qa/screens/immersive/recovery-failure.png'}).catch(()=>{}) }
+finally { await writeFile('qa/screens/immersive/recovery-results.json',JSON.stringify({results,errors,expectedErrors:expected},null,2));await browser.close() }

@@ -174,7 +174,7 @@ export class DuelSpecials {
   _summon(f, foe, def, surge) {
     let hero = this._twinCache.get(f)
     if (!hero) {
-      hero = createHero({ ...f.hero.appearance, cape: false })
+      hero = createHero({ ...f.hero.appearance, cape: false }, { equipmentPose: 'stowed' })
       hero.group.traverse(o => {
         if (o.material && !o.material._twinned) {
           o.material._twinned = true

@@ -169,7 +169,7 @@ export function createKartFactory() {
     // ---- the warrior stands in the basket, gripping the reins ----
     let hero = null, minion = null
     if (driver === 'hero') {
-      hero = createHero(appearance, { auraRing: false })
+      hero = createHero(appearance, { auraRing: false, equipmentPose: 'stowed' })
       hero.group.scale.setScalar(0.7)
       hero.group.position.set(0, 0.18, -0.42)
       hero.shadowBlob.visible = false // riding the basket — chariot has its own
@@ -206,13 +206,13 @@ export function createKartFactory() {
       if (hero) {
         hero.update(dt)
         // braced stance, leaning into the wind
-        hero.hips.position.y = 0.8
+        hero.hips.position.y = (hero.hipHeight ?? .92) + .03
         hero.hips.rotation.x = 0.1 + Math.min(Math.abs(speed) * 0.003, 0.1)
         hero.hips.rotation.y = 0
         for (const [key, s] of [['L', -1], ['R', 1]]) {
           const arm = hero.arms[key]
           arm.pivot.rotation.x = -0.85 + steer * 0.2 * s
-          arm.pivot.rotation.z = s * -0.14
+          arm.pivot.rotation.z = s * -0.14 + (hero.armRestOffset?.[key] || 0)
           arm.elbow.rotation.x = -0.38
           const leg = hero.legs[key]
           leg.pivot.rotation.x = -0.18

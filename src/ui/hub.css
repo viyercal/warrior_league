@@ -1,260 +1,90 @@
-/* ============ HUB scene UI — forged & engraved (classes prefixed hub-) ============
-   Craft language: chamfered stone plaques (clip-plaque), forged iron tags
-   (clip-tag), engraved type (--engrave), bronze background-clip lockups.
-   No rounded rects, no flat rgba fills. */
-
-/* ---- top-left logo lockup: engraved bronze, matches the boot lockup ---- */
-.hub-logo {
-  position: absolute; top: 20px; left: 28px;
-  z-index: 11;
-  animation: hubFadeDown 0.7s ease both;
+/* The world stays visible. The interface gives it room to breathe. */
+.realm-hub {
+  --realm-color: #cfa878;
+  --realm-quiet: #a6a6a2;
+  position: absolute; inset: 0; color: #eee9de;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow: hidden; pointer-events: none;
 }
-.hub-logo-main {
-  font-family: var(--font-display);
-  font-size: 46px; font-weight: 800; letter-spacing: 0.14em;
-  line-height: 1;
-  background:
-    linear-gradient(175deg, rgba(255, 226, 168, 0.85) 6%, rgba(255, 184, 77, 0.55) 32%, rgba(122, 76, 34, 0.4) 62%, rgba(58, 34, 12, 0.55) 95%),
-    var(--tex-bronze),
-    linear-gradient(175deg, #ffd89a 8%, #b0793a 55%, #6a4318 95%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  -webkit-text-stroke: 1px rgba(24, 12, 4, 0.75);
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 232, 190, 0.35))
-    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.8))
-    drop-shadow(0 2px 1px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 0 14px rgba(255, 140, 59, 0.3));
-}
-.hub-logo-sub {
-  margin-top: 4px;
-  font-family: var(--font-display);
-  font-size: 10px; font-weight: 600; letter-spacing: 0.4em;
-  font-variant: small-caps;
-  color: var(--ink-dim);
-  text-shadow: var(--engrave), 0 2px 6px rgba(0, 0, 0, 0.7);
-}
-.hub-logo-rule {
-  margin-top: 3px;
-  color: rgba(176, 121, 58, 0.85);
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.8));
-}
-.hub-logo-rule svg { display: block; }
-
-/* ---- top-right player chip: forged stone plaque, sigils on iron tags ---- */
-.hub-player {
-  position: absolute; top: 20px; right: 26px;
-  z-index: 11; isolation: isolate;
-  display: flex; flex-direction: column; align-items: flex-end; gap: 9px;
-  padding: 13px 17px 14px;
-  border: none; border-radius: 0;
-  clip-path: var(--clip-plaque);
-  /* the element is the forged bronze rim… */
-  background: linear-gradient(165deg, #5c4a30 0%, #33271a 38%, #17110b 80%);
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
-  animation: hubFadeDown 0.7s 0.08s ease both;
-}
-/* …and the chiseled stone face set into it, pinned by corner rivets */
-.hub-player::before {
-  content: ''; position: absolute; inset: 2.5px; z-index: -1;
-  clip-path: var(--clip-plaque);
-  background:
-    radial-gradient(circle at 10px 10px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
-    radial-gradient(circle at calc(100% - 10px) 10px, rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
-    radial-gradient(circle at 10px calc(100% - 10px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
-    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), rgba(228, 196, 138, 0.5) 0 1px, #4a3820 1.4px 2.2px, rgba(0, 0, 0, 0.55) 2.8px, transparent 3.4px),
-    linear-gradient(135deg, rgba(232, 220, 196, 0.09), transparent 36%, transparent 64%, rgba(0, 0, 0, 0.42)),
-    var(--tex-stone),
-    var(--panel-bg);
-  pointer-events: none;
-}
-.hub-player-name {
-  display: flex; align-items: center; gap: 9px;
-  font-family: var(--font-display);
-  font-size: 18px; font-weight: 700; letter-spacing: 0.2em;
-  font-variant: small-caps;
-  color: var(--ink);
-  text-shadow: var(--engrave), 0 2px 5px rgba(0, 0, 0, 0.6);
-}
-/* forged ember gem — a quenched diamond stud, not a neon dot */
-.hub-player-dot {
-  width: 9px; height: 9px; border-radius: 0;
-  transform: rotate(45deg);
-  background: linear-gradient(135deg, #ffe2ad, var(--dot, #ffb84d) 55%, color-mix(in srgb, var(--dot, #ffb84d) 45%, #000));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 240, 210, 0.6),
-    inset -1px -1px 1px rgba(0, 0, 0, 0.5),
-    0 0 9px var(--dot, #ffb84d);
-  animation: hubDotPulse 2.4s ease-in-out infinite;
-}
-@keyframes hubDotPulse {
-  0%, 100% { transform: rotate(45deg) scale(1); }
-  50% { transform: rotate(45deg) scale(1.22); }
-}
-.hub-skills { display: flex; gap: 7px; }
-/* battle-art sigils riveted onto forged iron tags */
-.hub-skill-ico {
-  --sc: #ffb84d;
-  min-width: 40px; height: 26px;
-  padding: 0 9px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px;
-  border: none; border-radius: 0;
-  clip-path: var(--clip-tag);
-  background:
-    linear-gradient(180deg, rgba(232, 220, 196, 0.14), transparent 45%, rgba(0, 0, 0, 0.45)),
-    var(--tex-iron),
-    #262a30;
-  box-shadow:
-    inset 0 1px 0 rgba(232, 220, 196, 0.16),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.55),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 5px color-mix(in srgb, var(--sc) 30%, transparent));
-}
-
-/* ---- bottom-center customize button (forged plaque inherited from styles.css) ---- */
-.hub-customize {
-  position: absolute; left: 50%; bottom: 26px;
-  transform: translateX(-50%);
-  z-index: 11;
-  font-size: 15px; letter-spacing: 0.26em;
-  padding: 12px 34px;
-  animation: hubFadeUp 0.7s 0.15s ease both;
-}
-.hub-customize:hover { transform: translateX(-50%) translateY(-2px) scale(1.03); }
-.hub-customize:active { transform: translateX(-50%) scale(0.98); }
-
-/* ---- channel title plates: carved stone slabs, side-pinned (positioned per-frame from JS) ---- */
-.hub-plate {
-  --acc: #ffb84d;
-  position: absolute; left: -999px; top: -999px;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  text-align: center;
-  white-space: nowrap;
-  z-index: 11;
-  transition: opacity 0.25s ease;
-}
-.hub-plate.gone { opacity: 0; }
-.hub-plate-row { display: flex; align-items: center; justify-content: center; gap: 9px; }
-.hub-plate-title {
-  display: inline-block;
-  font-family: var(--font-display);
-  font-size: 16px; font-weight: 800; letter-spacing: 0.16em;
-  font-variant: small-caps;
-  color: var(--ink);
-  padding: 5px 19px 6px;
-  border: none; border-radius: 0;
-  clip-path: var(--clip-plaque-sm);
-  background:
-    /* mounting pins chiseled into each end of the slab */
-    radial-gradient(circle at 8px 50%, rgba(228, 196, 138, 0.45) 0 1px, #443422 1.3px 2px, rgba(0, 0, 0, 0.6) 2.6px, transparent 3.2px),
-    radial-gradient(circle at calc(100% - 8px) 50%, rgba(228, 196, 138, 0.45) 0 1px, #443422 1.3px 2px, rgba(0, 0, 0, 0.6) 2.6px, transparent 3.2px),
-    linear-gradient(160deg, rgba(232, 220, 196, 0.1), transparent 38%, transparent 62%, rgba(0, 0, 0, 0.45)),
-    var(--tex-stone),
-    rgba(22, 17, 12, 0.9);
-  box-shadow:
-    inset 0 0 0 1px rgba(176, 121, 58, 0.45),
-    inset 0 1px 0 rgba(232, 220, 196, 0.1),
-    inset 0 -3px 5px rgba(0, 0, 0, 0.55);
-  text-shadow: var(--engrave), 0 2px 6px rgba(0, 0, 0, 0.8);
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55));
-  transition: all 0.18s ease;
-}
-.hub-plate-sub {
-  margin-top: 4px;
-  font-family: var(--font-display);
-  font-size: 9px; font-weight: 600; letter-spacing: 0.34em;
-  color: var(--ink-dim);
-  text-shadow: var(--engrave), 0 1px 4px rgba(0, 0, 0, 0.8);
-  transition: color 0.18s ease;
-}
-/* focused: the engraving catches the torchlight */
-.hub-plate.hot .hub-plate-title {
-  color: #fff6e4;
-  transform: translateY(-3px) scale(1.06);
-  box-shadow:
-    inset 0 0 0 1px var(--acc),
-    inset 0 1px 0 rgba(232, 220, 196, 0.14),
-    inset 0 -3px 5px rgba(0, 0, 0, 0.5);
-  filter:
-    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 0 12px color-mix(in srgb, var(--acc) 55%, transparent));
-  text-shadow: 0 0 12px var(--acc), var(--engrave);
-}
-.hub-plate.hot .hub-plate-sub { color: var(--acc); }
-
-/* ---- flagship plate (THE CRUCIBLE): double-ring forged slab + ornament finials ---- */
-.hub-plate-finial {
-  display: flex; flex: none;
-  color: color-mix(in srgb, var(--acc) 70%, #f4e2b8);
-  opacity: 0.9;
-  filter:
-    drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.8))
-    drop-shadow(0 1px 0 rgba(255, 240, 210, 0.12))
-    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
-}
-.hub-plate-finial svg { display: block; }
-.hub-plate-finial-r { transform: scaleX(-1); }
-.hub-plate-flag .hub-plate-title {
-  font-size: 22px; letter-spacing: 0.22em;
-  padding: 9px 27px 10px;
-  color: #ffe8c4;
-  background:
-    /* ember studs seated in the chamfer corners */
-    radial-gradient(circle at 12px 9px, rgba(255, 184, 77, 0.8) 0 1.2px, rgba(120, 52, 14, 0.9) 1.8px 2.4px, transparent 3px),
-    radial-gradient(circle at calc(100% - 12px) 9px, rgba(255, 184, 77, 0.8) 0 1.2px, rgba(120, 52, 14, 0.9) 1.8px 2.4px, transparent 3px),
-    radial-gradient(circle at 12px calc(100% - 9px), rgba(255, 184, 77, 0.8) 0 1.2px, rgba(120, 52, 14, 0.9) 1.8px 2.4px, transparent 3px),
-    radial-gradient(circle at calc(100% - 12px) calc(100% - 9px), rgba(255, 184, 77, 0.8) 0 1.2px, rgba(120, 52, 14, 0.9) 1.8px 2.4px, transparent 3px),
-    linear-gradient(160deg, rgba(255, 226, 168, 0.12), transparent 40%, transparent 60%, rgba(0, 0, 0, 0.5)),
-    var(--tex-stone),
-    rgba(16, 10, 6, 0.94);
-  box-shadow:
-    /* double forged ring: gold outer, crimson inner */
-    inset 0 0 0 1px rgba(255, 140, 59, 0.8),
-    inset 0 0 0 3px rgba(18, 10, 6, 0.9),
-    inset 0 0 0 4px rgba(194, 59, 46, 0.7),
-    inset 0 0 0 5px rgba(10, 5, 3, 0.8),
-    inset 0 1px 0 rgba(255, 226, 173, 0.18),
-    inset 0 -4px 7px rgba(0, 0, 0, 0.55);
-  text-shadow: 0 0 16px rgba(255, 140, 59, 0.55), var(--engrave);
-  animation: hubFlagEmber 3.2s ease-in-out infinite;
-}
-.hub-plate-flag .hub-plate-sub {
-  margin-top: 5px;
-  font-size: 10.5px; letter-spacing: 0.36em;
-  color: #ff8c3b;
-  text-shadow: var(--engrave), 0 0 10px rgba(255, 140, 59, 0.45);
-}
-.hub-plate-flag.hot .hub-plate-title {
-  color: #fff9ec;
-  transform: translateY(-3px) scale(1.04);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 184, 77, 0.95),
-    inset 0 0 0 3px rgba(18, 10, 6, 0.9),
-    inset 0 0 0 4px rgba(255, 140, 59, 0.8),
-    inset 0 0 0 5px rgba(10, 5, 3, 0.8),
-    inset 0 1px 0 rgba(255, 226, 173, 0.22),
-    inset 0 -4px 7px rgba(0, 0, 0, 0.5);
-  text-shadow: 0 0 18px #ff8c3b, var(--engrave);
-  animation: hubFlagEmberHot 3.2s ease-in-out infinite;
-}
-.hub-plate-flag.hot .hub-plate-sub { color: #ffb84d; }
-/* keyframes own the filter channel, so the plate's drop-shadows live here */
-@keyframes hubFlagEmber {
-  0%, 100% { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 10px rgba(255, 140, 59, 0.25)) brightness(1); }
-  50% { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 18px rgba(255, 140, 59, 0.5)) brightness(1.1); }
-}
-@keyframes hubFlagEmberHot {
-  0%, 100% { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 18px rgba(255, 140, 59, 0.55)) brightness(1.04); }
-  50% { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 26px rgba(255, 140, 59, 0.75)) brightness(1.12); }
-}
-
-/* ---- entrance animations ---- */
-@keyframes hubFadeDown {
-  from { opacity: 0; transform: translateY(-14px); }
-  to { opacity: 1; transform: none; }
-}
-@keyframes hubFadeUp {
-  from { opacity: 0; transform: translateX(-50%) translateY(14px); }
-  to { opacity: 1; transform: translateX(-50%); }
-}
+.realm-scrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(8, 11, 12, .9), rgba(8, 11, 12, .58) 28%, transparent 62%), linear-gradient(0deg, #090c0d 0%, rgba(9, 12, 13, .95) 5%, transparent 40%), linear-gradient(180deg, rgba(7, 10, 12, .7), transparent 18%); }
+.realm-hub button { font-family: inherit; text-transform: none; border-radius: 0; clip-path: none; filter: none; text-shadow: none; box-shadow: none; background: none; border: 0; letter-spacing: inherit; color: inherit; padding: 0; font-size: inherit; cursor: pointer; transition: color .2s, border-color .2s, background .2s, transform .2s; }
+.realm-hub button::before, .realm-hub button::after { content: none; }
+.realm-hub button:hover, .realm-hub button:active { transform: none; filter: none; }
+.realm-hub button:focus-visible { outline: 2px solid #e3c69d; outline-offset: 5px; }
+.realm-hub button:disabled { cursor: wait; opacity: .6; }
+.realm-header { position: relative; height: 104px; margin: 0 4.5%; display: flex; align-items: center; gap: 34px; border-bottom: 1px solid #ddd1ac20; }
+.realm-brand { display: flex; align-items: center; gap: 13px; color: #e3c69d; }
+.realm-brand > svg { width: 34px; height: 42px; }
+.realm-brand > span { font-family: Georgia, serif; font-size: 21px; letter-spacing: .16em; }
+.realm-brand > span > span { display: block; text-align: center; font: 9px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: .65em; margin: 4px -6px 0 0; color: #b3aca1; }
+.realm-nav { display: flex; align-self: stretch; gap: 32px; margin-left: 38px; }
+.realm-hub .realm-nav-link { position: relative; font-size: 12px; color: #a7a9a5; }
+.realm-hub .realm-nav-link.selected { color: #e3c69d; border-bottom: 1px solid #e3c69d; }
+.realm-hub .realm-nav-link:hover { color: #fff4dd; }
+.realm-player { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.realm-player-sigil { color: #c8a876; width: 39px; height: 39px; border: 1px solid #d0b88f40; display: grid; place-items: center; transform: rotate(45deg); }
+.realm-player-sigil svg { transform: rotate(-45deg); }
+.realm-player-name { display: block; font-size: 11px; letter-spacing: .18em; }
+.realm-player-caption { display: block; color: #868c8b; font-size: 8px; letter-spacing: .14em; margin-top: 5px; }
+.realm-hub .realm-settings { padding: 12px; margin-right: -12px; color: #a8aaa5; }
+.realm-settings svg { width: 20px; height: 20px; display: block; }
+.realm-hub .realm-settings:hover { color: #e3c69d; }
+.realm-feature { position: absolute; top: clamp(143px, 20vh, 235px); left: 7%; width: 430px; max-width: 42%; }
+.realm-eyebrow { display: flex; align-items: center; gap: 13px; color: var(--realm-color); letter-spacing: .23em; font-size: 9px; line-height: 1.7; }
+.realm-eyebrow::before { content: ''; width: 30px; height: 1px; background: currentColor; }
+.realm-title { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-weight: 400; font-size: clamp(64px, 7.1vw, 112px); line-height: .88; letter-spacing: -.045em; margin: 25px 0 23px; text-shadow: 0 5px 40px #0005; }
+.realm-title span { display: block; }
+.realm-title span:first-child { color: #d3d3ca; }
+.realm-title span:last-child { color: #eee9de; }
+.realm-description { max-width: 355px; font-size: 12px; font-weight: 400; line-height: 1.9; color: #adb0aa; letter-spacing: .015em; }
+.realm-tags { display: flex; flex-wrap: wrap; gap: 0; margin-top: 17px; color: #c4c5bc; font-size: 10px; }
+.realm-tags span + span::before { content: '·'; margin: 0 12px; color: #947f60; }
+.realm-actions { display: flex; align-items: center; gap: 23px; margin-top: 30px; }
+.realm-hub .realm-play { min-height: 49px; min-width: 192px; display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 0 20px; background: #d6bc92; color: #1b1e1d; font-size: 10px; font-weight: 600; letter-spacing: .16em; border: 1px solid #e8d8b94a; }
+.realm-play svg { width: 23px; height: 23px; }
+.realm-hub .realm-play:hover { background: #e9d6b4; transform: translateY(-2px); }
+.realm-hub .realm-prepare { padding: 10px 0; font-size: 11px; color: #c4c6be; border-bottom: 1px solid #d1c09c45; }
+.realm-hub .realm-prepare:hover { color: #f9e9cf; border-color: #e8d1aa; }
+.realm-hub .realm-guide-toggle { font-size: 10px; color: #959d98; margin-top: 18px; padding: 5px 0; }
+.realm-guide-toggle::first-letter { color: #c6af8a; }
+.realm-hub .realm-guide-toggle:hover { color: #e9dcc5; }
+.realm-guide { background: #0b1014f5; border: 1px solid #c0b39336; padding: 15px; position: absolute; z-index: 4; width: min(420px, 85vw); top: 100%; box-shadow: 0 12px 40px #0008; }
+.realm-guide[hidden] { display: none; }
+.realm-guide p { color: #c5c8c0; font-size: 11px; line-height: 1.7; }
+.realm-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.realm-control { display: flex; gap: 9px; align-items: center; font-size: 10px; color: #a8ada6; }
+.realm-control kbd { padding: 4px 6px; border: 1px solid #b8a47e40; color: #d8c4a1; font: 9px inherit; white-space: nowrap; }
+.realm-loadout { position: absolute; right: 7%; bottom: 267px; text-align: right; }
+.realm-small-label { font-size: 9px; font-weight: 500; letter-spacing: .2em; color: #b0b2a9; }
+.realm-arts { display: flex; justify-content: flex-end; gap: 9px; margin: 15px 0 10px; }
+.realm-hub .realm-art { position: relative; display: grid; place-items: center; width: 43px; height: 43px; background: #121719a8; border: 1px solid #bbb4983b; color: #d1b184; }
+.realm-art > svg { width: 23px; height: 23px; }
+.realm-art > span { position: absolute; bottom: -5px; right: -3px; color: #a5a89b; font-size: 8px; background: #111617; padding: 0 3px; }
+.realm-hub .realm-art:hover { background: #353327b3; border-color: #baa780; transform: translateY(-3px); }
+.realm-record { font-size: 10px; color: #989e96; }
+.realm-collection { position: absolute; left: 4.5%; right: 4.5%; bottom: 63px; }
+.realm-collection-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.realm-counter { color: #707c77; font-size: 9px; margin-left: 18px; letter-spacing: .12em; }
+.realm-keyboard-hint { font-size: 9px; letter-spacing: .11em; color: #7e8983; }
+.realm-cards { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.realm-hub .realm-card { text-align: left; position: relative; overflow: hidden; isolation: isolate; height: 134px; border: 1px solid #bcc2aa29; background: #1b2222; padding: 15px; transition: border-color .25s, transform .25s; }
+.realm-card-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .5; filter: saturate(.6); z-index: -2; transition: opacity .3s, transform .5s; }
+.realm-hub .realm-card::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, #0e1415 0%, #121919ad 48%, #12191910); }
+.realm-hub .realm-card.selected { border-color: #d5bd94; }
+.realm-hub .realm-card.selected::after { content: ''; height: 2px; position: absolute; bottom: 0; left: 0; right: 0; background: #d5bd94; }
+.realm-hub .realm-card:hover { border-color: #b6ac91; transform: translateY(-3px); }
+.realm-card:hover .realm-card-art, .realm-card.selected .realm-card-art { opacity: .8; transform: scale(1.08); }
+.realm-card-no { position: absolute; top: 13px; left: 14px; font-size: 9px; color: #bdc0b8; letter-spacing: .13em; }
+.realm-card-icon { position: absolute; right: 12px; top: 10px; color: var(--card-color); opacity: .85; }
+.realm-card-caption { position: absolute; left: 14px; right: 5px; bottom: 17px; }
+.realm-card-title { display: block; font: 17px Georgia, serif; color: #e0e0d2; letter-spacing: -.02em; white-space: nowrap; }
+.realm-card-genre { display: block; margin-top: 8px; color: #919d98; font-size: 8px; letter-spacing: .065em; }
+.realm-card.selected .realm-card-title { color: #e4c798; }
+.realm-footer { position: absolute; bottom: 0; height: 43px; left: 4.5%; right: 4.5%; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #cad2bd18; color: #65716d; font-size: 8px; letter-spacing: .15em; }
+.realm-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (min-height: 900px) { .realm-feature { top: 23vh; } .realm-collection { bottom: 85px; } .realm-card { height: 155px; } .realm-loadout { bottom: 295px; } }
+@media (max-height: 760px) and (min-width: 901px) { .realm-header { height: 78px; } .realm-feature { top: 112px; } .realm-title { font-size: 72px; margin: 18px 0; } .realm-description { font-size: 11px; max-width: 350px; } .realm-actions { margin-top: 20px; } .realm-collection { bottom: 54px; } .realm-hub .realm-card { height: 112px; } .realm-loadout { bottom: 225px; } }
+@media (max-width: 1100px) { .realm-nav { margin-left: 10px; gap: 23px; } .realm-header { gap: 24px; } .realm-feature { left: 5%; } .realm-actions { gap: 15px; } .realm-hub .realm-play { min-width: 165px; } .realm-cards { gap: 7px; } .realm-card-title { font-size: 14px; } .realm-card-caption { left: 10px; } .realm-card-genre { font-size: 7px; } .realm-loadout { right: 5%; } }
+@media (max-width: 900px) { .realm-hub { overflow-y: auto; pointer-events: auto; } .realm-header { height: 90px; margin: 0 5%; gap: 20px; } .realm-nav { gap: 20px; margin-left: 0; } .realm-brand > span { font-size: 17px; } .realm-brand > svg { width: 28px; } .realm-player { display: none; } .realm-hub .realm-settings { margin-left: auto; } .realm-feature { position: relative; top: auto; max-width: 440px; width: 75%; margin: 55px 0 55px; left: 6%; } .realm-title { font-size: 88px; } .realm-loadout { right: 6%; top: 345px; bottom: auto; } .realm-loadout > .realm-small-label { max-width: 140px; display: block; line-height: 1.7; margin-left: auto; } .realm-collection { position: relative; bottom: auto; left: auto; right: auto; margin: 35px 5% 22px; } .realm-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; } .realm-card-title { font-size: 17px; } .realm-card-genre { font-size: 8px; } .realm-footer { position: relative; left: auto; right: auto; margin: 0 5%; } .realm-guide { position: relative; margin-top: 12px; top: auto; } .realm-scrim { position: fixed; background: linear-gradient(90deg, #0b1013d9, #0b10136b 66%, #0b101320), linear-gradient(0deg, #0b1013 10%, #0b10130a 95%); } }
+@media (max-width: 600px) { .realm-header { height: 83px; gap: 12px; } .realm-brand { gap: 8px; } .realm-brand > span { font-size: 16px; } .realm-brand > svg { width: 25px; } .realm-nav { margin-left: auto; } .realm-hub .realm-nav-link { font-size: 10px; } .realm-nav-link.selected { display: none; } .realm-feature { width: 88%; margin-top: 56px; margin-bottom: 34px; } .realm-eyebrow { font-size: 8px; letter-spacing: .17em; } .realm-title { font-size: 76px; margin: 22px 0; } .realm-description { max-width: 295px; font-size: 12px; } .realm-tags { font-size: 9px; } .realm-tags span + span::before { margin: 0 8px; } .realm-loadout { position: relative; top: auto; right: auto; margin: 28px 6%; text-align: left; } .realm-loadout > .realm-small-label { max-width: none; margin: 0; font-size: 8px; } .realm-arts { justify-content: flex-start; margin: 10px 0; } .realm-record { font-size: 9px; } .realm-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .realm-hub .realm-card { height: 117px; } .realm-keyboard-hint { display: none; } .realm-small-label { font-size: 8px; letter-spacing: .12em; } .realm-counter { margin-left: 12px; } .realm-collection { margin-top: 28px; } .realm-footer { font-size: 7px; letter-spacing: .05em; } }
+@media (prefers-reduced-motion: reduce) { .realm-hub *, .realm-hub *::before, .realm-hub *::after { transition: none !important; animation: none !important; } }

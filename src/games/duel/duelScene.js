@@ -8,6 +8,7 @@ import { DuelFighter } from './fighters.js'
 import { FightSystem } from './fightSystem.js'
 import { DuelSpecials } from './specials.js'
 import { DuelAI } from './duelAi.js'
+import { SingleDuelAI } from './singleDuelAi.js'
 import { DuelHud } from './duelHud.js'
 import { TOWER } from './tower.js'
 import '../../ui/duel.css'
@@ -29,8 +30,11 @@ const smooth = k => k * k * (3 - 2 * k)
 export default class DuelScene {
   constructor(ctx) {
     this.ctx = ctx
+    this.mode = ctx.params.mode
+    this.singleOpponent = this.mode === 'single'
+      ? { ...TOWER[0], title: `CPU LEVEL ${ctx.cpuDifficulty.level} · ${ctx.cpuDifficulty.label.toUpperCase()}` } : null
     // dark-and-moody grade: bloom for true fire only, filmic grain, deep blacks
-    this.postOpts = { bloom: 0.85, bloomThreshold: 0.9, bloomRadius: 0.55, vignette: 0.55, saturation: 1.0, grain: 0.04, exposure: 1.02 }
+    this.postOpts = { bloom: 0.85, bloomThreshold: 0.9, bloomRadius: 0.55, vignette: 0.55, saturation: 1.0, grain: 0.006, exposure: 1.02 }
   }
 
   async init() {
@@ -104,19 +108,23 @@ export default class DuelScene {
     this._zero = { move: 0, crouch: false, block: false, jump: false, light: false, heavy: false, throw: false, dash: 0 }
     this._tapA = -9
     this._tapD = -9
+    input.onReset(() => {
+      this._tapA = this._tapD = -Infinity
+      Object.assign(this._buf, { jump: false, light: false, heavy: false, throw: false, dash: 0 })
+    })
     input.onKey((code, down) => {
       if (!down) return
       if (this.phase === 'cine' || this.phase === 'bossin') { this.cineT = 99; return } // skippable
       if (this.phase === 'oblitPrompt' && ATTACK_KEYS.includes(code)) { this._runFinisher(); return }
       if (this.phase !== 'fight') return
-      const now = performance.now() / 1000
+      const now = this.ctx.engine.elapsedTime
       if (code === 'Space') this._buf.jump = true
       else if (code === 'KeyJ') this._buf.light = true
       else if (code === 'KeyK') this._buf.heavy = true
       else if (code === 'KeyF') this._buf.throw = true
       else if (code === 'KeyA') { if (now - this._tapA < 0.27) this._buf.dash = -1; this._tapA = now }
       else if (code === 'KeyD') { if (now - this._tapD < 0.27) this._buf.dash = 1; this._tapD = now }
-      else if (code === 'KeyH') this.hintBox.style.display = this.hintBox.style.display === 'none' ? '' : 'none'
+      else if (code === 'KeyH') this.hud.toggleHints()
       else {
         const i = KEY_CODES.indexOf(code)
         if (i >= 0) this._castSkill(i)
@@ -127,25 +135,27 @@ export default class DuelScene {
     const hud = this.hud = new HUD()
     this.dHud = new DuelHud(hud)
     this.dHud.setFighter('L', { name: this.playerName, color: this.player.glow })
-    this.dHud.buildTower(TOWER, 0)
+    if (this.mode === 'single') this.dHud.buildSingle(this.ctx.cpuDifficulty.level)
+    else this.dHud.buildTower(TOWER, 0)
     this.abilityUi = hud.abilityBar(this.skillDefs, { game: 'duel' })
     this.hintBox = hud.hints([
-      ['A / D', 'Walk (double-tap: dash)'], ['SPACE', 'Jump'], ['S', 'Crouch'],
+      ['← → / A D', 'Move; double-tap to dash'], ['↑ / SPACE', 'Jump'], ['↓ / S', 'Crouch'],
       ['SHIFT', 'Block (chip from arts only)'], ['J', 'Light — chains J·J·K'], ['K', 'Heavy — K·K corner splat'],
       ['F', 'Throw (beats block)'], ['Q W E R', 'Arts — cancel any hit into them'], ['H', 'Toggle help'],
     ])
 
     audio.music('duel')
     audio.ambience('crucible')
-    profile.stats.plays.duel = (profile.stats.plays.duel || 0) + 1
+    const statsKey = this.mode === 'single' ? 'duelSingle' : 'duel'
+    profile.stats.plays[statsKey] = (profile.stats.plays[statsKey] || 0) + 1
     this.ctx.saveProfile()
 
     this._setupFight(0, { retry: false })
 
     // ---------- QA hooks ----------
     this.debug = {
-      win: () => { this._cleanupFlow(); this._champion() },
-      lose: () => { this._cleanupFlow(); this._defeated() },
+      win: () => { this._cleanupFlow(); this.mode === 'single' ? this._singleResult(true) : this._champion() },
+      lose: () => { this._cleanupFlow(); this.mode === 'single' ? this._singleResult(false) : this._defeated() },
       winRound: () => {
         if (this.phase !== 'fight') return
         this.foe.hp = 0
@@ -153,7 +163,8 @@ export default class DuelScene {
       },
       winFight: () => {
         this._cleanupFlow()
-        if (this.stage >= 3) this._champion()
+        if (this.mode === 'single') this._singleResult(true)
+        else if (this.stage >= 3) this._champion()
         else this._advanceTower()
       },
     }
@@ -163,7 +174,7 @@ export default class DuelScene {
 
   _setupFight(stage, { retry = false } = {}) {
     this.stage = stage
-    const spec = TOWER[stage]
+    const spec = this.singleOpponent || TOWER[stage]
     // replace the previous opponent
     if (this.foe) {
       this.specials.releaseFighter(this.foe)
@@ -176,7 +187,9 @@ export default class DuelScene {
       appearance: spec.appearance, name: spec.name, color: spec.color,
       spawnX: retry ? F_MARK : 8.9,
     })
-    this.ai = new DuelAI(this.foe, { ...spec.ai, specials: spec.specials }, { specials: this.specials, fight: this.fight })
+    const Brain = this.mode === 'single' ? SingleDuelAI : DuelAI
+    const tuning = this.mode === 'single' ? this.ctx.cpuDifficulty.duel : spec.ai
+    this.ai = new Brain(this.foe, { ...tuning, specials: spec.specials }, { specials: this.specials, fight: this.fight })
     this.fight.setFighters(this.player, this.foe)
     this.specials.reset()
     this.fight.reset()
@@ -223,9 +236,9 @@ export default class DuelScene {
   _showPlates(short = false) {
     this.phase = 'plates'
     this.dHud.setCine(false)
-    const spec = TOWER[this.stage]
+    const spec = this.singleOpponent || TOWER[this.stage]
     this._vsRemove?.()
-    this._vsRemove = this.dHud.showVs(this.playerName, 'CHALLENGER OF THE CRUCIBLE', spec)
+    this._vsRemove = this.dHud.showVs(this.playerName, this.mode === 'single' ? 'SINGLE DUEL' : 'CHALLENGER OF THE CRUCIBLE', spec)
     this.ctx.audio.play('cast', { vol: 0.6 })
     const gen = this.gen
     this._timeout(() => {
@@ -242,6 +255,7 @@ export default class DuelScene {
     this.fight.reset()
     this.player.resetRound(P_MARK)
     this.foe.resetRound(F_MARK)
+    this.ai.resetReads?.()
     this.player.hero.setState('normal')
     this.foe.hero.setState('normal')
     this.roundT = ROUND_TIME
@@ -407,9 +421,30 @@ export default class DuelScene {
   _endMatch(won) {
     this.specials.reset()
     this.orbitTarget = 0
+    if (this.mode === 'single') { this._singleResult(won); return }
     if (!won) { this._defeated(); return }
     if (this.stage >= 3) { this._champion(); return }
     this._advanceTower()
+  }
+
+  _singleResult(won) {
+    if (this.over) return
+    this._cleanupFlow()
+    this.over = won ? 'won' : 'lost'
+    this.phase = won ? 'champion' : 'defeated'
+    this.player.hero.setState(won ? 'dance' : 'ko')
+    this.foe.hero.setState(won ? 'ko' : 'dance')
+    if (won) {
+      const stats = this.ctx.profile.stats
+      stats.wins.duelSingle = (stats.wins.duelSingle || 0) + 1
+      this.ctx.saveProfile()
+    }
+    this.ctx.audio.play(won ? 'victory' : 'defeat')
+    this._panel = this.dHud.singleResultPanel({
+      won, foeName: this.foe.name, level: this.ctx.cpuDifficulty.level,
+      onRematch: () => { this.ctx.audio.play('click'); this.ctx.goTo('duel', { mode: 'single' }) },
+      onHub: () => { this.ctx.audio.play('click'); this.ctx.goTo('hub') },
+    })
   }
 
   _advanceTower() {
@@ -478,7 +513,7 @@ export default class DuelScene {
 
   _cleanupFlow() {
     this.gen++
-    for (const id of this._timeouts) clearTimeout(id)
+    for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this._timeouts.length = 0
     this._clearBanners()
     this._vsRemove?.()
@@ -734,7 +769,7 @@ export default class DuelScene {
   // ============================== plumbing ==============================
 
   _timeout(fn, ms) {
-    const id = setTimeout(() => { if (!this.disposed) fn() }, ms)
+    const id = this.ctx.setTimeout(() => { if (!this.disposed) fn() }, ms)
     this._timeouts.push(id)
     return id
   }
@@ -742,7 +777,7 @@ export default class DuelScene {
   dispose() {
     this.disposed = true
     this.gen++
-    for (const id of this._timeouts) clearTimeout(id)
+    for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this.ctx.engine.setExposure(1.12)
     this.specials.dispose()
     this.player.dispose()

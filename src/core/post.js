@@ -11,7 +11,7 @@ const GradeShader = {
     tDiffuse: { value: null },
     uTime: { value: 0 },
     uVignette: { value: 0.5 },
-    uGrain: { value: 0.028 },
+    uGrain: { value: 0.006 },
     uSat: { value: 1.07 },
     uExposure: { value: 1 },
     uContrast: { value: 1.03 },
@@ -27,7 +27,11 @@ const GradeShader = {
     uniform sampler2D tDiffuse;
     uniform float uTime, uVignette, uGrain, uSat, uExposure, uContrast, uAberr;
     varying vec2 vUv;
-    float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float hash(vec2 p) {
+      vec3 q = fract(vec3(p.xyx) * 0.1031);
+      q += dot(q, q.yzx + 33.33);
+      return fract((q.x + q.y) * q.z);
+    }
     void main() {
       // chromatic aberration: radial fringing, strongest at frame edges.
       // uAberr is engine-driven (hit pulses) — rest state is 0.
@@ -44,7 +48,7 @@ const GradeShader = {
       c.rgb *= 1.0 - uVignette * smoothstep(0.38, 0.92, d);
       float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
       c.rgb = mix(vec3(l), c.rgb, uSat);
-      c.rgb += (hash(vUv * vec2(1917.0, 1031.0) + fract(uTime) * 61.0) - 0.5) * uGrain;
+      c.rgb += (hash(gl_FragCoord.xy + floor(uTime * 24.0) * vec2(17.0, 31.0)) - 0.5) * uGrain;
       gl_FragColor = c;
     }`,
 }
@@ -59,7 +63,7 @@ const GradeShader = {
 export function buildComposer(renderer, scene, camera, opts = {}) {
   const {
     bloom = 0.7, bloomThreshold = 0.82, bloomRadius = 0.5,
-    vignette = 0.5, grain = 0.028, saturation = 1.07, contrast = 1.03,
+    vignette = 0.5, grain = 0.006, saturation = 1.07, contrast = 1.03,
     aberration = 0,
     ssao = false, ssaoIntensity = 0.05, exposure = 1,
   } = opts
@@ -111,5 +115,13 @@ export function buildComposer(renderer, scene, camera, opts = {}) {
 
   composer.bloomPass = bloomPass
   composer.gradePass = grade
+  // EffectComposer only owns its two buffers and copy pass. Bloom/SAO and
+  // shader passes own additional render targets that must leave with the scene.
+  const disposeBuffers = composer.dispose.bind(composer)
+  composer.dispose = () => {
+    for (const pass of composer.passes) pass.dispose?.()
+    bloomPass.materialHighPassFilter.dispose()
+    disposeBuffers()
+  }
   return composer
 }

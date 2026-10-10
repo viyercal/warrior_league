@@ -149,7 +149,7 @@ const evalG = (page, fn) => page.evaluate(fn)
   await page.waitForFunction(sb => window.__scene.game.score.you === sb + 2, scoreBefore, { timeout: 4000 })
   ok(true, 'titan dunk scores +2 (POSTERIZED)')
 
-  // comet OOP from beyond the arc (check spot) = +3
+  // Skyfall empowers a timed shot; its visual impact must never award points.
   await page.waitForFunction(() => window.__scene.game.phase === 'live' &&
     window.__scene.game.ball.holder === 'player', null, { timeout: 12000 })
   const s2 = await evalG(page, () => window.__scene.game.score.you)
@@ -157,10 +157,9 @@ const evalG = (page, fn) => page.evaluate(fn)
   ok(await evalG(page, () => !!window.__scene.game.eff.comet), 'meteor/comet inbound')
   await page.waitForTimeout(400) // mid-flight: comet streaking at the rim
   await page.screenshot({ path: 'qa/screens/hoops-fin-comet.png' })
-  const slammed = await page.waitForFunction(
-    s => window.__scene.game.score.you === s + 3, s2, { timeout: 4000 },
-  ).then(() => true).catch(() => false)
-  ok(slammed, 'comet slam banks +3 from beyond the arc')
+  await page.waitForTimeout(1200)
+  ok(await evalG(page, () => window.__scene.game.eff.skyfallT > 0), 'Skyfall next-shot buff remains active')
+  ok(await evalG(page, () => window.__scene.game.score.you) === s2, 'Skyfall impact awards no automatic points')
   await page.close()
 }
 

@@ -21,7 +21,7 @@ const honorSigil = label => (HONOR_SIGILS.find(([re]) => re.test(label)) || [nul
 
 /** All LAST BASTION DOM: bastion bar, wave/gold readouts, prompts, boss bar. */
 export class SiegeHud {
-  constructor(skillDefs, abilityOpts) {
+  constructor(skillDefs, abilityOpts, onTowerAction) {
     const hud = this.hud = new HUD()
 
     // bastion HP — the grand tapered blade, top center (stats keys stay "citadel").
@@ -59,7 +59,18 @@ export class SiegeHud {
     this.ability = hud.abilityBar(skillDefs, abilityOpts)
 
     // contextual build prompt
-    this.prompt = hud.el('div', 'siege-prompt')
+    this.prompt = hud.el('div', 'siege-prompt siege-tower-panel ui-interactive')
+    this.towerTitle = hud.el('b', 'siege-tower-title', '', this.prompt)
+    this.towerDetail = hud.el('span', 'siege-tower-detail', '', this.prompt)
+    const actions = hud.el('div', 'siege-tower-actions', '', this.prompt)
+    this.buildButton = hud.el('button', '', '', actions)
+    this.repairButton = hud.el('button', 'ghost', '', actions)
+    for (const [button, action] of [[this.buildButton, 'build'], [this.repairButton, 'repair']]) {
+      button.type = 'button'
+      button.addEventListener('pointerdown', e => e.preventDefault())
+      button.addEventListener('click', () => onTowerAction?.(action))
+    }
+    this.towerNote = hud.el('small', '', '', this.prompt)
     this.prompt.style.display = 'none'
 
     // boss bar
@@ -87,7 +98,7 @@ export class SiegeHud {
 
     this.hintBox = hud.hints([
       ['↑ ↓ ← → / WASD', 'Move'], ['RMB', 'Click to move'], ['MOUSE', 'Aim'], ['HOLD LMB', 'Attack'],
-      ['1-4', 'Skills'], ['F', 'Build / upgrade'], ['H', 'Toggle help'],
+      ['1-4', 'Skills'], ['F / Click', 'Build / upgrade tower'], ['G / Click', 'Repair tower'], ['H', 'Toggle help'],
     ])
   }
 
@@ -249,14 +260,19 @@ export class SiegeHud {
     }
   }
 
-  setPrompt(text, ok) {
-    if (!text) { this.prompt.style.display = 'none'; return }
+  setTower(data) {
+    if (!data) { this.prompt.style.display = 'none'; return }
     this.prompt.style.display = ''
-    if (this._promptTxt !== text) {
-      this._promptTxt = text
-      this.prompt.innerHTML = `<span class="siege-prompt-key">F</span>${text}`
-    }
-    this.prompt.classList.toggle('no', !ok)
+    const key = JSON.stringify(data)
+    if (this._towerKey === key) return
+    this._towerKey = key
+    this.towerTitle.textContent = data.title
+    this.towerDetail.textContent = data.detail
+    this.buildButton.textContent = data.buildLabel
+    this.buildButton.disabled = !data.buildEnabled
+    this.repairButton.textContent = data.repairLabel
+    this.repairButton.disabled = !data.repairEnabled
+    this.towerNote.textContent = data.shortGold ? 'Earn gold from raiders to afford unavailable actions.' : 'Stand near the platform to maintain this tower.'
   }
 
   setHp(frac, txt) { this.hpBar.set(frac, txt) }

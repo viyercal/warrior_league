@@ -1,0 +1,139 @@
+{
+  "base": "http://127.0.0.1:5193",
+  "checks": [
+    {
+      "name": "build unavailable when unaffordable",
+      "ok": true
+    },
+    {
+      "name": "unaffordable keyboard build spends nothing",
+      "ok": true
+    },
+    {
+      "name": "click builds tower and charges 100 gold",
+      "ok": true
+    },
+    {
+      "name": "construction disables upgrade",
+      "ok": true
+    },
+    {
+      "name": "full health repair disabled",
+      "ok": true
+    },
+    {
+      "name": "click repair restores 30 HP for 23 gold",
+      "ok": true,
+      "detail": {
+        "gold": 877,
+        "spent": 123,
+        "level": 1,
+        "hp": 45,
+        "maxHp": 60
+      }
+    },
+    {
+      "name": "partial repair caps health and prorates cost",
+      "ok": true,
+      "detail": {
+        "gold": 865,
+        "spent": 135,
+        "level": 1,
+        "hp": 60,
+        "maxHp": 60
+      }
+    },
+    {
+      "name": "full health cannot consume repair gold",
+      "ok": true
+    },
+    {
+      "name": "keyboard upgrades to tier 2 and full 90 HP",
+      "ok": true,
+      "detail": {
+        "gold": 715,
+        "spent": 285,
+        "level": 2,
+        "hp": 90,
+        "maxHp": 90
+      }
+    },
+    {
+      "name": "tier 3 has 120 HP and cannot upgrade further",
+      "ok": true,
+      "detail": {
+        "gold": 465,
+        "spent": 535,
+        "level": 3,
+        "hp": 120,
+        "maxHp": 120
+      }
+    },
+    {
+      "name": "damaged tower repair disabled without gold",
+      "ok": true
+    },
+    {
+      "name": "unaffordable repair leaves health and gold unchanged",
+      "ok": true
+    },
+    {
+      "name": "pause blocks tower spending",
+      "ok": true
+    },
+    {
+      "name": "tower panel fits 1440",
+      "ok": true
+    },
+    {
+      "name": "tower buttons clear other controls 1440",
+      "ok": true
+    },
+    {
+      "name": "tower panel fits 900",
+      "ok": true
+    },
+    {
+      "name": "tower buttons clear other controls 900",
+      "ok": true
+    },
+    {
+      "name": "tower panel fits 390",
+      "ok": true
+    },
+    {
+      "name": "tower buttons clear other controls 390",
+      "ok": true
+    },
+    {
+      "name": "walking away hides maintenance",
+      "ok": true
+    },
+    {
+      "name": "out of range cannot repair",
+      "ok": true
+    },
+    {
+      "name": "destroyed tower rebuilds for 50 gold",
+      "ok": true
+    },
+    {
+      "name": "dead player cannot maintain towers",
+      "ok": true
+    },
+    {
+      "name": "help explains repair control",
+      "ok": true
+    },
+    {
+      "name": "finished match hides maintenance",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

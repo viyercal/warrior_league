@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { getSkill, wasdKeyIndex } from '../../meta/skills.js'
 import { createHero } from '../../art/characterFactory.js'
 import { clamp, distXZ, v3, disposeObject3D } from '../../core/utils.js'
-import { COURT, isThree } from './constants.js'
+import { COURT } from './constants.js'
 
 const _tmp = new THREE.Vector3()
 const _tmp2 = new THREE.Vector3()
@@ -14,7 +14,7 @@ const _tmp2 = new THREE.Vector3()
 export class Abilities {
   /**
    * env: { scene(THREE), game, vfx, audio, hud, engine, helpers:
-   *        { startDunk(kind), cometSlam(value), banner, toast } }
+   *        { startDunk(kind), banner, toast } }
    */
   constructor(env, profile, abilityBar) {
     this.env = env
@@ -28,7 +28,8 @@ export class Abilities {
       novaArmed: false,
       ice: null,       // { pos, t, mesh }
       decoy: null,     // { pos, t, hero }
-      comet: null,     // { handle, value }
+      comet: null,     // visual hammer only
+      skyfallT: 0,     // next normal timed shot, never direct points
     }
     this._bubble = null
     this._heroMats = null
@@ -41,6 +42,10 @@ export class Abilities {
     if (game.phase === 'end' || game.phase === 'intro') return
     if (this.cds[i] > 0.001) return
     const s = this.slots[i]
+    if (s.archetype === 'meteor' && (game.phase !== 'live' || game.ball.holder !== 'player')) {
+      this.env.helpers.toast('SKYFALL NEEDS POSSESSION')
+      return false
+    }
     this.cds[i] = s.cd
     this.bar.flash(i)
     this.env.helpers.onCast?.(i)   // stats ledger (favorite art)
@@ -204,19 +209,19 @@ export class Abilities {
     for (const { m } of this._heroMats) { m.transparent = true; m.opacity = 0.35 }
   }
 
-  _meteor(s) { // Skyfall Hammer: burning hammer slams the ring; holding = thunder-dunk
+  _meteor(s) { // Empower the next timed shot. The falling hammer is presentation only.
     const { game, vfx, audio } = this.env
-    const P = game.player.hero.group.position
-    const value = game.ball.holder === 'player' && isThree(P) ? 3 : 2
     const from = _tmp.copy(COURT.RIM).add(_tmp2.set(3.5, 15, 4))
     const dist = from.distanceTo(COURT.RIM)
     const handle = vfx.projectile({
       from, to: COURT.RIM, speed: dist / (s.params.delay ?? 0.9),
       color: s.color, size: 0.9, life: 2.5, trail: true, light: 220,
     })
-    game.eff.comet = { handle, value }
+    game.eff.comet?.handle.kill()
+    game.eff.comet = { handle }
+    game.eff.skyfallT = 5
     audio.play('cast', { vol: 0.5 })
-    this.env.helpers.toast('SKYFALL INBOUND...')
+    this.env.helpers.toast('SKYFALL READY: TIME YOUR NEXT SHOT · 5s')
   }
 
   /* ------------------------- per-frame ------------------------- */
@@ -230,6 +235,7 @@ export class Abilities {
       this.bar.setActive(i, this._isActive(this.slots[i].archetype))
     }
 
+    eff.skyfallT = game.phase === 'live' && game.ball.holder === 'player' ? Math.max(0, eff.skyfallT - dt) : 0
     eff.turboT = Math.max(0, eff.turboT - dt)
     eff.pullT = Math.max(0, eff.pullT - dt)
     eff.titanT = Math.max(0, eff.titanT - dt)
@@ -264,7 +270,7 @@ export class Abilities {
     }
 
     if (eff.comet) {
-      const { handle, value } = eff.comet
+      const { handle } = eff.comet
       if (!handle.alive || handle.pos.y <= COURT.RIM.y + 0.25) {
         handle.kill()
         eff.comet = null
@@ -272,7 +278,6 @@ export class Abilities {
         vfx.shockwave(COURT.RIM_FLOOR, { color: '#ff8c3b', radius: 5 })
         audio.play('explode')
         engine.shake(0.7, 0.55)
-        if (game.ball.holder === 'player' && game.phase === 'live') helpers.cometSlam(value)
       }
     }
   }
@@ -282,7 +287,7 @@ export class Abilities {
     return (arch === 'buff' && eff.turboT > 0) || (arch === 'shield' && eff.aegisT > 0) ||
       (arch === 'ghost' && eff.ghostT > 0) || (arch === 'giant' && eff.titanT > 0) ||
       (arch === 'pull' && eff.pullT > 0) || (arch === 'projectile' && eff.starfire) ||
-      (arch === 'nova' && eff.novaArmed)
+      (arch === 'nova' && eff.novaArmed) || (arch === 'meteor' && eff.skyfallT > 0)
   }
 
   _clearIce() {

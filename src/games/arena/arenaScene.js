@@ -1060,9 +1060,10 @@ export default class ArenaScene {
     this.boss = new Boss(this.scene, {
       heroPos: this.hero.group.position,
       arenaR: ARENA_R,
-      slam: pos => this._bossSlam(pos),
-      radialBurst: p => this._bossBurst(p),
+      slam: (pos, radius) => this._bossSlam(pos, radius),
+      radialBurst: (p, enraged, pattern) => this._bossBurst(p, enraged, pattern),
       summonMinions: p => this._bossSummon(p),
+      enrage: () => { this.hud.banner('WARDEN ENRAGED', { color: '#c23b2e', duration: 1.4 }); this.ctx.audio.play('kill', { vol: 0.6 }) },
     })
     this.boss.group.position.set(best.x, 0, best.z)
     best.flash = 1
@@ -1076,23 +1077,24 @@ export default class ArenaScene {
     })
   }
 
-  _bossSlam(pos) {
-    this.vfx.shockwave(pos, { color: '#c23b2e', radius: 6 })
+  _bossSlam(pos, radius = 6) {
+    this.vfx.shockwave(pos, { color: '#c23b2e', radius })
     this.ctx.engine.shake(0.5, 0.45)
     this.ctx.audio.play('explode', { vol: 0.65 })
-    if (!this.over && distXZ(this.hero.group.position, pos) < 6.2) this._damageHero(20, pos, { knock: 7 })
-    if (this.decoy && distXZ(this.decoy.hero.group.position, pos) < 6.2) this.decoy.hp -= 20
+    if (!this.over && distXZ(this.hero.group.position, pos) < radius) this._damageHero(20, pos, { knock: 7 })
+    if (this.decoy && distXZ(this.decoy.hero.group.position, pos) < radius) this.decoy.hp -= 20
   }
 
-  _bossBurst(p) {
+  _bossBurst(p, enraged = false, pattern = 0) {
     this.ctx.audio.play('cast', { vol: 0.6 })
     _v1.set(p.x, 3.4, p.z)
     this.vfx.flash(_v1, { color: '#c23b2e', size: 3.4, life: 0.25 })
-    for (let k = 0; k < 8; k++) {
-      const a = (k * TAU) / 8 + rand(0.25)
+    const count = enraged ? 12 : 8
+    for (let k = 0; k < count; k++) {
+      const a = (k * TAU) / count + pattern * 0.27
       _v1.set(p.x + Math.cos(a) * 1.6, 1.5, p.z + Math.sin(a) * 1.6)
       _v2.set(Math.cos(a), 0, Math.sin(a))
-      const h = this.vfx.projectile({ from: _v1, dir: _v2, speed: 11.5, color: '#c23b2e', size: 0.5, life: 3.4, trail: false })
+      const h = this.vfx.projectile({ from: _v1, dir: _v2, speed: enraged ? 13 : 11.5, color: '#c23b2e', size: 0.5, life: 3.4, trail: false })
       this.bossBolts.push(h)
     }
   }

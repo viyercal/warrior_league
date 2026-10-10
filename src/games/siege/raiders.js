@@ -334,7 +334,8 @@ export class Colossus {
     this.deadT = 0
     this.enraged = false
     this.state = 'march'
-    this.actT = 3.4
+    this.actT = 2.8
+    this.attackIndex = 0
     this.teleT = 0
     this.hitCd = 0
     this.t = 0
@@ -372,7 +373,8 @@ export class Colossus {
       return
     }
 
-    if (!this.enraged && this.hp <= this.maxHp * 0.3) {
+    if (over) { this.tele.visible = false; hero.setMoveSpeed(0); hero.update(dt); return }
+    if (!this.enraged && this.hp <= this.maxHp * 0.5) {
       this.enraged = true
       this.hooks.enrage?.()
     }
@@ -390,7 +392,7 @@ export class Colossus {
         const dx = wp[0] - p.x, dz = wp[1] - p.z
         const d = Math.hypot(dx, dz) || 0.001
         if (d < 2.4 && this.wpIdx < this.wps.length - 1) this.wpIdx++
-        const sp = 1.5 + rage * 0.75
+        const sp = 1.9 + rage * 0.9
         p.x += (dx / d) * sp * dt
         p.z += (dz / d) * sp * dt
         hero.faceTowards(new THREE.Vector3(wp[0], 0, wp[1]), dt, 5)
@@ -402,51 +404,53 @@ export class Colossus {
         if (this.hitCd <= 0) {
           this.hitCd = 2.2 - rage * 0.7
           hero.cast()
-          this.hooks.hitCitadel(20)
+          this.state = 'gate'
+          this.teleT = 0.9
+          this.tele.visible = true
+          this.tele.position.set(0, 0.07, 22)
+          this.tele.scale.setScalar(4.5)
         }
       }
       this.actT -= dt
-      if (this.actT <= 0 && !over) {
-        if (distXZ(p, hp) < 9 && Math.random() < 0.65) {
+      if (this.actT <= 0 && !over && this.state === 'march') {
+        if (distXZ(p, hp) < 9 && this.attackIndex++ % 2 === 0) {
           this.state = 'slam'
-          this.teleT = 1.0 - rage * 0.25
+          this.teleT = 1.2 - rage * 0.2
           this.slamPos.copy(hp)
           this.tele.visible = true
           this.tele.position.set(this.slamPos.x, 0.07, this.slamPos.z)
-          this.tele.scale.setScalar(0.1)
+          this.tele.scale.setScalar(6.7)
           hero.cast()
-        } else if (this.hooks.anyTurretAlive()) {
+        } else {
           this.state = 'mortar'
           this.teleT = 0.6
           hero.cast()
-        } else {
-          this.state = 'slam'
-          this.teleT = 1.0 - rage * 0.25
-          this.slamPos.copy(hp)
-          this.tele.visible = true
-          this.tele.position.set(this.slamPos.x, 0.07, this.slamPos.z)
-          this.tele.scale.setScalar(0.1)
-          hero.cast()
         }
+      }
+    } else if (this.state === 'gate') {
+      this.teleT -= dt
+      this.tele.material.opacity = 0.4 + 0.2 * Math.sin(this.t * 18)
+      if (this.teleT <= 0) {
+        this.tele.visible = false
+        this.hooks.hitCitadel(20)
+        this.state = 'march'
       }
     } else if (this.state === 'slam') {
       this.teleT -= dt
-      const dur = 1.0 - rage * 0.25
-      const k = 1 - Math.max(0, this.teleT) / dur
-      this.tele.scale.setScalar(6.6 * (0.25 + 0.75 * k))
+      this.tele.scale.setScalar(6.7)
       this.tele.material.opacity = 0.38 + 0.28 * Math.sin(this.t * 22)
       if (this.teleT <= 0) {
         this.tele.visible = false
         this.hooks.slam(this.slamPos)
         this.state = 'march'
-        this.actT = rand(3.4, 4.6) - rage * 1.4
+        this.actT = rand(2.6, 3.4) - rage * 0.8
       }
     } else if (this.state === 'mortar') {
       this.teleT -= dt
       if (this.teleT <= 0) {
         this.hooks.mortarVolley()
         this.state = 'march'
-        this.actT = rand(3.2, 4.4) - rage * 1.2
+        this.actT = rand(2.5, 3.3) - rage * 0.7
       }
     }
 

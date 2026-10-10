@@ -561,3 +561,17 @@
   color: var(--sepia-dim);
   text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4);
 }
+
+#ui.battle-ui .siege-tower-panel {
+  display: grid; gap: 7px; width: min(420px, calc(100vw - 32px));
+  padding: 12px 14px; bottom: 174px; border: 1px solid #b0793a;
+  clip-path: none; border-radius: 3px; background: #1b201bed;
+  font: 12px/1.4 var(--font-controls); letter-spacing: 0; font-variant: normal;
+  color: #e8dcc4; text-shadow: none;
+}
+#ui.battle-ui .siege-tower-panel::before { display: none; }
+.siege-tower-detail, .siege-tower-panel small { color: #c2baaa; font-size: 11px; }
+.siege-tower-actions { display: flex; gap: 7px; }
+#ui.battle-ui .siege-tower-actions button { flex: 1; min-height: 42px; padding: 7px; font: 11px/1.4 var(--font-controls); letter-spacing: 0; white-space: normal; }
+#ui.battle-ui .siege-tower-actions button:disabled { opacity: .45; cursor: default; }
+@media (max-width: 600px) { #ui.battle-ui .siege-tower-panel { bottom: 270px; } }

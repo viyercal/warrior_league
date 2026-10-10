@@ -166,7 +166,7 @@ export const SKILLS = [
     desc: 'Call a burning hammer down from the heavens. It is not subtle.',
     inGame: {
       moba: 'A massive delayed strike — lead your target or claim the objective.',
-      hoops: 'Call the hammer onto the rim — an alley-oop from the heavens.',
+      hoops: 'Empower your next timed shot for 5 seconds. Bad timing still misses; defenders reduce the bonus.',
       arena: 'Erase an entire wave in one ground-shaking blow.',
       kart: 'Call the hammer onto your closest rival. Dishonorable. Effective.',
       brawl: 'The hammer smashes the arena — massive launch power.',

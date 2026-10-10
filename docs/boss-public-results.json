@@ -1,0 +1,43 @@
+{
+  "base": "https://exterior-cheap-group-grew.trycloudflare.com",
+  "checks": [
+    {
+      "name": "public repair restores HP and spends correct gold",
+      "ok": true
+    },
+    {
+      "name": "public upgrade restores higher maximum HP",
+      "ok": true
+    },
+    {
+      "name": "public Colossus has revised attack patterns",
+      "ok": true
+    },
+    {
+      "name": "public Skyfall arms timed-shot buff",
+      "ok": true
+    },
+    {
+      "name": "public Skyfall impact does not score",
+      "ok": true
+    },
+    {
+      "name": "public Warden has charge and last-stand state",
+      "ok": true
+    },
+    {
+      "name": "public Crucible loads and fights",
+      "ok": true
+    },
+    {
+      "name": "public assets load without failures",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "failed": []
+}

@@ -9,6 +9,7 @@ import { PAD_POSITIONS } from './siegeEnv.js'
 export const BUILD_COST = 100
 export const REBUILD_COST = 50
 export const UPGRADE_COST = [150, 250] // lvl 2, lvl 3
+export const REPAIR_AMOUNT = 30
 export const TURRET_HP = 60
 export const TURRET_RANGE = 11
 
@@ -120,7 +121,9 @@ export class TurretManager {
   }
 
   upgrade(t) {
+    if (t.dead || t.buildT > 0 || t.level >= 3) return false
     t.level++
+    t.maxHp = TURRET_HP + (t.level - 1) * 30
     t.hp = t.maxHp
     t.buildT = 0.45
     this._buildMeshes(t)
@@ -129,6 +132,18 @@ export class TurretManager {
     this.vfx.ring(_v1, { color: '#ffd166', radius: 3.4, life: 0.5 })
     this.vfx.burst(_v1.clone().setY(1.6), { color: '#ffd166', count: 24, speed: 7, size: 0.28 })
     this.vfx.text(_v1.clone().setY(3.6), `WAR STANDARD LV${t.level}`, { color: '#ffd166', size: 0.66, life: 1.0, rise: 1.6 })
+  }
+
+  repairCost(t) { return Math.ceil(Math.min(REPAIR_AMOUNT, Math.max(0, t.maxHp - t.hp)) * 0.75) }
+
+  repair(t) {
+    if (t.dead || t.buildT > 0 || t.hp >= t.maxHp) return false
+    t.hp = Math.min(t.maxHp, t.hp + REPAIR_AMOUNT)
+    this.audio.play('heal', { vol: 0.6 })
+    _v1.set(t.pad.x, 1.5, t.pad.z)
+    this.vfx.ring(_v1, { color: '#b5c88a', radius: 2, life: 0.5 })
+    this.vfx.text(_v1, 'REPAIRED', { color: '#b5c88a', size: 0.65 })
+    return true
   }
 
   /** Dispose per-turret geometries + fresh materials; never the shared kit. */

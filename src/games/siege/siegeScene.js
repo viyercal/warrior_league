@@ -165,14 +165,15 @@ export default class SiegeScene {
     }
 
     // ---------- HUD ----------
-    this.hud = new SiegeHud(this.skillDefs, { game: 'siege', keys: WASD_KEY_LABELS })
+    this.hud = new SiegeHud(this.skillDefs, { game: 'siege', keys: WASD_KEY_LABELS }, action => this._padAction(action))
 
     input.onKey((code, down) => {
       if (!down) return
       if (this.phase !== 'play') { this._skipCine(); return } // ANY key skips a cinematic
       const i = wasdKeyIndex(code)
       if (i >= 0) this._castSkill(i)
-      else if (code === 'KeyF') this._padAction()
+      else if (code === 'KeyF') this._padAction('build')
+      else if (code === 'KeyG') this._padAction('repair')
       else if (code === 'KeyH') this.hud.toggleHints()
     })
     this.clickMove = new ClickMove({
@@ -192,6 +193,7 @@ export default class SiegeScene {
 
     // seed the HUD readouts (they only refresh once gameplay starts)
     this.hud.setGold(this.gold)
+    this._updatePadPrompt(this.hero.group.position)
     this.hud.setHp(1, '100 / 100')
     this.hud.setCitadel(1, this.citadel.hp, this.citadel.maxHp)
 
@@ -394,8 +396,6 @@ export default class SiegeScene {
       }
     }
 
-    // contextual build prompt
-    this._updatePadPrompt(pos)
 
     this.hero.update(dt)
   }
@@ -467,7 +467,7 @@ export default class SiegeScene {
     this.hero.setState('ko')
     this.clickMove?.cancel()
     this.hero.setMoveSpeed(0)
-    this.hud.setPrompt(null)
+    this.hud.setTower(null)
     this.ctx.audio.play('defeat', { vol: 0.35 })
     _v1.copy(this.hero.group.position)
     _v1.y = 1
@@ -630,38 +630,50 @@ export default class SiegeScene {
   // ============================== turrets ==============================
 
   _updatePadPrompt(pos) {
-    if (this.over) { this.hud.setPrompt(null); return }
     const pad = this.turrets.nearestPad(pos)
-    if (!pad) { this.hud.setPrompt(null); return }
-    if (!pad.turret) {
-      const cost = this.turrets.buildCost(pad)
-      this.hud.setPrompt(`— BUILD BALLISTA (${cost}g)`, this.gold >= cost)
-    } else if (!pad.turret.dead && pad.turret.buildT <= 0 && pad.turret.level < 3) {
-      const cost = UPGRADE_COST[pad.turret.level - 1]
-      this.hud.setPrompt(`— UPGRADE Lv${pad.turret.level + 1} (${cost}g)`, this.gold >= cost)
-    } else this.hud.setPrompt(null)
+    if (this.over || this.deadT > 0 || this.phase !== 'play' || !pad) { this.hud.setTower(null); return }
+    const t = pad.turret
+    const buildCost = t ? UPGRADE_COST[t.level - 1] : this.turrets.buildCost(pad)
+    const repairCost = t ? this.turrets.repairCost(t) : 0
+    this.hud.setTower({
+      title: t ? `BALLISTA Lv${t.level} · ${Math.ceil(t.hp)}/${t.maxHp} HP` : pad.discount ? 'RUINED BALLISTA' : 'EMPTY TOWER PLATFORM',
+      detail: t?.buildT > 0 ? 'Construction in progress' : t ? t.level < 3 ? `Upgrade improves firepower and restores full health to ${60 + t.level * 30} HP.` : 'Maximum firepower reached. Repair this tower to keep it fighting.' : 'Raise a ballista to defend this lane.',
+      buildLabel: t ? t.level === 3 ? 'Maximum tier' : `F · Upgrade Lv${t.level + 1} · ${buildCost}g` : `F · ${pad.discount ? 'Rebuild' : 'Build'} · ${buildCost}g`,
+      buildEnabled: (!t || (!t.dead && t.buildT <= 0 && t.level < 3)) && this.gold >= buildCost,
+      repairLabel: t ? t.hp >= t.maxHp ? 'Full health' : `G · Repair +${Math.ceil(Math.min(30, t.maxHp - t.hp))} HP · ${repairCost}g` : 'Build before repairing',
+      repairEnabled: !!t && !t.dead && t.buildT <= 0 && repairCost > 0 && this.gold >= repairCost,
+      shortGold: (!t || t.level < 3) && this.gold < buildCost || repairCost > this.gold,
+    })
   }
 
-  _padAction() {
-    if (this.over || this.deadT > 0) return
+  _padAction(action = 'build') {
+    if (this.over || this.deadT > 0 || this.phase !== 'play' || this.ctx.engine.paused) return false
     const pad = this.turrets.nearestPad(this.hero.group.position)
-    if (!pad) return
-    if (!pad.turret) {
+    if (!pad) return false
+    const t = pad.turret
+    if (action === 'repair') {
+      if (!t || t.dead || t.buildT > 0 || t.hp >= t.maxHp) return false
+      const cost = this.turrets.repairCost(t)
+      if (this.gold < cost) return this._deny()
+      this.turrets.repair(t)
+      this.gold -= cost; this.goldSpent += cost
+    } else if (!t) {
       const cost = this.turrets.buildCost(pad)
       if (this.gold < cost) return this._deny()
-      this.gold -= cost
-      this.goldSpent += cost
+      this.gold -= cost; this.goldSpent += cost
       this.turrets.build(pad)
       this.turretsBuilt++
       this.topTier = Math.max(this.topTier, 1)
-    } else if (pad.turret.buildT <= 0 && pad.turret.level < 3) {
-      const cost = UPGRADE_COST[pad.turret.level - 1]
+    } else if (!t.dead && t.buildT <= 0 && t.level < 3) {
+      const cost = UPGRADE_COST[t.level - 1]
       if (this.gold < cost) return this._deny()
-      this.gold -= cost
-      this.goldSpent += cost
-      this.turrets.upgrade(pad.turret)
-      this.topTier = Math.max(this.topTier, pad.turret.level)
-    }
+      this.gold -= cost; this.goldSpent += cost
+      this.turrets.upgrade(t)
+      this.topTier = Math.max(this.topTier, t.level)
+    } else return false
+    this.hud.setGold(this.gold)
+    this._updatePadPrompt(this.hero.group.position)
+    return true
   }
 
   _deny() {
@@ -1159,15 +1171,20 @@ export default class SiegeScene {
 
   _mortarVolley() {
     const alive = this.turrets.pads.filter(p => p.turret && !p.turret.dead)
-    if (!alive.length) return
+    // Prioritize upgraded defenses, with distinct targets in each volley.
+    alive.sort((a, b) => b.turret.level - a.turret.level || a.turret.hp - b.turret.hp)
+    const targets = alive.slice(0, 2)
+    if (!targets.length || this.boss.enraged) {
+      const p = this.hero.group.position
+      targets.push({ x: p.x, z: p.z })
+    }
     this.ctx.audio.play('cast', { vol: 0.6 })
-    const n = Math.min(this.boss.enraged ? 3 : 2, alive.length)
-    for (let i = 0; i < n; i++) {
-      const pad = alive[Math.floor(rand(alive.length))]
+    for (const pad of targets) {
       const from = this.boss.hero.castPoint(_v1).clone()
       const T = 1.35
       const g = -22
-      _v2.set(pad.x + rand(-0.8, 0.8), 0.3, pad.z + rand(-0.8, 0.8)).sub(from).divideScalar(T)
+      const target = new THREE.Vector3(pad.x, 0.3, pad.z)
+      _v2.copy(target).sub(from).divideScalar(T)
       _v2.y -= 0.5 * g * T
       const speed = _v2.length()
       const h = this.vfx.projectile({ from, dir: _v2.normalize(), speed, color: '#ff5a1e', size: 0.7, life: T + 0.8, gravity: g, trail: true, light: 1.6 })
@@ -1177,19 +1194,23 @@ export default class SiegeScene {
       )
       ring.rotation.x = -Math.PI / 2
       ring.position.set(pad.x, 0.06, pad.z)
-      ring.scale.setScalar(2.4)
+      ring.scale.setScalar(2.6)
       this.scene.add(ring)
-      this.mortars.push({ h, ring, t: 0 })
+      this.mortars.push({ h, ring, target, t: 0 })
     }
   }
 
   _updateMortars(gdt) {
     for (let i = this.mortars.length - 1; i >= 0; i--) {
       const m = this.mortars[i]
+      if (this.over || !this.boss?.alive) {
+        m.h.kill(); this.scene.remove(m.ring); m.ring.geometry.dispose(); m.ring.material.dispose()
+        this.mortars.splice(i, 1); continue
+      }
       m.t += gdt
       m.ring.material.opacity = 0.3 + 0.3 * Math.sin(m.t * 14)
       if (m.h.pos.y <= 0.35 || !m.h.alive || m.t > 2.4) {
-        const p = m.h.pos
+        const p = m.target
         m.h.kill()
         this.vfx.ring(p, { color: '#ff5a1e', radius: 2.6, life: 0.4 })
         this.vfx.burst(p, { color: '#ff8a3c', count: 20, speed: 7, size: 0.3 })
@@ -1321,7 +1342,7 @@ export default class SiegeScene {
     this.over = 'won'
     if (this.phase !== 'play') this._endCine()
     this._clearBanners()
-    this.hud.setPrompt(null)
+    this.hud.setTower(null)
     this.hud.setRespawn(null)
     this.hud.setPrepare(null)
     this.ctx.audio.play('victory')
@@ -1393,7 +1414,7 @@ export default class SiegeScene {
     if (this.phase !== 'play') this._endCine()
     this.citadel.hp = 0
     this._clearBanners()
-    this.hud.setPrompt(null)
+    this.hud.setTower(null)
     this.hud.setRespawn(null)
     this.hud.setPrepare(null)
     this.hud.hideBoss()
@@ -1451,6 +1472,7 @@ export default class SiegeScene {
     this.hud.setCitadel(this.citadel.frac(), this.citadel.hp, this.citadel.maxHp)
     this.hud.setHp(this.hp / 100, this.deadT > 0 ? 'DOWN' : `${Math.ceil(this.hp)} / 100`)
     this.hud.setGold(this.gold)
+    this._updatePadPrompt(this.hero.group.position)
     this.hud.setCitadelDanger(!this.over && this.citadel.frac() < 0.25)
     this.hud.setRespawn(!this.over && this.deadT > 0 ? this.deadT : null)
 

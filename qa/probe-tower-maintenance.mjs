@@ -1,0 +1,52 @@
+import {chromium} from 'playwright-core'
+import {mkdir,writeFile} from 'node:fs/promises'
+import assert from 'node:assert/strict'
+const base=process.env.IPL_BASE||'http://127.0.0.1:5191'
+const browser=await chromium.launch({channel:'chrome',headless:true})
+const page=await browser.newPage({viewport:{width:1440,height:900}})
+const checks=[],errors=[];page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())})
+const check=(name,ok,detail)=>{checks.push({name,ok,detail});console.log(ok?'PASS':'FAIL',name,detail||'');assert.ok(ok,name)}
+const state=()=>page.evaluate(()=>{const s=window.__scene,t=s.turrets.pads[0].turret;return{gold:s.gold,spent:s.goldSpent,level:t?.level,hp:t?.hp,maxHp:t?.maxHp}})
+const refresh=()=>page.evaluate(()=>window.__scene._updateHud(0))
+await mkdir('qa/screens/tower-maintenance',{recursive:true})
+try{
+ await page.goto(`${base}/?scene=siege&mute=1&dpr=1`);await page.waitForFunction(()=>window.__ipl?.sm.currentName==='siege'&&!window.__ipl.sm._busy,null,{timeout:90000});await page.locator('#boot').waitFor({state:'detached'});await page.keyboard.press('z');await page.waitForFunction(()=>window.__scene.phase==='play')
+ await page.evaluate(()=>{const s=window.__scene,p=s.turrets.pads[0];s.spawnQueue=[];s.army.clearAll();s.breakT=999;s.hero.group.position.set(p.x,0,p.z);s.gold=99;s._updateHud(0)})
+ check('build unavailable when unaffordable',await page.getByRole('button',{name:/F · Build/}).isDisabled())
+ await page.keyboard.press('f');check('unaffordable keyboard build spends nothing',(await state()).gold===99&&!(await state()).level)
+ await page.evaluate(()=>{window.__scene.gold=1000;window.__scene._updateHud(0)})
+ await page.getByRole('button',{name:/F · Build/}).click();check('click builds tower and charges 100 gold',(await state()).level===1&&(await state()).gold===900)
+ check('construction disables upgrade',await page.getByRole('button',{name:/F · Upgrade/}).isDisabled())
+ await page.waitForFunction(()=>window.__scene.turrets.pads[0].turret.buildT<=0)
+ check('full health repair disabled',await page.getByRole('button',{name:'Full health',exact:true}).isDisabled())
+ await page.evaluate(()=>{const s=window.__scene;s.turrets.take(s.turrets.pads[0].turret,45);s._updateHud(0)})
+ await page.getByRole('button',{name:/G · Repair/}).click();check('click repair restores 30 HP for 23 gold',(await state()).hp===45&&(await state()).gold===877,await state())
+ await page.keyboard.press('g');check('partial repair caps health and prorates cost',(await state()).hp===60&&(await state()).gold===865,await state())
+ await page.keyboard.press('g');check('full health cannot consume repair gold',(await state()).gold===865)
+ await page.keyboard.press('f');check('keyboard upgrades to tier 2 and full 90 HP',(await state()).level===2&&(await state()).hp===90&&(await state()).gold===715,await state())
+ await page.waitForFunction(()=>window.__scene.turrets.pads[0].turret.buildT<=0)
+ await page.getByRole('button',{name:/F · Upgrade Lv3/}).click();await page.waitForFunction(()=>window.__scene.turrets.pads[0].turret.buildT<=0)
+ check('tier 3 has 120 HP and cannot upgrade further',(await state()).hp===120&&await page.getByRole('button',{name:'Maximum tier',exact:true}).isDisabled(),await state())
+ await page.evaluate(()=>{const s=window.__scene;s.turrets.take(s.turrets.pads[0].turret,40);s.gold=0;s._updateHud(0)})
+ check('damaged tower repair disabled without gold',await page.getByRole('button',{name:/G · Repair/}).isDisabled())
+ await page.keyboard.press('g');check('unaffordable repair leaves health and gold unchanged',(await state()).hp===80&&(await state()).gold===0)
+ await page.evaluate(()=>{window.__scene.gold=100;window.__scene._updateHud(0)})
+ await page.keyboard.press('Escape');const paused=await state();await page.keyboard.press('g');check('pause blocks tower spending',JSON.stringify(await state())===JSON.stringify(paused));await page.keyboard.press('Escape')
+ for(const[width,height]of[[1440,900],[900,800],[390,844]]){
+  await page.setViewportSize({width,height});await page.screenshot({path:`qa/screens/tower-maintenance/panel-${width}.png`})
+  check(`tower panel fits ${width}`,await page.locator('.siege-tower-panel').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.top>=0&&r.bottom<=innerHeight&&r.right<=innerWidth&&el.scrollWidth<=el.clientWidth+1}))
+  check(`tower buttons clear other controls ${width}`,await page.locator('.siege-tower-panel').evaluate(el=>{const a=el.getBoundingClientRect();return [...document.querySelectorAll('button')].filter(b=>!el.contains(b)&&b.offsetWidth&&b.offsetHeight).every(b=>{const r=b.getBoundingClientRect();return a.right<=r.left||a.left>=r.right||a.bottom<=r.top||a.top>=r.bottom})}))
+ }
+ await page.setViewportSize({width:1440,height:900});await page.evaluate(()=>{const s=window.__scene;s.hero.group.position.set(0,0,0);s._updateHud(0)})
+ check('walking away hides maintenance',!await page.locator('.siege-tower-panel').isVisible())
+ await page.keyboard.press('g');check('out of range cannot repair',(await state()).gold===100)
+ await page.evaluate(()=>{const s=window.__scene,p=s.turrets.pads[0];s.hero.group.position.set(p.x,0,p.z);s.turrets.take(p.turret,999);s._updateHud(0)})
+ await page.getByRole('button',{name:/F · Rebuild/}).click();check('destroyed tower rebuilds for 50 gold',(await state()).level===1&&(await state()).gold===50)
+ await page.evaluate(()=>{const s=window.__scene;s.deadT=2;s._updateHud(0)})
+ check('dead player cannot maintain towers',!await page.locator('.siege-tower-panel').isVisible()&&!await page.evaluate(()=>window.__scene._padAction('repair')))
+ await page.evaluate(()=>{window.__scene.deadT=0})
+ await page.keyboard.press('h');check('help explains repair control',await page.getByText('Repair tower',{exact:true}).isVisible());await page.keyboard.press('h')
+ await page.evaluate(()=>{const s=window.__scene;s.deadT=0;s.debug.win();s._updateHud(0)})
+ check('finished match hides maintenance',!await page.locator('.siege-tower-panel').isVisible())
+ check('no browser errors',errors.length===0,errors)
+}finally{await writeFile('docs/tower-maintenance-results.json',JSON.stringify({base,checks,errors},null,2));await browser.close()}

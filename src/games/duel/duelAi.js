@@ -21,6 +21,9 @@ export class DuelAI {
     this.skills = cfg.specials.map(getSkill)
     this.cds = this.skills.map(() => rand(1, 3)) // stagger openers
     this.decideT = rand(0.4, 0.8)
+    this.chainKind = null
+    this.chainUsed = false
+    this.chainWait = 0
     this.blockHold = 0
     this.crouchHold = 0
     this.foeBlockStreak = 0    // reads an over-blocking player -> throws
@@ -37,6 +40,7 @@ export class DuelAI {
     it.crouch = false
     const f = this.f
     const c = this.cfg
+    const enraged = c.archetype === 'boss' && f.hp <= 50
     const foe = this.fight.foeOf(f)
     for (let i = 0; i < this.cds.length; i++) this.cds[i] = Math.max(0, this.cds[i] - gdt)
     this.blockHold = Math.max(0, this.blockHold - gdt)
@@ -71,6 +75,7 @@ export class DuelAI {
       foe.attack._aiRead = true
       if (adx < 3.4 && Math.random() < c.blockProb) {
         this.blockHold = ATTACKS[foe.attack.kind].startup + 0.35 + rand(0, 0.2)
+        if (ATTACKS[foe.attack.kind].low) this.crouchHold = this.blockHold
         // boss / grappler sometimes ducks a heavy to whiff-punish it
         if (ATTACKS[foe.attack.kind].high && Math.random() < c.whiffPunish * 0.6) {
           this.crouchHold = this.blockHold
@@ -88,17 +93,27 @@ export class DuelAI {
     // whiff punish: foe attack in recovery right next to us
     if (foe.attack && adx < 2.4 && Math.random() < c.whiffPunish * gdt * 8) {
       const def = ATTACKS[foe.attack.kind]
-      if (def && foe.attack.t > def.startup + def.active) { it.light = true; this.blockHold = 0 }
+      if (def && foe.attack.t > def.startup + def.active) { it.light = true; this.blockHold = 0; it.block = false }
     }
-    // chase an open chain window — the AI lands its own combos
+    // Confirm once per connected combo opening, with a short continuation
+    // delay. Repeated frame-by-frame rolls made every stage nearly infallible.
+    if (f.chainT <= 0) { this.chainKind = null; this.chainUsed = false }
     if (f.chainT > 0 && f.lastHitKind) {
-      if (Math.random() < c.cancelProb && this._castBest(adx, foe)) return it
-      if (Math.random() < c.chainProb) {
-        const nxt = ATTACKS[f.lastHitKind].next
-        if (nxt?.light) it.light = true
-        else if (nxt?.heavy) it.heavy = true
-        return it
+      if (this.chainKind !== f.lastHitKind) {
+        this.chainKind = f.lastHitKind; this.chainUsed = false
+        this.chainWait = Math.min(0.14, c.reaction * 0.3)
       }
+      this.chainWait -= gdt
+      if (!this.chainUsed && this.chainWait <= 0) {
+        this.chainUsed = true
+        if (Math.random() < c.cancelProb && this._castBest(adx, foe)) return it
+        if (Math.random() < c.chainProb) {
+          const nxt = ATTACKS[f.lastHitKind]?.next
+          if (nxt?.light) it.light = true
+          else if (nxt?.heavy) it.heavy = true
+        }
+      }
+      return it
     }
 
     // track over-blocking players
@@ -107,9 +122,14 @@ export class DuelAI {
 
     // ---------- footsies steering (every frame) ----------
     const drift = Math.sin(f.hero.t * 1.7) * 0.6 // dance around the preferred range
-    const want = c.prefRange + drift
+    const rangedReady = this.skills.some((s, i) => ['projectile', 'slowfield', 'meteor'].includes(s.archetype) && this.cds[i] <= 0)
+    // Zoners close in while their ranged arts recharge. The final champion
+    // switches to close pressure when wounded, instead of idling outside reach.
+    const closePressure = (c.archetype === 'zoner' && !rangedReady) || (c.archetype === 'boss' && (!rangedReady || enraged)) || this.foeBlockStreak > 0.6
+    const want = (closePressure ? 1.15 : Math.min(c.prefRange, c.archetype === 'zoner' ? 6.8 : 1.7)) + drift * 0.35
     if (adx > want + 0.5) it.move = toward
     else if (adx < want - 0.5) it.move = -toward
+    if (Math.abs(f.pos.x) > WALL_X - 0.6 && Math.sign(it.move) === Math.sign(f.pos.x)) it.move = 0
     it.move *= c.walkMul
     // grappler walks you to the corner: shade toward the foe's back wall
     if (c.archetype === 'grappler' && adx < 3 && Math.abs(foe.pos.x) < WALL_X - 3) it.move = toward * 0.8
@@ -117,7 +137,7 @@ export class DuelAI {
     // ---------- reaction-tick decisions ----------
     this.decideT -= gdt
     if (this.decideT > 0) return it
-    this.decideT = c.reaction * rand(0.8, 1.6)
+    this.decideT = c.reaction * rand(0.85, 1.15) * (enraged ? 0.85 : 1)
 
     // specials with intent
     if (f.canCast() && this._castBest(adx, foe)) return it

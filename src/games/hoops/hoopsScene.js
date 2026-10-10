@@ -96,7 +96,6 @@ export default class HoopsScene {
       helpers: {
         toast: m => this.hud.toast(m),
         banner: (t, o) => this.hud.announce(t, o),
-        cometSlam: v => this._cometSlam(v),
         onCast: i => { this.match.casts[i]++ },
       },
     }, profile, bar)
@@ -291,6 +290,7 @@ export default class HoopsScene {
     const dist = distXZ(P, COURT.RIM_FLOOR)
     let halfW = 0.115 - dist * 0.0065 - this._contest() * 0.06
     if (g.eff.starfire) halfW += 0.05
+    if (g.eff.skyfallT > 0) halfW += 0.02 * Math.max(0, 1 - this._contest())
     if (g.onFire) halfW += 0.03
     return { center: 0.7, halfW: clamp(halfW, 0.025, 0.17), dist }
   }
@@ -308,7 +308,11 @@ export default class HoopsScene {
     let acc = clamp(0.92 - dist * 0.05 - contest * 0.38, 0.05, 0.97)
     if (g.eff.starfire) acc = Math.min(0.98, acc + 0.4)
     if (g.onFire) acc += 0.12
+    const skyfall = g.eff.skyfallT > 0
+    if (skyfall) acc = Math.min(0.97, acc + 0.16 * Math.max(0, 1 - contest))
+    g.eff.skyfallT = 0
     const make = perfect || (good && Math.random() < acc)
+    if (skyfall) this.hud.microLabel('SKYFALL RELEASE', 'heat')
     const val = isThree(p.hero.group.position) ? 3 : 2
     const quality = perfect ? 'perfect' : good ? 'good' : 'bad'
     this.hud.meterResult(quality)
@@ -537,15 +541,6 @@ export default class HoopsScene {
     this.ctx.audio.play('tower', { vol: 0.5 })
   }
 
-  _cometSlam(value) {
-    const g = this.game
-    if (g.phase !== 'live' || g.phase === 'end') return
-    this.hud.announce('SKYFALL SLAM!', { color: '#ff8c3b', duration: 1.8 })
-    this._confetti(COURT.RIM)
-    this.ball.dropThrough()
-    this._score('you', value, { comet: true })
-  }
-
   _startDunk(kind) {
     const g = this.game
     const p = g.player
@@ -590,6 +585,9 @@ export default class HoopsScene {
     const g = this.game
     if (g.phase === 'end') return
     g.phase = 'check'
+    g.eff.skyfallT = 0
+    g.eff.comet?.handle.kill()
+    g.eff.comet = null
     this._checkT = CHECK_DUR
     this._nudgeT = 0
     this._slowmoT = Math.min(this._slowmoT, 0.2)

@@ -257,6 +257,11 @@ export class Boss {
     this.actT = 3
     this.teleT = 0
     this.summoned = false
+    this.enraged = false
+    this.lastStand = false
+    this.attackIndex = 0
+    this.teleDuration = 1
+    this.attackRadius = 6
     this.t = 0
     this.slamPos = new THREE.Vector3()
 
@@ -287,57 +292,73 @@ export class Boss {
       return
     }
 
+    if (over) { this.tele.visible = false; hero.setMoveSpeed(0); hero.update(dt); return }
     const hp = this.hooks.heroPos
     const p = this.group.position
     const d = distXZ(p, hp)
     hero.faceTowards(hp, dt, 6)
-
-    if (!this.summoned && this.hp <= this.maxHp / 2) {
-      this.summoned = true
+    if (!this.enraged && this.hp <= this.maxHp / 2) {
+      this.enraged = this.summoned = true
+      this.hooks.enrage?.()
       this.hooks.summonMinions(p)
     }
-
+    if (!this.lastStand && this.hp <= this.maxHp * 0.2) {
+      this.lastStand = true
+      this.hooks.summonMinions(p)
+    }
     let moveAnim = 0
     if (this.state === 'stalk') {
-      if (!over && d > 3.4) {
-        const sp = 2.25
+      if (d > 3.4) {
+        const sp = this.enraged ? 4.1 : 3.0
         p.x += ((hp.x - p.x) / d) * sp * dt
         p.z += ((hp.z - p.z) / d) * sp * dt
-        moveAnim = 3.2
+        moveAnim = sp
       }
       this.actT -= dt
-      if (this.actT <= 0 && !over) {
-        if (d < 10.5) {
-          this.state = 'slam'
-          this.teleT = 0.95
-          this.slamPos.copy(hp)
-          this.tele.visible = true
-          this.tele.position.set(this.slamPos.x, 0.07, this.slamPos.z)
-          this.tele.scale.setScalar(0.1)
-          hero.cast()
-        } else {
-          this.state = 'burst'
-          this.teleT = 0.45
-          hero.cast()
+      if (this.actT <= 0) {
+        const pattern = this.attackIndex++ % 3
+        const kind = d > 12 || (pattern === 2 && d > 5) ? 'chargeTell' : pattern === 1 ? 'burst' : 'slam'
+        this.state = kind
+        this.teleDuration = kind === 'burst' ? 0.7 : this.enraged ? 0.85 : 1.05
+        this.teleT = this.teleDuration
+        this.attackRadius = kind === 'chargeTell' ? 4 : kind === 'burst' ? 3 : 6
+        this.slamPos.copy(kind === 'burst' ? p : hp)
+        if (kind === 'chargeTell') {
+          const distance = distXZ(p, this.slamPos)
+          if (distance > 14) this.slamPos.sub(p).multiplyScalar(14 / distance).add(p)
         }
+        const radius = Math.hypot(this.slamPos.x, this.slamPos.z)
+        const limit = this.hooks.arenaR - 2
+        if (radius > limit) this.slamPos.multiplyScalar(limit / radius)
+        this.tele.visible = true
+        this.tele.position.set(this.slamPos.x, 0.07, this.slamPos.z)
+        this.tele.scale.setScalar(this.attackRadius)
+        hero.cast()
       }
-    } else if (this.state === 'slam') {
-      this.teleT -= dt
-      const k = 1 - Math.max(0, this.teleT) / 0.95
-      this.tele.scale.setScalar(6 * (0.25 + 0.75 * k))
-      this.tele.material.opacity = 0.38 + 0.28 * Math.sin(this.t * 22)
-      if (this.teleT <= 0) {
+    } else if (this.state === 'recover') {
+      this.actT -= dt
+      if (this.actT <= 0) { this.state = 'stalk'; this.actT = this.enraged ? 1.25 : 1.9 }
+    } else if (this.state === 'charge') {
+      const distance = distXZ(p, this.slamPos)
+      const step = Math.min(distance, 18 * dt)
+      if (distance > 0) { p.x += (this.slamPos.x - p.x) / distance * step; p.z += (this.slamPos.z - p.z) / distance * step }
+      moveAnim = 9
+      if (distance <= step + 0.05) {
+        this.hooks.slam(this.slamPos, this.attackRadius)
         this.tele.visible = false
-        this.hooks.slam(this.slamPos)
-        this.state = 'stalk'
-        this.actT = rand(2.6, 3.6)
+        this.state = 'recover'; this.actT = 0.75
       }
-    } else if (this.state === 'burst') {
+    } else {
       this.teleT -= dt
+      this.tele.material.opacity = 0.42 + 0.18 * Math.sin(this.t * 18)
       if (this.teleT <= 0) {
-        this.hooks.radialBurst(p)
-        this.state = 'stalk'
-        this.actT = rand(2.4, 3.4)
+        if (this.state === 'chargeTell') this.state = 'charge'
+        else {
+          if (this.state === 'slam') this.hooks.slam(this.slamPos, this.attackRadius)
+          else this.hooks.radialBurst(p, this.enraged, this.attackIndex)
+          this.tele.visible = false
+          this.state = 'recover'; this.actT = 0.65
+        }
       }
     }
 

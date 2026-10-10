@@ -1,0 +1,142 @@
+{
+  "base": "http://127.0.0.1:5191",
+  "checks": [
+    {
+      "name": "Warden slamWarning",
+      "ok": true
+    },
+    {
+      "name": "Warden slamLocked",
+      "ok": true
+    },
+    {
+      "name": "Warden slamDodge",
+      "ok": true
+    },
+    {
+      "name": "Warden burstWarning",
+      "ok": true
+    },
+    {
+      "name": "Warden burstRecovery",
+      "ok": true
+    },
+    {
+      "name": "Warden chargeWarning",
+      "ok": true
+    },
+    {
+      "name": "Warden chargeLocked",
+      "ok": true
+    },
+    {
+      "name": "Warden enrage",
+      "ok": true
+    },
+    {
+      "name": "Warden enrageOnce",
+      "ok": true
+    },
+    {
+      "name": "Warden lastStand",
+      "ok": true
+    },
+    {
+      "name": "Warden finished",
+      "ok": true
+    },
+    {
+      "name": "Colossus slamWarning",
+      "ok": true
+    },
+    {
+      "name": "Colossus slamDodge",
+      "ok": true
+    },
+    {
+      "name": "Colossus distinct",
+      "ok": true
+    },
+    {
+      "name": "Colossus priority",
+      "ok": true
+    },
+    {
+      "name": "Colossus aligned",
+      "ok": true
+    },
+    {
+      "name": "Colossus outsideWarningSafe",
+      "ok": true
+    },
+    {
+      "name": "Colossus enrage",
+      "ok": true
+    },
+    {
+      "name": "Colossus playerTarget",
+      "ok": true
+    },
+    {
+      "name": "Colossus deathClearsMortars",
+      "ok": true
+    },
+    {
+      "name": "Colossus gateWarning",
+      "ok": true
+    },
+    {
+      "name": "Colossus gateImpact",
+      "ok": true
+    },
+    {
+      "name": "Colossus finished",
+      "ok": true
+    },
+    {
+      "name": "Colossus defeat",
+      "ok": true
+    },
+    {
+      "name": "ashborn closes distance",
+      "ok": true
+    },
+    {
+      "name": "ashborn one combo decision",
+      "ok": true
+    },
+    {
+      "name": "sera closes distance",
+      "ok": true
+    },
+    {
+      "name": "sera one combo decision",
+      "ok": true
+    },
+    {
+      "name": "gorehowl closes distance",
+      "ok": true
+    },
+    {
+      "name": "gorehowl one combo decision",
+      "ok": true
+    },
+    {
+      "name": "eternal closes distance",
+      "ok": true
+    },
+    {
+      "name": "eternal one combo decision",
+      "ok": true
+    },
+    {
+      "name": "Eternal faster wounded reactions",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true
+    }
+  ],
+  "errors": []
+}

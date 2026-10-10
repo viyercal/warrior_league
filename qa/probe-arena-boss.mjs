@@ -19,7 +19,7 @@ await page.evaluate(() => { window.__qaKeep = setInterval(() => { if (!window.__
 
 // jump to boss wave
 await page.evaluate(() => window.__scene.debug.wave(5))
-await page.waitForTimeout(1200)
+await page.waitForFunction(() => window.__scene.boss && window.__scene.cine.mode === 'boss' && window.__scene.env.fissureSurge.k > 0.2, null, { timeout: 15000 })
 const spawned = await page.evaluate(() => {
   const s = window.__scene
   return {

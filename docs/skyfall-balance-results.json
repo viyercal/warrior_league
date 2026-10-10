@@ -1,0 +1,55 @@
+{
+  "base": "http://127.0.0.1:5193",
+  "checks": [
+    {
+      "name": "keyboard cast arms a five second next-shot buff",
+      "ok": true
+    },
+    {
+      "name": "pause freezes buff duration",
+      "ok": true
+    },
+    {
+      "name": "hammer impact awards no points",
+      "ok": true
+    },
+    {
+      "name": "bad keyboard release misses and consumes buff",
+      "ok": true
+    },
+    {
+      "name": "noPossession",
+      "ok": true
+    },
+    {
+      "name": "expires",
+      "ok": true
+    },
+    {
+      "name": "turnover",
+      "ok": true
+    },
+    {
+      "name": "contest",
+      "ok": true
+    },
+    {
+      "name": "bad",
+      "ok": true
+    },
+    {
+      "name": "perfect",
+      "ok": true
+    },
+    {
+      "name": "reset",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

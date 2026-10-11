@@ -200,7 +200,12 @@ export default async function sports(ctx) {
       await keys(next)
       if (s.item) {
         // Exercise both the on-screen supply action and its keyboard equivalent.
-        if (supplyInputs % 2 === 0) await page.locator('.kart-item').click({ timeout: 2500 })
+        if (supplyInputs % 2 === 0) {
+          // Slow software rendering needs multiple frames for actionability.
+          // Stop held steering while the normal UI click is being delivered.
+          await keys([])
+          await page.locator('.kart-item').click({ timeout: 25000 })
+        }
         else await page.keyboard.press('f')
         supplyInputs++
         const afterItem = await page.evaluate(() => window.__scene.player.heldItem)

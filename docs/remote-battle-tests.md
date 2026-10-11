@@ -74,3 +74,14 @@ The assertion-only sports revision changes neither game code nor browser actions
 Siege's opening WAVE 1 announcement overlaps its PREPARE countdown in the remote build-affordance screenshot. This is a transient readability defect, not a confirmed gameplay blocker. Keep it in the UI follow-up queue. Difficulty settings and game rules were not changed during this triage.
 
 Compact check results and failure evidence are retained in [remote-battle-results.json](remote-battle-results.json).
+
+## Focused item-button retest
+
+Run [38111312236](https://github.com/viyercal/warrior_league/actions/runs/38111312236) passed on commit `b179974e01f2e2afa93263f0936dabe86c845fee`. It drove naturally to supplies and used ordinary, unforced locator clicks. Both calls completed without errors or coordinate fallback:
+
+- Fire Draught: trusted click consumed the held item and set boost duration to 2.2 and boost power to 12. Click delivery took 1.93 seconds at an observed 1.45 FPS.
+- Hunter Bolt: trusted click consumed the held item and created a player-owned homing projectile at speed 40. Click delivery took 2.02 seconds at an observed 1.25 FPS.
+
+The failed broad run had allowed only 2.5 seconds while rendering at 0.73 FPS. The focused test allowed 25 seconds and released held driving keys before the click. The broad sports journey now uses that same tested sequence. No game runtime code changed. This verifies the two item interactions, not full race completion.
+
+All four screenshot attempts timed out on the software renderer. The functional result is supported by the browser trace, trusted capture/bubble event records, and observed inventory/effect transitions; it does not establish additional visual QA. Compact evidence is saved in [kart-item-retest-results.json](kart-item-retest-results.json).

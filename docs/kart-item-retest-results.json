@@ -1,0 +1,283 @@
+{
+  "run": "38111312236",
+  "sha": "b179974e01f2e2afa93263f0936dabe86c845fee",
+  "environment": "GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35",
+  "method": "Natural pickups through real keyboard driving; ordinary locator clicks. Read-only game telemetry and trusted DOM event observations. No game-state injection.",
+  "passed": true,
+  "verifiedUses": 2,
+  "verifiedFireDraught": true,
+  "completeness": "Two uses including Fire Draught verified",
+  "findings": [],
+  "screenshots": [
+    {
+      "label": "attempt-1-before",
+      "available": false,
+      "reason": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    },
+    {
+      "label": "attempt-1-after",
+      "available": false,
+      "reason": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    },
+    {
+      "label": "attempt-2-before",
+      "available": false,
+      "reason": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    },
+    {
+      "label": "attempt-2-after",
+      "available": false,
+      "reason": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    }
+  ],
+  "url": "https://github.com/viyercal/warrior_league/actions/runs/38111312236",
+  "attempts": [
+    {
+      "item": "boost",
+      "beforeFPS": 1.4513366810832753,
+      "buttonBefore": {
+        "disabled": false,
+        "text": "FIRE DRAUGHTFBurst of speed",
+        "rect": {
+          "x": 26,
+          "y": 519,
+          "width": 280,
+          "height": 56
+        },
+        "visibility": "visible",
+        "display": "block",
+        "pointerEvents": "auto",
+        "hitTarget": {
+          "tag": "BUTTON",
+          "className": "kart-item ui-interactive",
+          "text": "FIRE DRAUGHTFBurst of speed"
+        },
+        "hitIsButton": true
+      },
+      "locatorDurationMs": 1932.571,
+      "standard": {
+        "method": "locator(.kart-item).click, timeout 25000ms, no force",
+        "started": 103.477,
+        "completed": true,
+        "assessment": {
+          "trustedClick": true,
+          "consumed": true,
+          "matchingEffect": true,
+          "verified": true,
+          "events": [
+            {
+              "sequence": 1,
+              "type": "pointerdown",
+              "phase": "capture",
+              "trusted": true,
+              "time": 104223.1,
+              "frame": 131,
+              "clock": 3.5494000000000194,
+              "item": "boost",
+              "target": "BUTTON",
+              "x": 166,
+              "y": 547,
+              "effect": {
+                "boostT": 0,
+                "boostPower": 10,
+                "damage": 0,
+                "slickT": 0,
+                "shells": [],
+                "slicks": []
+              }
+            },
+            {
+              "sequence": 2,
+              "type": "pointerup",
+              "phase": "capture",
+              "trusted": true,
+              "time": 104223.19999999998,
+              "frame": 131,
+              "clock": 3.5494000000000194,
+              "item": "boost",
+              "target": "BUTTON",
+              "x": 166,
+              "y": 547,
+              "effect": {
+                "boostT": 0,
+                "boostPower": 10,
+                "damage": 0,
+                "slickT": 0,
+                "shells": [],
+                "slicks": []
+              }
+            },
+            {
+              "sequence": 3,
+              "type": "click",
+              "phase": "capture",
+              "trusted": true,
+              "time": 104223.19999999998,
+              "frame": 131,
+              "clock": 3.5494000000000194,
+              "item": "boost",
+              "target": "BUTTON",
+              "x": 166,
+              "y": 547,
+              "effect": {
+                "boostT": 0,
+                "boostPower": 10,
+                "damage": 0,
+                "slickT": 0,
+                "shells": [],
+                "slicks": []
+              }
+            },
+            {
+              "sequence": 4,
+              "type": "click",
+              "phase": "bubble",
+              "trusted": true,
+              "time": 104226.4,
+              "frame": 131,
+              "clock": 3.5494000000000194,
+              "item": null,
+              "target": "BUTTON",
+              "x": 166,
+              "y": 547,
+              "effect": {
+                "boostT": 2.2,
+                "boostPower": 12,
+                "damage": 0,
+                "slickT": 0,
+                "shells": [],
+                "slicks": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "item": "bolt",
+      "beforeFPS": 1.252871163082063,
+      "buttonBefore": {
+        "disabled": false,
+        "text": "HUNTER BOLTFSeeks the racer ahead",
+        "rect": {
+          "x": 26,
+          "y": 518,
+          "width": 280,
+          "height": 56
+        },
+        "visibility": "visible",
+        "display": "block",
+        "pointerEvents": "auto",
+        "hitTarget": {
+          "tag": "BUTTON",
+          "className": "kart-item ui-interactive",
+          "text": "HUNTER BOLTFSeeks the racer ahead"
+        },
+        "hitIsButton": true
+      },
+      "locatorDurationMs": 2018.592,
+      "standard": {
+        "method": "locator(.kart-item).click, timeout 25000ms, no force",
+        "started": 163.258,
+        "completed": true,
+        "assessment": {
+          "trustedClick": true,
+          "consumed": true,
+          "matchingEffect": true,
+          "verified": true,
+          "events": [
+            {
+              "sequence": 5,
+              "type": "pointerdown",
+              "phase": "capture",
+              "trusted": true,
+              "time": 164098.69999999998,
+              "frame": 209,
+              "clock": 7.0605000000000135,
+              "item": "bolt",
+              "target": "BUTTON",
+              "x": 166,
+              "y": 546,
+              "effect": {
+                "boostT": 0,
+                "boostPower": 12,
+                "damage": 0,
+                "slickT": 0,
+                "shells": [],
+                "slicks": []
+              }
+            },
+            {
+              "sequence": 6,
+              "type": "pointerup",
+              "phase": "capture",
+              "trusted": true,
+              "time": 164099.1,
+              "frame": 209,
+              "clock": 7.0605000000000135,
+              "item": "bolt",
+              "target": "BUTTON",
+              "x": 166,
+              "y": 546,
+              "effect": {
+                "boostT": 0,
+                "boostPower": 12,
+                "damage": 0,
+                "slickT": 0,
+                "shells": [],
+                "slicks": []
+              }
+            },
+            {
+              "sequence": 7,
+              "type": "click",
+              "phase": "capture",
+              "trusted": true,
+              "time": 164099.1,
+              "frame": 209,
+              "clock": 7.0605000000000135,
+              "item": "bolt",
+              "target": "BUTTON",
+              "x": 166,
+              "y": 546,
+              "effect": {
+                "boostT": 0,
+                "boostPower": 12,
+                "damage": 0,
+                "slickT": 0,
+                "shells": [],
+                "slicks": []
+              }
+            },
+            {
+              "sequence": 8,
+              "type": "click",
+              "phase": "bubble",
+              "trusted": true,
+              "time": 164100.1,
+              "frame": 209,
+              "clock": 7.0605000000000135,
+              "item": null,
+              "target": "BUTTON",
+              "x": 166,
+              "y": 546,
+              "effect": {
+                "boostT": 0,
+                "boostPower": 12,
+                "damage": 0,
+                "slickT": 0,
+                "shells": [
+                  {
+                    "speed": 40,
+                    "homing": true
+                  }
+                ],
+                "slicks": []
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

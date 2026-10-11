@@ -1,0 +1,39 @@
+{
+  "base": "https://exterior-cheap-group-grew.trycloudflare.com",
+  "checks": [
+    {
+      "name": "arena mobile dodge cue is visible",
+      "ok": true
+    },
+    {
+      "name": "arena public boss casts warned ability",
+      "ok": true
+    },
+    {
+      "name": "siege mobile dodge cue is visible",
+      "ok": true
+    },
+    {
+      "name": "siege public boss casts warned ability",
+      "ok": true
+    },
+    {
+      "name": "duel mobile dodge cue is visible",
+      "ok": true
+    },
+    {
+      "name": "duel public boss casts warned ability",
+      "ok": true
+    },
+    {
+      "name": "public assets load successfully",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "failed": []
+}

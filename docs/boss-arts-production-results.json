@@ -1,0 +1,135 @@
+{
+  "base": "http://127.0.0.1:5195",
+  "checks": [
+    {
+      "name": "arena automatically casts ranged ability",
+      "ok": true
+    },
+    {
+      "name": "arena spell cue fits 1440",
+      "ok": true
+    },
+    {
+      "name": "arena spell cue fits 900",
+      "ok": true
+    },
+    {
+      "name": "arena spell cue fits 390",
+      "ok": true
+    },
+    {
+      "name": "arena pause freezes spell",
+      "ok": true
+    },
+    {
+      "name": "arena actual sidestep avoids aimed spell",
+      "ok": true
+    },
+    {
+      "name": "arena death cancels pending spell",
+      "ok": true
+    },
+    {
+      "name": "siege automatically casts ranged ability",
+      "ok": true
+    },
+    {
+      "name": "siege spell cue fits 1440",
+      "ok": true
+    },
+    {
+      "name": "siege spell cue fits 900",
+      "ok": true
+    },
+    {
+      "name": "siege spell cue fits 390",
+      "ok": true
+    },
+    {
+      "name": "siege pause freezes spell",
+      "ok": true
+    },
+    {
+      "name": "siege actual sidestep avoids aimed spell",
+      "ok": true
+    },
+    {
+      "name": "siege death cancels pending spell",
+      "ok": true
+    },
+    {
+      "name": "Crucible stage 1 automatically casts",
+      "ok": true,
+      "detail": {
+        "casts": 1,
+        "warnings": 1,
+        "type": "wave",
+        "name": "ASHBORN"
+      }
+    },
+    {
+      "name": "Crucible stage 1 result clears spells",
+      "ok": true
+    },
+    {
+      "name": "Crucible stage 2 automatically casts",
+      "ok": true,
+      "detail": {
+        "casts": 1,
+        "warnings": 1,
+        "type": "circle",
+        "name": "SERA THE COLD"
+      }
+    },
+    {
+      "name": "Crucible stage 2 result clears spells",
+      "ok": true
+    },
+    {
+      "name": "Crucible stage 3 automatically casts",
+      "ok": true,
+      "detail": {
+        "casts": 1,
+        "warnings": 1,
+        "type": "wave",
+        "name": "GOREHOWL"
+      }
+    },
+    {
+      "name": "Crucible stage 3 result clears spells",
+      "ok": true
+    },
+    {
+      "name": "Crucible stage 4 automatically casts",
+      "ok": true,
+      "detail": {
+        "casts": 1,
+        "warnings": 1,
+        "type": "wave",
+        "name": "THE ETERNAL"
+      }
+    },
+    {
+      "name": "Crucible stage 4 result clears spells",
+      "ok": true
+    },
+    {
+      "name": "Space jump dodges actual incoming ground wave",
+      "ok": true
+    },
+    {
+      "name": "standing still takes real spell damage",
+      "ok": true
+    },
+    {
+      "name": "Single Duel keeps its existing difficulty behavior",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": []
+}

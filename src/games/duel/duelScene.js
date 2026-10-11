@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { BossArts } from '../shared/bossArts.js'
 import { getSkill, KEY_CODES } from '../../meta/skills.js'
 import { HUD } from '../../ui/hud.js'
 import { VFX } from '../../art/vfx.js'
@@ -199,6 +200,7 @@ export default class DuelScene {
   // ============================== tower flow ==============================
 
   _setupFight(stage, { retry = false } = {}) {
+    this.bossArts?.dispose()
     this.stage = stage
     const spec = this.singleOpponent || TOWER[stage]
     // replace the previous opponent
@@ -216,7 +218,16 @@ export default class DuelScene {
     const Brain = this.mode === 'single' ? SingleDuelAI : DuelAI
     const tuning = this.mode === 'single' ? this.ctx.cpuDifficulty.duel : spec.ai
     this.ai = new Brain(this.foe, { ...tuning, specials: spec.specials }, { specials: this.specials, fight: this.fight })
+    this.bossArts = this.mode === 'single' ? null : new BossArts({
+      scene: this.scene, vfx: this.vfx, audio: this.ctx.audio, kind: `duel${stage}`, edge: EDGE,
+      source: () => this.foe.pos, target: () => this.player.pos,
+      canCast: () => this.foe.canAct() && this.foe.grounded && !this.foe.attack && this.player.hitstun <= 0 && this.player.kdT <= 0,
+      onCast: () => { this.foe.hero.cast(); this.foe.vel.x = 0 },
+      hit: (damage, pos, color) => this.fight.applyHit(this.foe, this.player, { dmg: damage, special: true, kind: 'special', hitstun: 0.3, kb: 2, color }),
+      announce: label => this.hud.toast(label, { cls: 'boss-art-cue' }),
+    })
     this.fight.setFighters(this.player, this.foe)
+    this.bossArts?.reset()
     this.specials.reset()
     this.fight.reset()
 
@@ -278,6 +289,7 @@ export default class DuelScene {
   _startRound() {
     this._cancelMouseMove()
     this.phase = 'prefight'
+    this.bossArts?.reset()
     this.specials.reset()
     this.fight.reset()
     this.player.resetRound(P_MARK)
@@ -312,6 +324,7 @@ export default class DuelScene {
   }
 
   _endRound(winner, byKO) {
+    this.bossArts?.reset()
     if (this.phase !== 'fight') return
     this._cancelMouseMove()
     const loser = winner === this.player ? this.foe : this.player
@@ -447,6 +460,7 @@ export default class DuelScene {
   // ---------- match resolution ----------
 
   _endMatch(won) {
+    this.bossArts?.reset()
     this.specials.reset()
     this.orbitTarget = 0
     if (this.mode === 'single') { this._singleResult(won); return }
@@ -540,6 +554,7 @@ export default class DuelScene {
   }
 
   _cleanupFlow() {
+    this.bossArts?.reset()
     this._cancelMouseMove()
     this.gen++
     for (const id of this._timeouts) this.ctx.clearTimeout(id)
@@ -657,6 +672,7 @@ export default class DuelScene {
     } else this.timeScale = 1
     const gdt = dt * this.timeScale
 
+    if (this.phase !== 'fight') this.bossArts?.reset()
     this.fight.active = this.phase === 'fight'
 
     switch (this.phase) {
@@ -673,7 +689,9 @@ export default class DuelScene {
       case 'fight': {
         const pIt = this._playerIntent()
         this.player.update(gdt, dt, pIt, this.foe)
-        this.foe.update(gdt, dt, this.ai.update(gdt), this.player)
+        this.bossArts?.update(gdt, this.player.hp > 0 && this.foe.hp > 0)
+        if (this.phase !== 'fight') break
+        this.foe.update(gdt, dt, this.bossArts?.casting ? this._zero : this.ai.update(gdt), this.player)
         this.specials.update(gdt)
         this.fight.update(gdt)
         this.roundT -= gdt
@@ -824,6 +842,7 @@ export default class DuelScene {
   }
 
   dispose() {
+    this.bossArts?.dispose()
     this.disposed = true
     this.gen++
     for (const id of this._timeouts) this.ctx.clearTimeout(id)

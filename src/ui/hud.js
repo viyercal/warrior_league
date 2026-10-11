@@ -113,8 +113,8 @@ export class HUD {
   }
 
   /** Bottom toast message. */
-  toast(msg, { duration = 2.6 } = {}) {
-    const t = this.el('div', 'ui-toast', msg)
+  toast(msg, { duration = 2.6, cls = '' } = {}) {
+    const t = this.el('div', `ui-toast ${cls}`, msg)
     this.later(() => t.classList.add('out'), duration * 1000)
     this.later(() => t.remove(), duration * 1000 + 500)
   }

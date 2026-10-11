@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { BossArts } from '../shared/bossArts.js'
 import { ClickMove } from '../../core/clickMove.js'
 import { getSkill, WASD_KEY_LABELS, wasdKeyIndex } from '../../meta/skills.js'
 import { VFX } from '../../art/vfx.js'
@@ -285,7 +286,7 @@ export default class SiegeScene {
       this.ctx.engine.shake(0.22, 0.4)
     }
     if (this.phase === 'bossin' && this.boss) {
-      this._updateBoss(dt) // the Colossus marches through its own entrance
+      this.boss.hero.update(dt) // attacks wait until the player regains control
       if (!this._bossCardRemove && this.cine.t >= 1.1) {
         this._bossCardRemove = this.hud.bossCard()
         this.ctx.audio.play('kill', { vol: 0.8 })
@@ -462,6 +463,7 @@ export default class SiegeScene {
   }
 
   _playerDown() {
+    this.bossArts?.reset()
     this.hp = 0
     this.deadT = 5
     this.hero.setState('ko')
@@ -1121,6 +1123,15 @@ export default class SiegeScene {
   // ============================== boss ==============================
 
   _spawnBoss() {
+    this.bossArts?.dispose()
+    this.bossArts = new BossArts({
+      scene: this.scene, vfx: this.vfx, audio: this.ctx.audio, kind: 'siege', radius: FIELD_R,
+      source: () => this.boss.group.position, target: () => this.hero.group.position,
+      canCast: () => this.boss.state === 'march',
+      onCast: () => { this.boss.hero.cast(); this.boss.hero.setMoveSpeed(0) },
+      hit: (damage, pos) => this._damageHero(damage, pos, { knock: 3 }),
+      announce: label => this.hud.hud.toast(label, { cls: 'boss-art-cue' }),
+    })
     this.boss = new Colossus(this.scene, {
       heroPos: this.hero.group.position,
       anyTurretAlive: () => this.turrets.anyAlive(),
@@ -1228,6 +1239,7 @@ export default class SiegeScene {
   }
 
   _bossDeath() {
+    this.bossArts?.reset()
     const boss = this.boss
     if (!boss || !boss.alive) return
     boss.alive = false
@@ -1264,7 +1276,9 @@ export default class SiegeScene {
   }
 
   _updateBoss(gdt) {
-    this.boss.update(gdt, !!this.over)
+    this.bossArts?.update(gdt, this.boss.alive && !this.over && this.deadT <= 0 && this.phase === 'play')
+    if (this.bossArts?.casting && this.boss.alive) this.boss.hero.update(gdt)
+    else this.boss.update(gdt, !!this.over)
     this.hud.setBoss(Math.max(0, this.boss.hp) / this.boss.maxHp, this.boss.enraged)
   }
 
@@ -1338,6 +1352,7 @@ export default class SiegeScene {
   }
 
   _victory() {
+    this.bossArts?.reset()
     if (this.over) return
     this.over = 'won'
     if (this.phase !== 'play') this._endCine()
@@ -1409,6 +1424,7 @@ export default class SiegeScene {
   }
 
   _citadelDown() {
+    this.bossArts?.reset()
     if (this.over) return
     this.over = 'fallen'
     if (this.phase !== 'play') this._endCine()
@@ -1450,6 +1466,7 @@ export default class SiegeScene {
   }
 
   _jumpWave(n) {
+    this.bossArts?.reset()
     if (this.over) return
     if (this.phase !== 'play') this._endCine()
     this.spawnQueue.length = 0
@@ -1512,6 +1529,7 @@ export default class SiegeScene {
   }
 
   dispose() {
+    this.bossArts?.dispose()
     this.disposed = true
     for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this.ctx.engine.setExposure(1.12) // undo boss-dip / dawn grade

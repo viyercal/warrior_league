@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { BossArts } from '../shared/bossArts.js'
 import { ClickMove } from '../../core/clickMove.js'
 import { getSkill, WASD_KEY_LABELS, wasdKeyIndex } from '../../meta/skills.js'
 import { HUD } from '../../ui/hud.js'
@@ -1051,6 +1052,15 @@ export default class ArenaScene {
   // ============================== boss ==============================
 
   _spawnBoss() {
+    this.bossArts?.dispose()
+    this.bossArts = new BossArts({
+      scene: this.scene, vfx: this.vfx, audio: this.ctx.audio, kind: 'pit', radius: ARENA_R,
+      source: () => this.boss.group.position, target: () => this.hero.group.position,
+      canCast: () => this.boss.state === 'stalk',
+      onCast: () => { this.boss.hero.cast(); this.boss.hero.setMoveSpeed(0) },
+      hit: (damage, pos) => this._damageHero(damage, pos, { knock: 3 }),
+      announce: label => this.hud.toast(label, { cls: 'boss-art-cue' }),
+    })
     const hp = this.hero.group.position
     let best = this.env.gates[0], bd = -1
     for (const g of this.env.gates) {
@@ -1109,6 +1119,7 @@ export default class ArenaScene {
   }
 
   _bossDeath() {
+    this.bossArts?.reset()
     const boss = this.boss
     if (!boss || !boss.alive) return
     boss.alive = false
@@ -1137,6 +1148,7 @@ export default class ArenaScene {
   }
 
   _removeBoss() {
+    this.bossArts?.reset()
     const boss = this.boss
     if (!boss) return
     this.bossBox.style.display = 'none'
@@ -1147,7 +1159,9 @@ export default class ArenaScene {
   }
 
   _updateBoss(gdt) {
-    this.boss.update(gdt, !!this.over)
+    this.bossArts?.update(gdt, this.boss.alive && !this.over && !this.cine.active)
+    if (this.bossArts?.casting && this.boss.alive) this.boss.hero.update(gdt)
+    else this.boss.update(gdt, !!this.over)
     this.bossFill.style.width = `${(Math.max(0, this.boss.hp) / this.boss.maxHp) * 100}%`
   }
 
@@ -1206,6 +1220,7 @@ export default class ArenaScene {
     // boss bolts vs hero
     for (let i = this.bossBolts.length - 1; i >= 0; i--) {
       const h = this.bossBolts[i]
+      if (this.over || !this.boss?.alive) h.kill()
       if (!h.alive) { this.bossBolts.splice(i, 1); continue }
       if (Math.hypot(h.pos.x, h.pos.z) > ARENA_R + 4) {
         h.kill()
@@ -1246,6 +1261,7 @@ export default class ArenaScene {
   }
 
   _victory() {
+    this.bossArts?.reset()
     if (this.over) return
     this.over = 'won'
     this._clearBanners()
@@ -1277,6 +1293,7 @@ export default class ArenaScene {
   }
 
   _defeat() {
+    this.bossArts?.reset()
     if (this.over) return
     this.over = 'dead'
     this._clearBanners()
@@ -1350,6 +1367,7 @@ export default class ArenaScene {
   }
 
   dispose() {
+    this.bossArts?.dispose()
     this.disposed = true
     for (const id of this._timeouts) this.ctx.clearTimeout(id)
     this.cine.dispose()

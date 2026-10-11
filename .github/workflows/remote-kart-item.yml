@@ -1,0 +1,42 @@
+name: Remote kart item retest
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/astra-immersive-realms]
+    paths:
+      - 'qa/kart-item.mjs'
+      - '.github/workflows/remote-kart-item.yml'
+permissions:
+  contents: read
+jobs:
+  kart-item:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright-core install --with-deps chromium
+      - run: npm run build
+      - name: Start isolated production server
+        run: |
+          python3 tools/serve-game.py --port 5189 > /tmp/kart-item-server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:5189/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/kart-item-server.log
+          exit 1
+      - name: Collect and use race items through real input
+        run: node qa/kart-item.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kart-item-evidence
+          path: battle-artifacts/kart-item/
+          retention-days: 7

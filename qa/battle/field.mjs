@@ -89,7 +89,7 @@ export default async function field(ctx) {
     // Compare scene identities to prove a new instance, even when the route is unchanged.
     const previous = await page.evaluateHandle(() => window.__scene);
     try {
-      await act('restart through pause menu', () => page.locator('[data-action="restart"]').click());
+      await act('restart through pause menu', () => page.locator('[data-action="restart"]').click({timeout: 20000}));
       await ready(mode, previous);
     } finally { await previous.dispose(); }
     await skipIntro(mode);

@@ -7,12 +7,16 @@ export default async function fighters(ctx) {
     const fighter = f => f ? {
       name: f.name, x: f.pos?.x, y: f.pos?.y, hp: f.hp, damage: f.dmg,
       stocks: f.stocks, state: f.state, grounded: f.grounded,
+      walkDir: f.walkDir, attack: !!f.attack, hitstun: f.hitstun || 0,
+      blockstun: f.blockstun || 0, kdT: f.kdT || 0, staggerT: f.staggerT || 0,
+      grabbed: !!f.grabbed, dragT: f.dragT || 0, juggleFall: !!f.juggleFall,
     } : null
     return {
       scene: s?.constructor?.name, phase: s?.phase, mode: s?.mode,
       over: s?.over, stage: s?.stage, round: s?.round, roundT: s?.roundT,
       camera: s?.camera && { x: s.camera.position.x, y: s.camera.position.y, z: s.camera.position.z },
       elapsed: e?.elapsedTime, paused: e?.paused, fps: e?.fps,
+      inputBlocked: window.__ipl?.input?.blocked, moveTargetX: s?.moveTargetX,
       player: fighter(s?.player), foe: fighter(s?.foe),
       others: (s?.baseFighters || []).filter(f => f !== s?.player).map(fighter),
       cds: s?.cds ? [...s.cds] : [], casts: s?.bossArts?.casts,
@@ -27,6 +31,7 @@ export default async function fighters(ctx) {
     try { await sleep(ms) } finally { await page.keyboard.up(key) }
   }
   const waitFight = async label => {
+    const initial = await read()
     const until = Date.now() + 45000
     while (Date.now() < until) {
       const s = await read()
@@ -35,8 +40,21 @@ export default async function fighters(ctx) {
       if (['cine', 'bossin', 'intro'].includes(s.phase)) await press('z')
       await sleep(750)
     }
+    let latest = await read()
+    if (latest.phase === 'fight' || latest.over) return latest
     await capture(`${label}-start-timeout`)
-    note('blocker', `${label}: fight did not start`, await read())
+    // A slow screenshot can itself span the final countdown frames. Classify
+    // the latest state, never a stale timeout decision followed by a live fight.
+    latest = await read()
+    if (latest.phase === 'fight' || latest.over) return latest
+    const simSeconds = latest.elapsed - initial.elapsed
+    const expectedPhase = ['cine', 'bossin', 'intro', 'plates', 'prefight', 'ready'].includes(latest.phase)
+    if (!expectedPhase || simSeconds >= 8)
+      note('blocker', `${label}: fight did not start`, { initial, latest, simSeconds })
+    else note('coverage', `${label}: startup unverified within runner time bound`, {
+      reason: 'The software renderer did not advance enough simulation time to distinguish a stalled game from a slow countdown.',
+      initial, latest, simSeconds,
+    })
     return null
   }
   const menuAndHelp = async label => {
@@ -59,6 +77,76 @@ export default async function fighters(ctx) {
       await sleep(1100)
       check(`${label}: resume advances simulation`, (await read()).elapsed > after.elapsed, await read())
     })
+  }
+  const mouseWalking = async label => {
+    const actionable = s => s.phase === 'fight' && !s.paused && !s.inputBlocked &&
+      s.player?.hp > 0 && s.player.grounded && !s.player.attack &&
+      !s.player.hitstun && !s.player.blockstun && !s.player.kdT && !s.player.staggerT &&
+      !s.player.grabbed && !s.player.dragT && !s.player.juggleFall
+    const deadline = Date.now() + 30000
+    let before, point
+    // Find an ordinary actionable moment and click away from the opponent.
+    // Do not manufacture a safe setup or mistake a contact stop for rejection.
+    while (Date.now() < deadline) {
+      before = await read()
+      if (before.phase !== 'fight') break
+      if (actionable(before)) {
+        point = await page.evaluate(() => {
+          const s = window.__scene, p = s.player.pos, foeX = s.foe.pos.x
+          const targets = [Math.max(-10, p.x - 2), Math.min(10, p.x + 2)]
+            .filter(x => Math.abs(x - p.x) >= 1.25 && (foeX - p.x) * (x - p.x) <= 0)
+          if (!targets.length) return null
+          const v = p.clone(); v.x = targets[0]; v.y = 1; v.project(s.camera)
+          const x = (v.x + 1) * innerWidth / 2, y = (1 - v.y) * innerHeight / 2
+          if (x < 1 || x >= innerWidth - 1 || y < 1 || y >= innerHeight - 1) return null
+          if (document.elementFromPoint(x, y)?.tagName !== 'CANVAS') return null
+          return { x, y, worldX: targets[0] }
+        })
+        if (point) break
+      }
+      await sleep(150)
+    }
+    if (!point) {
+      note('coverage', `${label}: mouse walking unverified`, { reason: 'No reachable clear-ground click opportunity within 30 seconds of live combat.', before })
+      return
+    }
+    await page.mouse.click(point.x, point.y, { button: 'right' })
+    const accepted = await read()
+    if (accepted.phase !== 'fight' || accepted.player.hp <= 0) {
+      note('coverage', `${label}: mouse walking interrupted by round transition`, { before, accepted })
+      return
+    }
+    const hasOrder = Number.isFinite(accepted.moveTargetX)
+    check(`${label}: right-click accepts a walking destination`, hasOrder, { point, before, accepted })
+    if (!hasOrder) return
+    const direction = Math.sign(accepted.moveTargetX - accepted.player.x)
+    let previous = accepted, opportunity = 0, cleanTravel = 0, interruptions = 0, passed = false
+    const samples = [accepted]
+    const movementDeadline = Date.now() + 30000
+    while (Date.now() < movementDeadline && opportunity < 0.8) {
+      await sleep(150)
+      const current = await read()
+      samples.push(current)
+      if (current.phase !== 'fight' || current.player.hp <= 0) { interruptions++; break }
+      const dt = current.elapsed - previous.elapsed
+      const clean = actionable(previous) && actionable(current) && previous.player.hp === current.player.hp
+      if (clean && dt > 0) {
+        opportunity += dt
+        // A hit or knockback cannot satisfy movement: require directional walk
+        // intent and count displacement only within an undamaged interval.
+        if (current.player.walkDir === direction || previous.player.walkDir === direction)
+          cleanTravel += Math.max(0, (current.player.x - previous.player.x) * direction)
+        if (cleanTravel > 0.25) { passed = true; break }
+      } else if (dt > 0) interruptions++
+      previous = current
+    }
+    const evidence = { point, before, accepted, opportunity, cleanTravel, interruptions, samples }
+    if (passed || opportunity >= 0.8)
+      check(`${label}: right-click produces walking`, passed, evidence)
+    else note('coverage', `${label}: mouse walking unverified`, {
+      reason: 'Combat or software-renderer speed prevented 0.8 actionable simulation seconds within the 30 second observation bound.', ...evidence,
+    })
+    await capture(`${label}-mouse-walking`)
   }
   for (const mode of ['duel&mode=tower', 'duel&mode=single', 'brawl']) {
     const label = mode === 'brawl' ? 'brawl' : mode.includes('single') ? 'single-duel' : 'tower'
@@ -85,20 +173,7 @@ export default async function fighters(ctx) {
       await menuAndHelp(label)
       await capture(`${label}-battle-start`)
       if (mode !== 'brawl') {
-        await act(`${label}: right-click lane walking`, async () => {
-          const before = await read()
-          const point = await page.evaluate(() => {
-            const s = window.__scene, v = s.player.pos.clone()
-            v.x -= 2; v.y += 1
-            v.project(s.camera)
-            return { x: (v.x + 1) * innerWidth / 2, y: (1 - v.y) * innerHeight / 2 }
-          })
-          await page.mouse.click(point.x, point.y, { button: 'right' })
-          await sleep(1800)
-          const after = await read()
-          check(`${label}: right-click produces walking`, Math.abs(after.player.x - before.player.x) > 0.25, { before, after })
-          await capture(`${label}-mouse-walking`)
-        })
+        await act(`${label}: right-click lane walking`, () => mouseWalking(label))
       }
       const observations = [start]
       let iteration = 0, retried = false, warningCaptured = false, resultCaptured = false

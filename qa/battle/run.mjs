@@ -86,6 +86,23 @@ try {
   await context?.tracing.stop({ path: path.join(dir, 'trace.zip') }).catch(() => {})
   await browser?.close().catch(() => {})
   await appendFile(path.join(dir, 'events.jsonl'), events.map(x => JSON.stringify(x)).join('\n') + '\n')
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    const failed = checks.filter(x => !x.passed)
+    const errors = findings.filter(x => ['error', 'blocker'].includes(x.severity))
+    const gaps = [...new Set(findings.filter(x => x.severity === 'coverage').map(x => x.title))]
+    const line = text => String(text).replace(/[\r\n]/g, ' ')
+    const summary = [
+      `## ${group} battle session`,
+      `Revision: ${process.env.GITHUB_SHA}`,
+      `${checks.length - failed.length}/${checks.length} recorded checks passed; ${errors.length} interrupted sessions or runtime errors.`,
+      'Passing checks cover only observed behavior. Unreached encounters and missing screenshots remain unverified.',
+      ...failed.map(x => `- Failed check: ${line(x.name)}`),
+      ...errors.map(x => `- Error: ${line(x.title)}`),
+      ...gaps.map(x => `- Coverage gap: ${line(x)}`),
+      'See report.json for evidence, simulation progress, and input history.',
+    ]
+    await appendFile(process.env.GITHUB_STEP_SUMMARY, summary.join('\n\n') + '\n')
+  }
   console.log(JSON.stringify({ issues: findings.filter(x => ['error', 'blocker'].includes(x.severity)), failedChecks: checks.filter(x => !x.passed) }))
   console.log(JSON.stringify({ group, checks: checks.length, failed: checks.filter(x => !x.passed).length, findings: findings.length, fatal: !!fatal }))
 }

@@ -83,10 +83,37 @@ export default async function sports(ctx) {
         // Walk via cursor to a realistic shot position, then use the normal meter.
         const target = await pointOnCourt(attempts % 2 ? 2.4 : -2.4, -1.4)
         if (target.visible) { await page.mouse.click(target.x, target.y, { button: 'right' }); await sleep(650) }
+        const meterBefore = await page.evaluate(() => ({ t: window.__scene.game.t, fps: window.__ipl.engine.fps, attempts: window.__scene.match.attempts,
+          phase: window.__scene.game.phase, holder: window.__scene.ball.holder, offense: window.__scene.game.offense, shotClock: window.__scene.game.clock, slowmo: window.__scene._slowmoT }))
+        let meterWait = 'start'
         await page.keyboard.down('Space')
         try {
           await page.waitForFunction(() => window.__scene.game.player.metering || window.__scene.game.phase !== 'live' || window.__scene.ball.holder !== 'player', undefined, { timeout: 2000, polling: 40 })
-          await page.waitForFunction(() => !window.__scene.game.player.metering || window.__scene.game.player.meterT >= .66, undefined, { timeout: 6500, polling: 40 })
+          meterWait = 'progress'
+          await page.waitForFunction(() => !window.__scene.game.player.metering || window.__scene.game.player.meterT >= .66, undefined, { timeout: 15000, polling: 80 })
+        } catch (error) {
+          if (error.name !== 'TimeoutError') throw error
+          const after = await page.evaluate(() => ({ t: window.__scene.game.t, fps: window.__ipl.engine.fps, phase: window.__scene.game.phase,
+            paused: window.__ipl.engine.paused, holder: window.__scene.ball.holder, meter: window.__scene.game.player.meterT,
+            metering: window.__scene.game.player.metering, attempts: window.__scene.match.attempts, offense: window.__scene.game.offense,
+            shotClock: window.__scene.game.clock, slowmo: window.__scene._slowmoT, inputDown: window.__ipl.input.isDown('Space'), focused: document.hasFocus(),
+            focusIntercepts: !!document.activeElement?.closest('button, input, textarea, select, a, [contenteditable], [role="dialog"], .ui-interactive') }))
+          const simulationSeconds = after.t - meterBefore.t
+          const gameplaySeconds = meterBefore.shotClock - after.shotClock
+          const detail = { before: meterBefore, after, simulationSeconds, gameplaySeconds, wait: meterWait, message: error.message }
+          const ordinaryPossession = meterBefore.phase === 'live' && meterBefore.holder === 'player' && meterBefore.offense === 'player'
+            && after.phase === 'live' && after.holder === 'player' && after.offense === 'player' && !after.paused
+          // The shot clock and meter both use scaled gameplay time, unlike game.t.
+          const sufficientTime = gameplaySeconds >= .8
+          if (ordinaryPossession && sufficientTime && after.metering && after.meter < .66) {
+            check('Court held meter advances after sufficient simulation time', false, detail)
+          } else if (meterWait === 'start' && ordinaryPossession && sufficientTime && !after.metering
+            && after.inputDown && after.focused && !after.focusIntercepts && after.attempts === meterBefore.attempts) {
+            check('Court held shot starts while input and possession are available', false, detail)
+          } else {
+            // Low simulation progress or an interrupted possession cannot establish a meter defect.
+            note('coverage', 'Court meter wait reached wall-clock limit', detail)
+          }
         } finally { await page.keyboard.up('Space') }
         attempts++
         await sleep(550)

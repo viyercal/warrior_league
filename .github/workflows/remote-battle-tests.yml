@@ -1,0 +1,46 @@
+name: Remote battle tests
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/astra-immersive-realms]
+    paths:
+      - 'qa/battle/**'
+      - '.github/workflows/remote-battle-tests.yml'
+permissions:
+  contents: read
+jobs:
+  battle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [field, fighters, sports]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright-core install --with-deps chromium
+      - run: npm run build
+      - name: Start isolated production server
+        run: |
+          python3 tools/serve-game.py --port 5189 > /tmp/battle-server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:5189/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/battle-server.log
+          exit 1
+      - name: Play using normal browser inputs
+        run: node qa/battle/run.mjs ${{ matrix.group }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: battle-${{ matrix.group }}
+          path: battle-artifacts/
+          retention-days: 7

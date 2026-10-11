@@ -61,7 +61,7 @@ export default async function sports(ctx) {
     while (Date.now() - start < 95000) {
       const s = await page.evaluate(() => {
         const s = window.__scene, g = s.game, p = g.player.hero.group.position, a = g.ai.hero.group.position
-        return { phase: g.phase, t: g.t, score: { ...g.score }, holder: s.ball.holder, offense: g.offense, clock: g.clock,
+        return { phase: g.phase, t: g.t, attempts: s.match.attempts, makes: s.match.makes, score: { ...g.score }, holder: s.ball.holder, offense: g.offense, clock: g.clock,
           p: { x: p.x, z: p.z }, a: { x: a.x, z: a.z }, metering: g.player.metering, meter: g.player.meterT, buff: g.eff.skyfallT,
           skills: s.abilities.defs?.map(x => x.id) || s.ctx.profile.loadout }
       })
@@ -85,6 +85,7 @@ export default async function sports(ctx) {
         if (target.visible) { await page.mouse.click(target.x, target.y, { button: 'right' }); await sleep(650) }
         await page.keyboard.down('Space')
         try {
+          await page.waitForFunction(() => window.__scene.game.player.metering || window.__scene.game.phase !== 'live' || window.__scene.ball.holder !== 'player', undefined, { timeout: 2000, polling: 40 })
           await page.waitForFunction(() => !window.__scene.game.player.metering || window.__scene.game.player.meterT >= .66, undefined, { timeout: 6500, polling: 40 })
         } finally { await page.keyboard.up('Space') }
         attempts++
@@ -100,10 +101,11 @@ export default async function sports(ctx) {
     }
     await capture('court-final-observed')
     const first = states[0], last = states.at(-1)
+    const confirmed = await page.evaluate(() => ({ attempts: window.__scene.match.attempts, makes: window.__scene.match.makes }))
     check('Court simulation progresses during real input', last.t > first.t + 8, { first, last })
-    check('Court allows real shot attempts', attempts > 0, { attempts, defenses })
+    check('Court registers actual shot attempts', confirmed.attempts > first.attempts, { confirmed, initialAttempts: first.attempts, inputSequences: attempts, defenses })
     check('Court match produces scoring or possession changes', states.some(s => s.score.you + s.score.cpu > 0) || states.some(s => s.offense !== first.offense), { attempts, defenses, last })
-    note('info', 'Blood Court battle trace', { attempts, defenses, samples: states.filter((_, i) => i % 8 === 0), last, skyfallChecked })
+    note('info', 'Blood Court battle trace', { inputSequences: attempts, confirmed, defenses, samples: states.filter((_, i) => i % 8 === 0), last, skyfallChecked })
     await page.keyboard.press('Escape')
     await page.locator('[data-action="hub"]').click()
     await sceneReady('hub')
@@ -115,7 +117,7 @@ export default async function sports(ctx) {
     await page.keyboard.press('z')
     await page.waitForFunction(() => window.__scene.state === 'race', undefined, { timeout: 40000 })
     const start = Date.now(), samples = []
-    let lastSample = 0, lastCapture = 0, lastSkill = 0, supplyUses = 0, pauseChecked = false, driftChecked = false
+    let lastSample = 0, lastCapture = 0, lastSkill = 0, supplyInputs = 0, supplyUses = 0, pauseChecked = false, driftChecked = false
     while (Date.now() - start < 160000) {
       const s = await page.evaluate(() => {
         const s = window.__scene, p = s.player, tr = s.track
@@ -137,9 +139,12 @@ export default async function sports(ctx) {
       await keys(next)
       if (s.item) {
         // Exercise both the on-screen supply action and its keyboard equivalent.
-        if (supplyUses % 2 === 0) await page.locator('.kart-item').click({ timeout: 2500 })
+        if (supplyInputs % 2 === 0) await page.locator('.kart-item').click({ timeout: 2500 })
         else await page.keyboard.press('f')
-        supplyUses++
+        supplyInputs++
+        const afterItem = await page.evaluate(() => window.__scene.player.heldItem)
+        if (afterItem !== s.item) supplyUses++
+        else note('coverage', 'Supply input was not confirmed as consumed', { item: s.item, afterItem, input: supplyInputs % 2 ? 'click' : 'key' })
       }
       if (Date.now() - lastSkill > 13000) { await page.keyboard.press('4'); await page.keyboard.press('2'); lastSkill = Date.now() }
       if (!driftChecked && s.clock > 12 && Math.abs(s.angle) > .12 && s.speed > 15) {
@@ -160,7 +165,7 @@ export default async function sports(ctx) {
     check('Race progress advances with ordinary steering', final.progress > .3, final)
     check('Race keeps finite positions and speeds', samples.every(s => Number.isFinite(s.speed) && Number.isFinite(s.pos.x) && Number.isFinite(s.pos.z)), samples.at(-1))
     check('Rival racers advance through the course', samples.at(-1)?.rivals.every(r => r.progress > .3), samples.at(-1)?.rivals)
-    note('info', 'War Chariots battle trace', { final, supplyUses, driftChecked, samples })
+    note('info', 'War Chariots battle trace', { final, supplyInputs, supplyUses, driftChecked, samples })
     if (!final.finished) note('coverage', 'Race did not finish within bounded remote play session', { final, wallSeconds: (Date.now() - start) / 1000 })
     // Restart and hub leave must remain available after real race input.
     await page.keyboard.press('Escape'); await page.locator('[data-action="restart"]').click()

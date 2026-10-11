@@ -19,14 +19,14 @@ const note = (severity, title, detail) => findings.push(record('finding', { seve
 const check = (name, condition, detail) => checks.push(record('check', { name, passed: !!condition, detail }))
 const persist = () => writeFile(path.join(dir, 'report.json'), JSON.stringify({
   group, sha: process.env.GITHUB_SHA, run: process.env.GITHUB_RUN_ID,
-  environment: 'GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL',
+  environment: 'GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35 (448x252 render, 1280x720 UI)',
   method: 'Adaptive scripted real browser inputs with read-only game telemetry; no runtime state injection',
   seconds: (Date.now() - started) / 1000, fatal, checks, findings, events,
 }, null, 2))
 try {
   browser = await chromium.launch({ headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-dev-shm-usage'] })
   context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 })
-  await context.tracing.start({ screenshots: true, snapshots: true })
+  await context.tracing.start({ screenshots: false, snapshots: false })
   page = await context.newPage()
   page.setDefaultTimeout(8000)
   page.setDefaultNavigationTimeout(90000)
@@ -49,13 +49,15 @@ try {
     const stem = `${String(++sequence).padStart(3, '0')}-${label.replace(/[^a-z0-9-]/gi, '-').slice(0, 90)}`
     const state = await observe()
     await writeFile(path.join(dir, `${stem}.json`), JSON.stringify(state, null, 2))
-    await page.screenshot({ path: path.join(dir, `${stem}.png`), timeout: 20000 })
-    record('capture', { label, file: `${stem}.png`, state })
+    let screenshotSaved = false
+    try { await page.screenshot({ path: path.join(dir, `${stem}.png`), timeout: 8000 }); screenshotSaved = true }
+    catch (error) { note('coverage', 'Screenshot unavailable', { label, message: error.message }) }
+    record('capture', { label, file: screenshotSaved ? `${stem}.png` : null, state })
     await persist()
     return state
   }
   const open = async mode => {
-    await page.goto(`http://127.0.0.1:5189/?scene=${mode}&dpr=1`, { waitUntil: 'domcontentloaded' })
+    await page.goto(`http://127.0.0.1:5189/?scene=${mode}&dpr=0.35`, { waitUntil: 'domcontentloaded' })
     await page.waitForFunction(name => window.__ipl?.sm?.currentName === name && !!window.__scene, mode.split('&')[0], { timeout: 90000 })
     record('open', { mode })
   }
@@ -84,5 +86,6 @@ try {
   await context?.tracing.stop({ path: path.join(dir, 'trace.zip') }).catch(() => {})
   await browser?.close().catch(() => {})
   await appendFile(path.join(dir, 'events.jsonl'), events.map(x => JSON.stringify(x)).join('\n') + '\n')
+  console.log(JSON.stringify({ issues: findings.filter(x => ['error', 'blocker'].includes(x.severity)), failedChecks: checks.filter(x => !x.passed) }))
   console.log(JSON.stringify({ group, checks: checks.length, failed: checks.filter(x => !x.passed).length, findings: findings.length, fatal: !!fatal }))
 }

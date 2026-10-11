@@ -2,6 +2,19 @@
 export default async function field(ctx) {
   const { page, open, act, capture, note, sleep, check } = ctx;
   const key = async k => act(`press ${k}`, () => page.keyboard.press(k));
+  const ready = (mode, previous = null) => page.waitForFunction(({mode, previous}) => {
+    const api = window.__ipl;
+    return api?.sm?.currentName === mode && window.__scene && window.__scene !== previous &&
+      !api.sm._busy && !api.input.blocked && !api.engine.paused;
+  }, {mode, previous}, {timeout: 20000});
+  const skipIntro = async mode => {
+    await key('z');
+    await page.waitForFunction(mode => {
+      const s = window.__scene;
+      return window.__ipl?.sm?.currentName === mode &&
+        (mode === 'arena' ? !s?.cine?.active : s?.phase === 'play');
+    }, mode, {timeout: 10000});
+  };
   const state = () => page.evaluate(() => {
     const s = window.__scene, e = window.__ipl?.engine, p = s?.hero?.group?.position;
     return { type: s?.constructor.name, mode: window.__ipl?.sm?.currentName, time: e?.elapsedTime, fps: e?.fps,
@@ -51,7 +64,8 @@ export default async function field(ctx) {
     await page.keyboard.down(k); try { await sleep(ms); } finally { await page.keyboard.up(k); }
   });
   const pauseTest = async mode => {
-    await key('Escape'); await sleep(300);
+    await key('Escape');
+    await page.locator('.session-overlay').waitFor({state:'visible', timeout:8000});
     const visible = await page.locator('.session-overlay').isVisible();
     check(`${mode}: pause menu opens`, visible, await state());
     if (!visible) return;
@@ -59,29 +73,41 @@ export default async function field(ctx) {
     check(`${mode}: pause freezes simulation`, Math.abs(after.time-before.time)<0.06, {before, after});
     await capture(`${mode}-pause`);
     await act('resume via menu', () => page.locator('[data-action="resume"]').click());
-    await sleep(300);
+    await page.locator('.session-overlay').waitFor({state:'hidden', timeout:8000});
+    await ready(mode);
     check(`${mode}: resume closes menu`, !(await page.locator('.session-overlay').isVisible()), await state());
   };
   const restartAndHub = async mode => {
-    await key('Escape'); await sleep(250);
+    if ((await state()).mode !== mode) {
+      note('coverage', `${mode}: restart unavailable`, 'Scene changed naturally before the restart journey.'); return;
+    }
+    await key('Escape');
+    await page.locator('.session-overlay').waitFor({state:'visible', timeout:8000});
     if (!await page.locator('.session-overlay').isVisible()) {
       note('coverage', `${mode}: restart unavailable`, 'Match may have returned to hub naturally; screenshot records final state.'); return;
     }
-    await act('restart through pause menu', () => page.locator('[data-action="restart"]').click());
-    await sleep(1600); await key('z'); await sleep(450);
+    // Compare scene identities to prove a new instance, even when the route is unchanged.
+    const previous = await page.evaluateHandle(() => window.__scene);
+    try {
+      await act('restart through pause menu', () => page.locator('[data-action="restart"]').click());
+      await ready(mode, previous);
+    } finally { await previous.dispose(); }
+    await skipIntro(mode);
     const fresh = await state();
     check(`${mode}: restart restores a living player`, fresh.hp > 0 && !fresh.over, fresh);
     await capture(`${mode}-restarted`);
-    await key('Escape'); await sleep(250);
+    await key('Escape');
+    await page.locator('.session-overlay').waitFor({state:'visible', timeout:8000});
     await act('return to hub through pause menu', () => page.locator('[data-action="hub"]').click());
-    await sleep(1600);
+    await ready('hub');
     check(`${mode}: return to hub`, (await state()).mode === 'hub', await state());
   };
   for (const mode of ['moba', 'arena', 'siege']) {
     try {
       await open(mode);
+      await ready(mode);
       await capture(`${mode}-entry`);
-      await key('z'); await sleep(500);
+      await skipIntro(mode);
       await key('h'); await capture(`${mode}-help`); await key('h');
       await pauseTest(mode);
       const initial = await state();
@@ -105,9 +131,10 @@ export default async function field(ctx) {
           await capture('siege-maintenance-after-build');
         } else note('coverage', 'Siege pad not reached', 'Normal click orders did not expose maintenance within bounded navigation time. Review entry and play screenshots.');
       }
-      const start = Date.now(); let turns=0, lastCapture=0, naturalEnd=false;
+      const start = Date.now(); let turns=0, lastCapture=0, naturalEnd=false, bossObserved=false;
       while (Date.now()-start < 65000) {
         const s = await state();
+        bossObserved ||= s.boss;
         if (s.mode !== mode || s.over) {
           naturalEnd=true; await capture(`${mode}-natural-end`); break;
         }
@@ -142,9 +169,16 @@ export default async function field(ctx) {
       const final = await state();
       await capture(`${mode}-battle-final`);
       check(`${mode}: runtime remains finite`, !final.position || (Number.isFinite(final.position.x)&&Number.isFinite(final.position.z)&&Number.isFinite(final.hp)), final);
-      check(`${mode}: simulation progressed`, final.time > initial.time + 2 || naturalEnd, {initial, final, turns});
+      const simSeconds = final.time - initial.time;
+      if (naturalEnd || simSeconds > 2)
+        check(`${mode}: simulation progressed`, true, {initial, final, turns});
+      else if (final.fps >= 10)
+        check(`${mode}: simulation progressed`, false, {initial, final, turns});
+      if (!naturalEnd && simSeconds < 15)
+        note('coverage', `${mode}: insufficient simulation progress`,
+          `${simSeconds.toFixed(2)} simulation seconds during bounded remote play (final FPS ${final.fps?.toFixed(2)}). Combat and usability coverage remain limited; software renderer speed is a confound.`);
       note('observation', `${mode}: normal battle journey`, JSON.stringify({initial, final, turns, naturalEnd}));
-      if ((mode==='arena'||mode==='siege') && !final.boss)
+      if ((mode==='arena'||mode==='siege') && !bossObserved && !final.boss)
         note('coverage', `${mode}: boss not reached`, `Normal progression ended at wave ${final.wave}; this journey does not establish boss playability.`);
       if (!naturalEnd) await restartAndHub(mode);
     } catch (error) {

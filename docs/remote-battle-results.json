@@ -1,0 +1,1186 @@
+[
+  {
+    "run": "38103202172",
+    "sha": "317b7001e40189eeb33c6114af5d13179a22e56f",
+    "group": "field",
+    "environment": "GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35 (448x252 render, 1280x720 UI)",
+    "method": "Adaptive scripted real browser inputs with read-only game telemetry; no runtime state injection",
+    "checks": [
+      {
+        "name": "moba: pause menu opens",
+        "passed": true
+      },
+      {
+        "name": "moba: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "moba: resume closes menu",
+        "passed": true
+      },
+      {
+        "name": "moba: runtime remains finite",
+        "passed": true
+      },
+      {
+        "name": "moba: simulation progressed",
+        "passed": true
+      },
+      {
+        "name": "moba: restart restores a living player",
+        "passed": true
+      },
+      {
+        "name": "moba: return to hub",
+        "passed": true
+      },
+      {
+        "name": "arena: pause menu opens",
+        "passed": true
+      },
+      {
+        "name": "arena: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "arena: resume closes menu",
+        "passed": true
+      },
+      {
+        "name": "arena: runtime remains finite",
+        "passed": true
+      },
+      {
+        "name": "arena: simulation progressed",
+        "passed": true
+      },
+      {
+        "name": "arena: restart restores a living player",
+        "passed": true
+      },
+      {
+        "name": "arena: return to hub",
+        "passed": true
+      },
+      {
+        "name": "siege: pause menu opens",
+        "passed": true
+      },
+      {
+        "name": "siege: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "siege: resume closes menu",
+        "passed": true
+      },
+      {
+        "name": "siege: build spends gold and creates tower",
+        "passed": true
+      },
+      {
+        "name": "siege: runtime remains finite",
+        "passed": true
+      },
+      {
+        "name": "siege: simulation progressed",
+        "passed": true
+      },
+      {
+        "name": "siege: restart restores a living player",
+        "passed": true
+      },
+      {
+        "name": "siege: return to hub",
+        "passed": true
+      }
+    ],
+    "failures": [],
+    "failedCheckEvidence": [],
+    "coverage": [
+      {
+        "seconds": 98.94,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "moba: insufficient simulation progress",
+        "detail": "8.61 simulation seconds during bounded remote play (final FPS 2.90). Combat and usability coverage remain limited; software renderer speed is a confound."
+      },
+      {
+        "seconds": 212.25,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "arena: insufficient simulation progress",
+        "detail": "9.89 simulation seconds during bounded remote play (final FPS 2.59). Combat and usability coverage remain limited; software renderer speed is a confound."
+      },
+      {
+        "seconds": 212.25,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "arena: boss not reached",
+        "detail": "Normal progression ended at wave 1; this journey does not establish boss playability."
+      },
+      {
+        "seconds": 340.75,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "siege: insufficient simulation progress",
+        "detail": "12.12 simulation seconds during bounded remote play (final FPS 4.28). Combat and usability coverage remain limited; software renderer speed is a confound."
+      },
+      {
+        "seconds": 340.75,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "siege: boss not reached",
+        "detail": "Normal progression ended at wave 1; this journey does not establish boss playability."
+      }
+    ],
+    "missingScreenshots": 0
+  },
+  {
+    "run": "38103202172",
+    "sha": "317b7001e40189eeb33c6114af5d13179a22e56f",
+    "group": "fighters",
+    "environment": "GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35 (448x252 render, 1280x720 UI)",
+    "method": "Adaptive scripted real browser inputs with read-only game telemetry; no runtime state injection",
+    "checks": [
+      {
+        "name": "tower: help visibly opens",
+        "passed": true
+      },
+      {
+        "name": "tower: help closes",
+        "passed": true
+      },
+      {
+        "name": "tower: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "tower: resume advances simulation",
+        "passed": true
+      },
+      {
+        "name": "tower: right-click produces walking",
+        "passed": true
+      },
+      {
+        "name": "tower: finite player position during combat",
+        "passed": true
+      },
+      {
+        "name": "tower: simulation advances during battle",
+        "passed": true
+      },
+      {
+        "name": "tower: hits or stock changes observed",
+        "passed": true
+      },
+      {
+        "name": "single-duel: help visibly opens",
+        "passed": true
+      },
+      {
+        "name": "single-duel: help closes",
+        "passed": true
+      },
+      {
+        "name": "single-duel: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "single-duel: resume advances simulation",
+        "passed": true
+      },
+      {
+        "name": "single-duel: right-click produces walking",
+        "passed": false
+      },
+      {
+        "name": "single-duel: finite player position during combat",
+        "passed": true
+      },
+      {
+        "name": "single-duel: simulation advances during battle",
+        "passed": true
+      },
+      {
+        "name": "single-duel: hits or stock changes observed",
+        "passed": true
+      },
+      {
+        "name": "brawl: help visibly opens",
+        "passed": true
+      },
+      {
+        "name": "brawl: help closes",
+        "passed": true
+      },
+      {
+        "name": "brawl: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "brawl: resume advances simulation",
+        "passed": true
+      },
+      {
+        "name": "brawl: finite player position during combat",
+        "passed": true
+      },
+      {
+        "name": "brawl: simulation advances during battle",
+        "passed": true
+      },
+      {
+        "name": "brawl: hits or stock changes observed",
+        "passed": true
+      }
+    ],
+    "failures": [],
+    "failedCheckEvidence": [
+      {
+        "seconds": 210.84,
+        "type": "check",
+        "name": "single-duel: right-click produces walking",
+        "passed": false,
+        "detail": {
+          "before": {
+            "scene": "he",
+            "phase": "fight",
+            "mode": "single",
+            "over": null,
+            "stage": 0,
+            "roundT": 58.150900000000064,
+            "elapsed": 5.850499999999929,
+            "paused": false,
+            "fps": 1.406074240719887,
+            "player": {
+              "name": "RAVAGER",
+              "x": -4.519755439955084,
+              "y": 0,
+              "hp": 89.9,
+              "grounded": true
+            },
+            "foe": {
+              "name": "ASHBORN",
+              "x": -2.455177838879427,
+              "y": 0,
+              "hp": 100,
+              "grounded": true
+            },
+            "others": [],
+            "cds": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "warnings": [],
+            "hintOpen": false,
+            "text": "R\nRAVAGER\nA\nASHBORN\n59\nSURGE\nSURGE\n2x\n10 DMG\nSINGLE DUEL \u00b7 CPU 6\nQ\nShadow Step\nShadow Step\nVanish and reappear BEHIND your foe \u2014 the mixup that wins duels.\n5s cooldown\nW\nFlaming Spear\nFlaming Spear\nThe classic: a flaming bolt across the pit. Zone, poke, punish.\n3.5s cooldown\nE\nEarthbreaker\nEarthbreaker\nRising earthen uppercut \u2014 launches for a juggle, swats jumpers.\n8s cooldown\nR\nSkyfall Hammer\nSkyfall Hammer\nBring the hammer of the sky down on the center of the pit.\n18s cooldown\nH\nControls"
+          },
+          "after": {
+            "scene": "he",
+            "phase": "fight",
+            "mode": "single",
+            "over": null,
+            "stage": 0,
+            "roundT": 58.10090000000007,
+            "elapsed": 6.000499999999929,
+            "paused": false,
+            "fps": 2.067254685777271,
+            "player": {
+              "name": "RAVAGER",
+              "x": -4.635323082381432,
+              "y": 0,
+              "hp": 89.9,
+              "grounded": true
+            },
+            "foe": {
+              "name": "ASHBORN",
+              "x": -2.455591203593606,
+              "y": 0,
+              "hp": 100,
+              "grounded": true
+            },
+            "others": [],
+            "cds": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "warnings": [],
+            "hintOpen": false,
+            "text": "R\nRAVAGER\nA\nASHBORN\n59\nSURGE\nSURGE\n2x\n10 DMG\nSINGLE DUEL \u00b7 CPU 6\nQ\nShadow Step\nShadow Step\nVanish and reappear BEHIND your foe \u2014 the mixup that wins duels.\n5s cooldown\nW\nFlaming Spear\nFlaming Spear\nThe classic: a flaming bolt across the pit. Zone, poke, punish.\n3.5s cooldown\nE\nEarthbreaker\nEarthbreaker\nRising earthen uppercut \u2014 launches for a juggle, swats jumpers.\n8s cooldown\nR\nSkyfall Hammer\nSkyfall Hammer\nBring the hammer of the sky down on the center of the pit.\n18s cooldown\nH\nControls"
+          }
+        }
+      }
+    ],
+    "coverage": [],
+    "missingScreenshots": 21
+  },
+  {
+    "run": "38103202172",
+    "sha": "317b7001e40189eeb33c6114af5d13179a22e56f",
+    "group": "sports",
+    "environment": "GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35 (448x252 render, 1280x720 UI)",
+    "method": "Adaptive scripted real browser inputs with read-only game telemetry; no runtime state injection",
+    "checks": [
+      {
+        "name": "Sensitivity reaches maximum via keyboard",
+        "passed": true
+      },
+      {
+        "name": "Sensitivity reset returns 1x",
+        "passed": true
+      },
+      {
+        "name": "Phantom shortcut fills all slots",
+        "passed": true
+      },
+      {
+        "name": "Race progress advances with ordinary steering",
+        "passed": true
+      },
+      {
+        "name": "Race keeps finite positions and speeds",
+        "passed": true
+      },
+      {
+        "name": "Rival racers advance through the course",
+        "passed": true
+      },
+      {
+        "name": "Race restart creates a fresh race",
+        "passed": true
+      }
+    ],
+    "failures": [
+      {
+        "seconds": 24.16,
+        "type": "finding",
+        "severity": "error",
+        "title": "hub-forge-settings interrupted",
+        "detail": "TypeError: Converting circular structure to JSON\n    --> starting at object with constructor 'Object'\n    |     property 'children' -> object with constructor 'Array'\n    |     index 0 -> object with constructor 'Object'\n    --- property 'parent' closes the circle"
+      },
+      {
+        "seconds": 70.01,
+        "type": "finding",
+        "severity": "error",
+        "title": "blood-court-live-match interrupted",
+        "detail": "TimeoutError: page.waitForFunction: Timeout 6500ms exceeded."
+      }
+    ],
+    "failedCheckEvidence": [],
+    "coverage": [
+      {
+        "seconds": 300.12,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "Race did not finish within bounded remote play session",
+        "detail": {
+          "final": {
+            "progress": 0.552734375,
+            "finished": false,
+            "clock": 14.13810000000013
+          },
+          "wallSeconds": 168.045
+        }
+      }
+    ],
+    "missingScreenshots": 9
+  },
+  {
+    "run": "38103362695",
+    "sha": "29d11fbde4820286e3c0bbd8128bfdb8d9f917df",
+    "group": "field",
+    "environment": "GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35 (448x252 render, 1280x720 UI)",
+    "method": "Adaptive scripted real browser inputs with read-only game telemetry; no runtime state injection",
+    "checks": [
+      {
+        "name": "moba: pause menu opens",
+        "passed": true
+      },
+      {
+        "name": "moba: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "moba: resume closes menu",
+        "passed": true
+      },
+      {
+        "name": "moba: runtime remains finite",
+        "passed": true
+      },
+      {
+        "name": "moba: simulation progressed",
+        "passed": true
+      },
+      {
+        "name": "moba: restart restores a living player",
+        "passed": true
+      },
+      {
+        "name": "moba: return to hub",
+        "passed": true
+      },
+      {
+        "name": "arena: pause menu opens",
+        "passed": true
+      },
+      {
+        "name": "arena: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "arena: resume closes menu",
+        "passed": true
+      },
+      {
+        "name": "arena: runtime remains finite",
+        "passed": true
+      },
+      {
+        "name": "arena: simulation progressed",
+        "passed": true
+      },
+      {
+        "name": "siege: pause menu opens",
+        "passed": true
+      },
+      {
+        "name": "siege: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "siege: resume closes menu",
+        "passed": true
+      },
+      {
+        "name": "siege: build spends gold and creates tower",
+        "passed": true
+      },
+      {
+        "name": "siege: runtime remains finite",
+        "passed": true
+      },
+      {
+        "name": "siege: simulation progressed",
+        "passed": true
+      },
+      {
+        "name": "siege: restart restores a living player",
+        "passed": true
+      },
+      {
+        "name": "siege: return to hub",
+        "passed": true
+      }
+    ],
+    "failures": [
+      {
+        "seconds": 268.46,
+        "type": "finding",
+        "severity": "error",
+        "title": "arena: journey interrupted",
+        "detail": "locator.click: Timeout 8000ms exceeded.\nCall log:\n  - waiting for locator('[data-action=\"restart\"]')\n    - locator resolved to <button type=\"button\" data-action=\"restart\">\u2026</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - performing click action\n\n    at /home/runner/work/warrior_league/warrior_league/qa/battle/field.mjs:92:93\n    at act (/home/runner/work/warrior_league/warrior_league/qa/battle/run.mjs:66:32)\n    at restartAndHub (/home/runner/work/warrior_league/warrior_league/qa/battle/field.mjs:92:13)\n    at async field (/home/runner/work/warrior_league/warrior_league/qa/battle/field.mjs:183:24)\n    at async file:///home/runner/work/warrior_league/warrior_league/qa/battle/run.mjs:73:5"
+      }
+    ],
+    "failedCheckEvidence": [],
+    "coverage": [
+      {
+        "seconds": 120.31,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "moba: insufficient simulation progress",
+        "detail": "4.84 simulation seconds during bounded remote play (final FPS 3.31). Combat and usability coverage remain limited; software renderer speed is a confound."
+      },
+      {
+        "seconds": 260.44,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "arena: insufficient simulation progress",
+        "detail": "5.58 simulation seconds during bounded remote play (final FPS 1.89). Combat and usability coverage remain limited; software renderer speed is a confound."
+      },
+      {
+        "seconds": 260.44,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "arena: boss not reached",
+        "detail": "Normal progression ended at wave 1; this journey does not establish boss playability."
+      },
+      {
+        "seconds": 416.76,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "siege: insufficient simulation progress",
+        "detail": "6.98 simulation seconds during bounded remote play (final FPS 2.51). Combat and usability coverage remain limited; software renderer speed is a confound."
+      },
+      {
+        "seconds": 416.76,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "siege: boss not reached",
+        "detail": "Normal progression ended at wave 1; this journey does not establish boss playability."
+      }
+    ],
+    "missingScreenshots": 19
+  },
+  {
+    "run": "38103362695",
+    "sha": "29d11fbde4820286e3c0bbd8128bfdb8d9f917df",
+    "group": "fighters",
+    "environment": "GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35 (448x252 render, 1280x720 UI)",
+    "method": "Adaptive scripted real browser inputs with read-only game telemetry; no runtime state injection",
+    "checks": [
+      {
+        "name": "tower: intro leaves camera near arena",
+        "passed": true
+      },
+      {
+        "name": "tower: Pause and Controls do not overlap",
+        "passed": true
+      },
+      {
+        "name": "tower: help visibly opens",
+        "passed": true
+      },
+      {
+        "name": "tower: help closes",
+        "passed": true
+      },
+      {
+        "name": "tower: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "tower: resume advances simulation",
+        "passed": true
+      },
+      {
+        "name": "tower: right-click produces walking",
+        "passed": true
+      },
+      {
+        "name": "tower: finite player position during combat",
+        "passed": true
+      },
+      {
+        "name": "tower: simulation advances during battle",
+        "passed": true
+      },
+      {
+        "name": "tower: hits or stock changes observed",
+        "passed": true
+      },
+      {
+        "name": "single-duel: intro leaves camera near arena",
+        "passed": true
+      },
+      {
+        "name": "single-duel: Pause and Controls do not overlap",
+        "passed": true
+      },
+      {
+        "name": "single-duel: controls clear Pause at 900px",
+        "passed": true
+      },
+      {
+        "name": "single-duel: controls clear Pause at 390px",
+        "passed": true
+      },
+      {
+        "name": "single-duel: help visibly opens",
+        "passed": true
+      },
+      {
+        "name": "single-duel: help closes",
+        "passed": true
+      },
+      {
+        "name": "single-duel: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "single-duel: resume advances simulation",
+        "passed": true
+      },
+      {
+        "name": "single-duel: right-click produces walking",
+        "passed": false
+      },
+      {
+        "name": "single-duel: finite player position during combat",
+        "passed": true
+      },
+      {
+        "name": "single-duel: simulation advances during battle",
+        "passed": true
+      },
+      {
+        "name": "single-duel: hits or stock changes observed",
+        "passed": true
+      },
+      {
+        "name": "brawl: intro leaves camera near arena",
+        "passed": true
+      }
+    ],
+    "failures": [
+      {
+        "seconds": 445.4,
+        "type": "finding",
+        "severity": "blocker",
+        "title": "brawl: fight did not start",
+        "detail": {
+          "scene": "fe",
+          "phase": "fight",
+          "over": null,
+          "camera": {
+            "x": 0.34927812028303956,
+            "y": 3.8410936933617466,
+            "z": 21.799999994615284
+          },
+          "elapsed": 5.299500000000048,
+          "paused": false,
+          "fps": 1.0903341874284191,
+          "player": {
+            "name": "RAVAGER",
+            "x": -7,
+            "y": 0,
+            "hp": 40,
+            "damage": 0,
+            "stocks": 3,
+            "state": "fight",
+            "grounded": true
+          },
+          "foe": null,
+          "others": [
+            {
+              "name": "BLOODFANG",
+              "x": 7,
+              "y": 0,
+              "hp": 40,
+              "damage": 0,
+              "stocks": 3,
+              "state": "fight",
+              "grounded": true
+            },
+            {
+              "name": "IRONJAW",
+              "x": 0,
+              "y": 0,
+              "hp": 40,
+              "damage": 0,
+              "stocks": 3,
+              "state": "fight",
+              "grounded": true
+            }
+          ],
+          "cds": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "warnings": [],
+          "hintOpen": false,
+          "text": "RAVAGER\n0%\nBLOODFANG\n0%\nIRONJAW\n0%\nQ\nShadow Step\nShadow Step\nStep through their strike in a puff of ash \u2014 or back to the ledge.\n5s cooldown\nW\nFlaming Spear\nFlaming Spear\nA burning spear that stacks damage from across the arena.\n3.5s cooldown\nE\nEarthbreaker\nEarthbreaker\nPoint-blank launcher \u2014 a killing blow at high percent.\n8s cooldown\nR\nSkyfall Hammer\nSkyfall Hammer\nThe hammer smashes the arena \u2014 massive launch power.\n18s cooldown\nH\nControls\nGO!"
+        }
+      }
+    ],
+    "failedCheckEvidence": [
+      {
+        "seconds": 275.36,
+        "type": "check",
+        "name": "single-duel: right-click produces walking",
+        "passed": false,
+        "detail": {
+          "before": {
+            "scene": "he",
+            "phase": "fight",
+            "mode": "single",
+            "over": null,
+            "stage": 0,
+            "roundT": 57.62170000000013,
+            "camera": {
+              "x": -3.357167024549108,
+              "y": 2.5125404430694718,
+              "z": 7.17506146786169
+            },
+            "elapsed": 6.6228000000000335,
+            "paused": false,
+            "fps": 1.5714622456195346,
+            "player": {
+              "name": "RAVAGER",
+              "x": -4.948289616788201,
+              "y": 0,
+              "hp": 89.9,
+              "grounded": true
+            },
+            "foe": {
+              "name": "ASHBORN",
+              "x": -3.2676713536013384,
+              "y": 0,
+              "hp": 100,
+              "grounded": true
+            },
+            "others": [],
+            "cds": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "warnings": [],
+            "hintOpen": false,
+            "text": "R\nRAVAGER\nA\nASHBORN\n58\nSURGE\nSURGE\n2x\n10 DMG\nSINGLE DUEL \u00b7 CPU 6\nQ\nShadow Step\nShadow Step\nVanish and reappear BEHIND your foe \u2014 the mixup that wins duels.\n5s cooldown\nW\nFlaming Spear\nFlaming Spear\nThe classic: a flaming bolt across the pit. Zone, poke, punish.\n3.5s cooldown\nE\nEarthbreaker\nEarthbreaker\nRising earthen uppercut \u2014 launches for a juggle, swats jumpers.\n8s cooldown\nR\nSkyfall Hammer\nSkyfall Hammer\nBring the hammer of the sky down on the center of the pit.\n18s cooldown\nH\nControls"
+          },
+          "after": {
+            "scene": "he",
+            "phase": "fight",
+            "mode": "single",
+            "over": null,
+            "stage": 0,
+            "roundT": 57.52170000000014,
+            "camera": {
+              "x": -3.3828790815407355,
+              "y": 2.5084059666240206,
+              "z": 7.251051195224813
+            },
+            "elapsed": 6.722800000000033,
+            "paused": false,
+            "fps": 1.024485196188909,
+            "player": {
+              "name": "RAVAGER",
+              "x": -5.143128233129084,
+              "y": 0,
+              "hp": 89.9,
+              "grounded": true
+            },
+            "foe": {
+              "name": "ASHBORN",
+              "x": -3.2672811524893004,
+              "y": 0,
+              "hp": 100,
+              "grounded": true
+            },
+            "others": [],
+            "cds": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "warnings": [],
+            "hintOpen": false,
+            "text": "R\nRAVAGER\nA\nASHBORN\n58\nSURGE\nSURGE\n2x\n10 DMG\nSINGLE DUEL \u00b7 CPU 6\nQ\nShadow Step\nShadow Step\nVanish and reappear BEHIND your foe \u2014 the mixup that wins duels.\n5s cooldown\nW\nFlaming Spear\nFlaming Spear\nThe classic: a flaming bolt across the pit. Zone, poke, punish.\n3.5s cooldown\nE\nEarthbreaker\nEarthbreaker\nRising earthen uppercut \u2014 launches for a juggle, swats jumpers.\n8s cooldown\nR\nSkyfall Hammer\nSkyfall Hammer\nBring the hammer of the sky down on the center of the pit.\n18s cooldown\nH\nControls"
+          }
+        }
+      }
+    ],
+    "coverage": [],
+    "missingScreenshots": 18
+  },
+  {
+    "run": "38103362695",
+    "sha": "29d11fbde4820286e3c0bbd8128bfdb8d9f917df",
+    "group": "sports",
+    "environment": "GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35 (448x252 render, 1280x720 UI)",
+    "method": "Adaptive scripted real browser inputs with read-only game telemetry; no runtime state injection",
+    "checks": [
+      {
+        "name": "Sensitivity reaches maximum via keyboard",
+        "passed": true
+      },
+      {
+        "name": "Sensitivity reset returns 1x",
+        "passed": true
+      },
+      {
+        "name": "Phantom shortcut fills all slots",
+        "passed": true
+      },
+      {
+        "name": "Forge arts persist into court",
+        "passed": true
+      },
+      {
+        "name": "Skyfall cast does not award points",
+        "passed": true
+      },
+      {
+        "name": "Race progress advances with ordinary steering",
+        "passed": true
+      },
+      {
+        "name": "Race keeps finite positions and speeds",
+        "passed": true
+      },
+      {
+        "name": "Rival racers advance through the course",
+        "passed": true
+      },
+      {
+        "name": "Race restart creates a fresh race",
+        "passed": true
+      }
+    ],
+    "failures": [
+      {
+        "seconds": 116.36,
+        "type": "finding",
+        "severity": "error",
+        "title": "blood-court-live-match interrupted",
+        "detail": "TimeoutError: page.waitForFunction: Timeout 6500ms exceeded."
+      }
+    ],
+    "failedCheckEvidence": [],
+    "coverage": [
+      {
+        "seconds": 354.68,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "Race did not finish within bounded remote play session",
+        "detail": {
+          "final": {
+            "progress": 0.36328125,
+            "finished": false,
+            "clock": 10.464700000000084
+          },
+          "wallSeconds": 168.083
+        }
+      }
+    ],
+    "missingScreenshots": 13
+  },
+  {
+    "run": "38103954571",
+    "sha": "17a5e8bb462cf7a139e75dda64ae23ae61522f51",
+    "group": "sports",
+    "environment": "GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35 (448x252 render, 1280x720 UI)",
+    "method": "Adaptive scripted real browser inputs with read-only game telemetry; no runtime state injection",
+    "checks": [
+      {
+        "name": "Sensitivity reaches maximum via keyboard",
+        "passed": true
+      },
+      {
+        "name": "Sensitivity reset returns 1x",
+        "passed": true
+      },
+      {
+        "name": "Phantom shortcut fills all slots",
+        "passed": true
+      },
+      {
+        "name": "Forge arts persist into court",
+        "passed": true
+      },
+      {
+        "name": "Skyfall cast does not award points",
+        "passed": true
+      },
+      {
+        "name": "Court simulation progresses during real input",
+        "passed": false
+      },
+      {
+        "name": "Court registers actual shot attempts",
+        "passed": true
+      },
+      {
+        "name": "Court match produces scoring or possession changes",
+        "passed": true
+      },
+      {
+        "name": "Court can return to hub after extended play",
+        "passed": true
+      },
+      {
+        "name": "Race progress advances with ordinary steering",
+        "passed": true
+      },
+      {
+        "name": "Race keeps finite positions and speeds",
+        "passed": true
+      },
+      {
+        "name": "Rival racers advance through the course",
+        "passed": false
+      },
+      {
+        "name": "Race restart creates a fresh race",
+        "passed": true
+      }
+    ],
+    "failures": [],
+    "failedCheckEvidence": [
+      {
+        "seconds": 203.97,
+        "type": "check",
+        "name": "Court simulation progresses during real input",
+        "passed": false,
+        "detail": {
+          "first": {
+            "phase": "live",
+            "t": 1.674099999999978,
+            "attempts": 0,
+            "makes": 0,
+            "score": {
+              "you": 0,
+              "cpu": 0
+            },
+            "holder": "player",
+            "offense": "player",
+            "clock": 13.95,
+            "p": {
+              "x": 0,
+              "z": 5.4
+            },
+            "a": {
+              "x": 0,
+              "z": 2.3498171826850727
+            },
+            "metering": false,
+            "meter": 0,
+            "buff": 0,
+            "skills": [
+              "comet",
+              "decoy",
+              "blink",
+              "starfire"
+            ]
+          },
+          "last": {
+            "phase": "live",
+            "t": 6.565999999999959,
+            "attempts": 1,
+            "makes": 1,
+            "score": {
+              "you": 3,
+              "cpu": 0
+            },
+            "holder": "player",
+            "offense": "player",
+            "clock": 13.927800000000046,
+            "p": {
+              "x": 0,
+              "z": 5.4
+            },
+            "a": {
+              "x": -0.06161315468832636,
+              "z": 2.271598018918638
+            },
+            "metering": false,
+            "meter": 0.6734736842105142,
+            "buff": 0,
+            "skills": [
+              "comet",
+              "decoy",
+              "blink",
+              "starfire"
+            ]
+          }
+        }
+      },
+      {
+        "seconds": 443.62,
+        "type": "check",
+        "name": "Rival racers advance through the course",
+        "passed": false,
+        "detail": [
+          {
+            "progress": 0.4013671875,
+            "speed": 38.616,
+            "finished": false
+          },
+          {
+            "progress": 0.4052734375,
+            "speed": 38.224000000000004,
+            "finished": false
+          },
+          {
+            "progress": 0.3759765625,
+            "speed": 6.513599999997755,
+            "finished": false
+          },
+          {
+            "progress": 0.3427734375,
+            "speed": 38.22,
+            "finished": false
+          },
+          {
+            "progress": 0.263671875,
+            "speed": 24.1877792,
+            "finished": false
+          }
+        ]
+      }
+    ],
+    "coverage": [
+      {
+        "seconds": 443.62,
+        "type": "finding",
+        "severity": "coverage",
+        "title": "Race did not finish within bounded remote play session",
+        "detail": {
+          "final": {
+            "progress": 0.30859375,
+            "finished": false,
+            "clock": 9.727063542666716
+          },
+          "wallSeconds": 168.095
+        }
+      }
+    ],
+    "missingScreenshots": 16
+  },
+  {
+    "run": "38103954571",
+    "sha": "17a5e8bb462cf7a139e75dda64ae23ae61522f51",
+    "group": "fighters",
+    "environment": "GitHub-hosted Ubuntu, isolated headless Chromium, software WebGL, DPR 0.35 (448x252 render, 1280x720 UI)",
+    "method": "Adaptive scripted real browser inputs with read-only game telemetry; no runtime state injection",
+    "checks": [
+      {
+        "name": "tower: intro leaves camera near arena",
+        "passed": true
+      },
+      {
+        "name": "tower: Pause and Controls do not overlap",
+        "passed": true
+      },
+      {
+        "name": "tower: help visibly opens",
+        "passed": true
+      },
+      {
+        "name": "tower: help closes",
+        "passed": true
+      },
+      {
+        "name": "tower: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "tower: resume advances simulation",
+        "passed": true
+      },
+      {
+        "name": "tower: right-click accepts a walking destination",
+        "passed": true
+      },
+      {
+        "name": "tower: right-click produces walking",
+        "passed": true
+      },
+      {
+        "name": "tower: finite player position during combat",
+        "passed": true
+      },
+      {
+        "name": "tower: simulation advances during battle",
+        "passed": true
+      },
+      {
+        "name": "tower: hits or stock changes observed",
+        "passed": true
+      },
+      {
+        "name": "single-duel: intro leaves camera near arena",
+        "passed": true
+      },
+      {
+        "name": "single-duel: Pause and Controls do not overlap",
+        "passed": true
+      },
+      {
+        "name": "single-duel: controls clear Pause at 900px",
+        "passed": true
+      },
+      {
+        "name": "single-duel: controls clear Pause at 390px",
+        "passed": true
+      },
+      {
+        "name": "single-duel: help visibly opens",
+        "passed": true
+      },
+      {
+        "name": "single-duel: help closes",
+        "passed": true
+      },
+      {
+        "name": "single-duel: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "single-duel: resume advances simulation",
+        "passed": true
+      },
+      {
+        "name": "single-duel: right-click accepts a walking destination",
+        "passed": true
+      },
+      {
+        "name": "single-duel: right-click produces walking",
+        "passed": true
+      },
+      {
+        "name": "single-duel: finite player position during combat",
+        "passed": true
+      },
+      {
+        "name": "single-duel: simulation advances during battle",
+        "passed": true
+      },
+      {
+        "name": "single-duel: hits or stock changes observed",
+        "passed": true
+      },
+      {
+        "name": "brawl: intro leaves camera near arena",
+        "passed": true
+      },
+      {
+        "name": "brawl: Pause and Controls do not overlap",
+        "passed": true
+      },
+      {
+        "name": "brawl: help visibly opens",
+        "passed": true
+      },
+      {
+        "name": "brawl: help closes",
+        "passed": true
+      },
+      {
+        "name": "brawl: pause freezes simulation",
+        "passed": true
+      },
+      {
+        "name": "brawl: resume advances simulation",
+        "passed": true
+      },
+      {
+        "name": "brawl: finite player position during combat",
+        "passed": true
+      },
+      {
+        "name": "brawl: simulation advances during battle",
+        "passed": true
+      },
+      {
+        "name": "brawl: hits or stock changes observed",
+        "passed": true
+      }
+    ],
+    "failures": [],
+    "failedCheckEvidence": [],
+    "coverage": [],
+    "missingScreenshots": 24
+  }
+]

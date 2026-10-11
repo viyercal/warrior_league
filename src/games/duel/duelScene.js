@@ -786,7 +786,9 @@ export default class DuelScene {
     this.player.hero.setMoveSpeed(0)
     this.player.hero.update(dt)
 
-    const k = this.cineT
+    // Skip requests advance cineT beyond the endpoint. Sample the final pose
+    // instead of extrapolating smoothstep and sending the camera offstage.
+    const k = clamp(this.cineT, 0, 3.4)
     if (k < 1.25) {
       const s = smooth(k / 1.25)
       this.camera.position.set(lerp(7.6, 5.4, s), lerp(0.8, 1.4, s), lerp(3.6, 4.4, s))

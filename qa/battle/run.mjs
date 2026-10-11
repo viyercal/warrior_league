@@ -41,7 +41,7 @@ try {
     const p = s?.player?.pos || s?.hero?.group?.position || s?.game?.player?.hero?.group?.position
     return { mode: window.__ipl?.sm?.currentName, phase: s?.phase ?? s?.game?.phase,
       elapsed: e?.elapsedTime, fps: e?.fps, paused: e?.paused, hp: s?.hp ?? s?.player?.hp,
-      over: s?.over, wave: s?.wave, stage: s?.stage, gold: s?.gold,
+      over: s?.over, wave: s?.wave, stage: typeof s?.stage === 'number' ? s.stage : undefined, gold: s?.gold,
       position: p && { x: p.x, y: p.y, z: p.z },
       text: document.body.innerText.slice(0, 12000), url: location.href }
   })

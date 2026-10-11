@@ -65,6 +65,11 @@
 #ui.battle-ui .battle-help-toggle kbd { font: 10px var(--font-controls); padding: 2px 4px; border: 1px solid #bda88455; }
 #ui.battle-ui .battle-help-toggle:hover, #ui.battle-ui .battle-help-toggle[aria-expanded="true"] { background: #31382b; border-color: #cbb28a; transform: none; }
 body .session-menu[data-scene] { right: 22px; left: auto; bottom: 22px; height: 40px; border-radius: 3px; background: #111815de; }
+/* Keep CPU status out of the button's width so Pause clears Controls. */
+body .session-menu[data-scene] .session-cpu-badge {
+  position: absolute; right: 0; bottom: calc(100% + 5px); padding: 3px 6px;
+  background: #111815de; border: 1px solid var(--field-line, #c9b48d45); border-radius: 3px;
+}
 
 /* Match readouts keep their familiar positions; decoration recedes. */
 #ui.battle-ui :is(.ui-panel, .moba-clock, .moba-foeplate, .arena-score, .kart-top, .siege-wave, .siege-gold, .hs-team, .hs-mid, .duel-timer, .duel-chip) {

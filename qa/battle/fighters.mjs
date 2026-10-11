@@ -11,6 +11,7 @@ export default async function fighters(ctx) {
     return {
       scene: s?.constructor?.name, phase: s?.phase, mode: s?.mode,
       over: s?.over, stage: s?.stage, round: s?.round, roundT: s?.roundT,
+      camera: s?.camera && { x: s.camera.position.x, y: s.camera.position.y, z: s.camera.position.z },
       elapsed: e?.elapsedTime, paused: e?.paused, fps: e?.fps,
       player: fighter(s?.player), foe: fighter(s?.foe),
       others: (s?.baseFighters || []).filter(f => f !== s?.player).map(fighter),
@@ -65,7 +66,22 @@ export default async function fighters(ctx) {
       await act(`${label}: enter realm`, () => open(mode))
       await capture(`${label}-entrance`)
       const start = await waitFight(label)
+      const afterIntro = start || await read()
+      check(`${label}: intro leaves camera near arena`, !!afterIntro.camera && Object.values(afterIntro.camera).every(v => Number.isFinite(v) && Math.abs(v) < 100), afterIntro.camera)
       if (!start) continue
+      const controls = await page.locator('.battle-help-toggle').boundingBox()
+      const pause = await page.locator('.session-menu').boundingBox()
+      check(`${label}: Pause and Controls do not overlap`, !!controls && !!pause && (controls.x + controls.width <= pause.x || pause.x + pause.width <= controls.x || controls.y + controls.height <= pause.y || pause.y + pause.height <= controls.y), { controls, pause })
+      if (label === 'single-duel') {
+        for (const width of [900, 390]) {
+          await page.setViewportSize({ width, height: 720 })
+          const helpBox = await page.locator('.battle-help-toggle').boundingBox()
+          const pauseBox = await page.locator('.session-menu').boundingBox()
+          check(`${label}: controls clear Pause at ${width}px`, !!helpBox && !!pauseBox && (helpBox.x + helpBox.width <= pauseBox.x || pauseBox.x + pauseBox.width <= helpBox.x || helpBox.y + helpBox.height <= pauseBox.y || pauseBox.y + pauseBox.height <= helpBox.y), { helpBox, pauseBox })
+          await capture(`${label}-controls-${width}`)
+        }
+        await page.setViewportSize({ width: 1280, height: 720 })
+      }
       await menuAndHelp(label)
       await capture(`${label}-battle-start`)
       if (mode !== 'brawl') {

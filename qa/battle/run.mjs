@@ -79,6 +79,7 @@ try {
   note('blocker', 'Battle harness stopped', error.message)
   process.exitCode = 1
 } finally {
+  if (checks.some(x => !x.passed) || findings.some(x => ['error', 'blocker'].includes(x.severity))) process.exitCode = 1
   await persist()
   await context?.tracing.stop({ path: path.join(dir, 'trace.zip') }).catch(() => {})
   await browser?.close().catch(() => {})
